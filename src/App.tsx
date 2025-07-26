@@ -1,17 +1,26 @@
-import { Car, CircleUserRound } from 'lucide-react';
+import { Car, CirclePlus, CircleUserRound } from 'lucide-react';
 
 import './App.css';
 import { Card, CardContent } from './components/ui/card';
 
 function App() {
-  const drivers = ['Lando Norris', 'Oscar Piastri', 'Max Verstappen', 'Lewis Hamilton'];
-  const teams = ['Mercedes', 'McLaren', 'Red Bull Racing', 'Ferrari'];
+  const drivers = ['Lando Norris', '', '', 'Lewis Hamilton'];
+  const teams = ['Mercedes', '', 'Red Bull Racing', 'Ferrari'];
 
   const driverCards = drivers.map((driver) => (
     <Card className="w-60 h-20">
       <CardContent className="flex items-center justify-center gap-2">
-        <CircleUserRound />
-        {driver}
+        {driver === '' ? (
+          <>
+            <CirclePlus />
+            Add Driver
+          </>
+        ) : (
+          <>
+            <CircleUserRound />
+            {driver}
+          </>
+        )}
       </CardContent>
     </Card>
   ));
@@ -19,8 +28,17 @@ function App() {
   const teamCards = teams.map((team) => (
     <Card className="w-60 h-20">
       <CardContent className="flex items-center justify-center gap-2">
-        <Car />
-        {team}
+        {team === '' ? (
+          <>
+            <CirclePlus />
+            Add Team
+          </>
+        ) : (
+          <>
+            <Car />
+            {team}
+          </>
+        )}
       </CardContent>
     </Card>
   ));
