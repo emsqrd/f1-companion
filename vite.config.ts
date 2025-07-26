@@ -1,5 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import { configDefaults } from 'vitest/config';
 
@@ -11,6 +12,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
     define: {
       // Make sure environment variables are properly stringified
       // This ensures they're available at both build time and runtime
