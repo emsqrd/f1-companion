@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import './App.css';
 import RoleCard from './components/RoleCard/RoleCard';
+import RoleGrid from './components/RoleGrid/RoleGrid';
 
 function App() {
   const [drivers, setDrivers] = useState<string[]>(['Lando Norris', '', '', 'Lewis Hamilton']);
@@ -40,8 +41,8 @@ function App() {
   return (
     <>
       <div className="space-y-12">
-        <div className="grid grid-cols-2 gap-4 justify-center">{driverCards}</div>
-        <div className="grid grid-cols-2 gap-4 justify-center">{teamCards}</div>
+        <RoleGrid cards={driverCards} />
+        <RoleGrid cards={teamCards} />
       </div>
     </>
   );
