@@ -11,23 +11,31 @@ interface RoleCardProps {
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ role, name, index, onAddRole }) => {
+  const renderContent = () => {
+    if (name === '') {
+      return (
+        <Button
+          className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent"
+          onClick={() => onAddRole(index)}
+        >
+          <CirclePlus />
+          Add {role}
+        </Button>
+      );
+    } else {
+      return (
+        <Button className="flex items-center gap-2 text-white-500 !bg-transparent hover:!border-transparent focus:!border-transparent">
+          {role === 'Driver' ? <CircleUserRound /> : <Car />}
+          {name}
+        </Button>
+      );
+    }
+  };
+
   return (
     <Card className="w-60 h-20" key={index}>
       <CardContent className="flex items-center justify-center gap-2">
-        {name === '' ? (
-          <Button
-            className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent"
-            onClick={() => onAddRole(index)}
-          >
-            <CirclePlus />
-            Add {role}
-          </Button>
-        ) : (
-          <>
-            {role === 'Driver' ? <CircleUserRound /> : <Car />}
-            {name}
-          </>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );
