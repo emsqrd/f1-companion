@@ -6,17 +6,16 @@ import { Card, CardContent } from '../../components/ui/card';
 interface RoleCardProps {
   role: string;
   name: string;
-  index: number;
-  onAddRole: (index: number) => void;
+  onAddRole: () => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ role, name, index, onAddRole }) => {
+const RoleCard: React.FC<RoleCardProps> = ({ role, name, onAddRole }) => {
   const renderContent = () => {
     if (name === '') {
       return (
         <Button
           className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent"
-          onClick={() => onAddRole(index)}
+          onClick={onAddRole}
         >
           <CirclePlus />
           Add {role}
@@ -33,7 +32,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ role, name, index, onAddRole }) => 
   };
 
   return (
-    <Card className="w-60 h-20" key={index}>
+    <Card className="w-60 h-20">
       <CardContent className="flex items-center justify-center gap-2">
         {renderContent()}
       </CardContent>

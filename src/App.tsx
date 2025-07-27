@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import './App.css';
 import RoleCard from './components/RoleCard/RoleCard';
@@ -30,12 +30,22 @@ function App() {
     }
   };
 
+  const handleDriverAddCallbacks = useMemo(
+    () => drivers.map((_, idx) => () => handleAddDriver(idx)),
+    [drivers],
+  );
+
+  const handleTeamAddCallbacks = useMemo(
+    () => teams.map((_, idx) => () => handleAddTeam(idx)),
+    [teams],
+  );
+
   const driverCards = drivers.map((driver, idx) => (
-    <RoleCard role="Driver" name={driver} index={idx} onAddRole={() => handleAddDriver(idx)} />
+    <RoleCard key={idx} role="Driver" name={driver} onAddRole={handleDriverAddCallbacks[idx]} />
   ));
 
   const teamCards = teams.map((team, idx) => (
-    <RoleCard role="Team" name={team} index={idx} onAddRole={() => handleAddTeam(idx)} />
+    <RoleCard key={idx} role="Team" name={team} onAddRole={handleTeamAddCallbacks[idx]} />
   ));
 
   return (
