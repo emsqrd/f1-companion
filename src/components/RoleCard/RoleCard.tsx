@@ -2,24 +2,47 @@ import { Car, CirclePlus, CircleUserRound } from 'lucide-react';
 
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
+import { ScrollArea } from '../ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 interface RoleCardProps {
   role: string;
   name: string;
-  onAddRole: () => void;
+  pool: string[];
+  onAddRole: (name: string) => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ role, name, onAddRole }) => {
+const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole }) => {
   const renderContent = () => {
+    const driverList = pool.map((name) => (
+      <li key={name} className="flex justify-between items-center pb-4">
+        {name}
+        <Button variant="ghost" className="!bg-transparent" onClick={() => onAddRole(name)}>
+          <CirclePlus />
+        </Button>
+      </li>
+    ));
+
     if (name === '') {
       return (
-        <Button
-          className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent"
-          onClick={onAddRole}
-        >
-          <CirclePlus />
-          Add {role}
-        </Button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent">
+              <CirclePlus />
+              Add {role}
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="w-80 flex flex-col h-full">
+            <SheetHeader>
+              <SheetTitle>Add Driver</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="flex-1 h-full pr-4 overflow-y-auto">
+              <div>
+                <ul className="space-y-2 divide-y p-4">{driverList}</ul>
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
       );
     } else {
       return (
