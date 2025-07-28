@@ -1,4 +1,4 @@
-import { Car, CirclePlus, CircleUserRound } from 'lucide-react';
+import { Car, CirclePlus, CircleUserRound, Trash } from 'lucide-react';
 
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
@@ -10,9 +10,10 @@ interface RoleCardProps {
   name: string;
   pool: string[];
   onAddRole: (name: string) => void;
+  onRemoveRole: () => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole }) => {
+const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole, onRemoveRole }) => {
   const renderContent = () => {
     const driverList = pool.map((name) => (
       <li key={name} className="flex justify-between items-center pb-4">
@@ -27,7 +28,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole }) => {
       return (
         <Sheet>
           <SheetTrigger asChild>
-            <Button className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400 hover:!border-transparent">
+            <Button className="flex items-center gap-2 text-gray-500 !bg-transparent hover:text-gray-400">
               <CirclePlus />
               Add {role}
             </Button>
@@ -46,10 +47,21 @@ const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole }) => {
       );
     } else {
       return (
-        <Button className="flex items-center gap-2 text-white-500 !bg-transparent hover:!border-transparent focus:!border-transparent">
-          {role === 'Driver' ? <CircleUserRound /> : <Car />}
-          {name}
-        </Button>
+        <div className="flex items-counter justify-between gap-2 group">
+          <Button className="flex items-center gap-2 text-white-500 !bg-transparent hover:!border-transparent">
+            <span className="flex items-center gap-2">
+              {role === 'Driver' ? <CircleUserRound /> : <Car />}
+              {name}
+            </span>
+          </Button>
+          <Button
+            size="icon"
+            className="text-red-500 hover:text-red-700 !bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={onRemoveRole}
+          >
+            <Trash />
+          </Button>
+        </div>
       );
     }
   };
