@@ -1,7 +1,7 @@
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { CirclePlus } from 'lucide-react';
 
 import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 interface AddRoleSheetProps {
@@ -32,7 +32,7 @@ const AddRoleSheet: React.FC<AddRoleSheetProps> = ({ role, pool, onAddRole }) =>
         <SheetHeader>
           <SheetTitle>Add {role}</SheetTitle>
         </SheetHeader>
-        <ScrollArea className="flex-1 h-full pr-4 overflow-y-auto">
+        <ScrollArea className="flex-1 h-full pr-4">
           <div>
             <ul className="space-y-2 divide-y p-4">{roleList}</ul>
           </div>
