@@ -25,6 +25,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ role, name, pool, onAddRole, onRemo
         <Button
           size="icon"
           className="text-red-500 hover:text-red-700 !bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label={`Remove ${role}`}
           onClick={onRemoveRole}
         >
           <Trash />

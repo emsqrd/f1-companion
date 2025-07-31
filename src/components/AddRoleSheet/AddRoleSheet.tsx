@@ -14,7 +14,12 @@ const AddRoleSheet: React.FC<AddRoleSheetProps> = ({ role, pool, onAddRole }) =>
   const roleList = pool.map((name) => (
     <li key={name} className="flex justify-between items-center pb-4">
       {name}
-      <Button variant="ghost" className="!bg-transparent" onClick={() => onAddRole(name)}>
+      <Button
+        variant="ghost"
+        className="!bg-transparent"
+        aria-label={`Add ${name}`}
+        onClick={() => onAddRole(name)}
+      >
         <CirclePlus />
       </Button>
     </li>
