@@ -14,7 +14,7 @@ interface RoleCardProps<T> {
   getIcon: (item: T) => React.ReactNode;
 }
 
-export const RoleCard = <T,>(): React.FC<RoleCardProps<T>> =>
+export const RoleCard = <T extends { id: string | number }>(): React.FC<RoleCardProps<T>> =>
   function InnerRoleCard({ role, selected, pool, onAddRole, onRemoveRole, getLabel, getIcon }) {
     const DriverSheet = AddRoleSheet<T>();
 

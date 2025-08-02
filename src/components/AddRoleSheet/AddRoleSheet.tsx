@@ -4,14 +4,14 @@ import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
-interface AddRoleSheetProps<T> {
+interface AddRoleSheetProps<T extends { id: string | number }> {
   role: string;
   pool: T[];
   onAddRole: (item: T) => void;
   getLabel: (item: T) => string;
 }
 
-export const AddRoleSheet = <T,>(): React.FC<AddRoleSheetProps<T>> =>
+export const AddRoleSheet = <T extends { id: string | number }>(): React.FC<AddRoleSheetProps<T>> =>
   function InnerAddRoleSheet({ role, pool, onAddRole, getLabel }) {
     return (
       <Sheet>
@@ -29,7 +29,7 @@ export const AddRoleSheet = <T,>(): React.FC<AddRoleSheetProps<T>> =>
             <ul className="space-y-2 divide-y">
               {pool.map((item) => {
                 const label = getLabel(item);
-                const key = (item as { id?: string | number }).id ?? label;
+                const key = item.id;
                 return (
                   <li key={key} className="flex justify-between items-center pb-4">
                     {label}
