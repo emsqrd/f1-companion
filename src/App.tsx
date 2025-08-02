@@ -1,111 +1,91 @@
+import { Car, CircleUserRound } from 'lucide-react';
 import { useState } from 'react';
 
 import './App.css';
-import RoleCard from './components/RoleCard/RoleCard';
+import { RoleCard } from './components/RoleCard/RoleCard';
 import RoleGrid from './components/RoleGrid/RoleGrid';
+import type { Constructor, Driver } from './contracts/Roles';
+import { getAllConstructors } from './services/constructorService';
+import { getAllDrivers } from './services/driverService';
 
-const ORIGINAL_DRIVER_POOL = [
-  'Oscar Piastri',
-  'Lando Norris',
-  'Charles Leclerc',
-  'Lewis Hamilton',
-  'George Russell',
-  'Kimi Antonelli',
-  'Max Verstappen',
-  'Yuki Tsunoda',
-  'Alexander Albon',
-  'Carlos Sainz',
-  'Nico Hülkenberg',
-  'Gabriel Bortoleto',
-  'Liam Lawson',
-  'Isack Hadjar',
-  'Fernando Alonso',
-  'Lance Stroll',
-  'Pierre Gasly',
-  'Franco Colapinto',
-  'Esteban Ocon',
-  'Oliver Bearman',
-];
+const DriverCard = RoleCard<Driver>();
+const ConstructorCard = RoleCard<Constructor>();
 
-const ORIGINAL_CONSTRUCTOR_POOL = [
-  'McLaren',
-  'Ferrari',
-  'Mercedes',
-  'Red Bull Racing',
-  'Williams',
-  'Kick Sauber',
-  'Racing Bulls',
-  'Aston Martin',
-  'Haas',
-  'Alpine',
-];
 function App() {
-  const [selectedDrivers, setSelectedDrivers] = useState<string[]>(['', '', '', '']);
-  const [driverPool, setDriverPool] = useState<string[]>(ORIGINAL_DRIVER_POOL);
+  const ORIGINAL_DRIVER_POOL = getAllDrivers();
+  const ORIGINAL_CONSTRUCTOR_POOL = getAllConstructors();
 
-  const [selectedConstructors, setSelectedConstructors] = useState<string[]>(['', '', '', '']);
-  const [constructorPool, setConstructorPool] = useState<string[]>(ORIGINAL_CONSTRUCTOR_POOL);
+  const [selectedDrivers, setSelectedDrivers] = useState<(Driver | null)[]>(Array(4).fill(null));
+  const [driverPool, setDriverPool] = useState<Driver[]>(ORIGINAL_DRIVER_POOL);
 
-  const updateDriverPool = (selected: string[]) => {
-    setDriverPool(ORIGINAL_DRIVER_POOL.filter((driver) => !selected.includes(driver)));
-  };
-
-  const updateConstructorPool = (selected: string[]) => {
-    setConstructorPool(
-      ORIGINAL_CONSTRUCTOR_POOL.filter((constructor) => !selected.includes(constructor)),
-    );
-  };
+  const [selectedConstructors, setSelectedConstructors] = useState<(Constructor | null)[]>(
+    Array(4).fill(null),
+  );
+  const [constructorPool, setConstructorPool] = useState<Constructor[]>(ORIGINAL_CONSTRUCTOR_POOL);
 
   const driverCards = selectedDrivers.map((driver, idx) => (
-    <RoleCard
+    <DriverCard
       key={idx}
       role="Driver"
-      name={driver}
+      selected={driver}
       pool={driverPool}
-      onAddRole={(name) => {
+      getLabel={(d: Driver) => `${d.firstName} ${d.lastName}`}
+      getIcon={() => <CircleUserRound />}
+      onAddRole={(newDriver: Driver) => {
         setSelectedDrivers((prev) => {
           const updated = [...prev];
-          updated[idx] = name;
+          updated[idx] = newDriver;
           return updated;
         });
-        setDriverPool((prev) => prev.filter((d) => d !== name));
+        setDriverPool((prev) => prev.filter((d) => d.id !== newDriver.id));
       }}
-      onRemoveRole={() => {
-        if (driver) {
-          setSelectedDrivers((prev) => {
-            const updated = [...prev];
-            updated[idx] = '';
-            updateDriverPool(updated);
-            return updated;
-          });
-        }
+      onRemoveRole={(oldDriver: Driver) => {
+        if (!oldDriver) return;
+
+        setSelectedDrivers((prev) => {
+          const updated = [...prev];
+          updated[idx] = null;
+
+          setDriverPool(
+            ORIGINAL_DRIVER_POOL.filter((d) => !updated.some((selected) => selected?.id === d.id)),
+          );
+
+          return updated;
+        });
       }}
     />
   ));
 
   const constructorCards = selectedConstructors.map((constructor, idx) => (
-    <RoleCard
+    <ConstructorCard
       key={idx}
       role="Constructor"
-      name={constructor}
+      selected={constructor}
       pool={constructorPool}
-      onAddRole={(name) => {
+      getLabel={(c: Constructor) => c.name}
+      getIcon={() => <Car />}
+      onAddRole={(newConstructor: Constructor) => {
         setSelectedConstructors((prev) => {
           const updated = [...prev];
-          updated[idx] = name;
+          updated[idx] = newConstructor;
           return updated;
         });
-        setConstructorPool((prev) => prev.filter((c) => c !== name));
+        setConstructorPool((prev) => prev.filter((c) => c.id !== newConstructor.id));
       }}
-      onRemoveRole={() => {
-        if (constructor) {
-          setSelectedConstructors((prev) => {
-            const updated = [...prev];
-            updated[idx] = '';
-            updateConstructorPool(updated);
-            return updated;
-          });
-        }
+      onRemoveRole={(oldConstructor: Constructor) => {
+        if (!oldConstructor) return;
+
+        setSelectedConstructors((prev) => {
+          const updated = [...prev];
+          updated[idx] = null;
+
+          setConstructorPool(
+            ORIGINAL_CONSTRUCTOR_POOL.filter(
+              (c) => !updated.some((selected) => selected?.id === c.id),
+            ),
+          );
+          return updated;
+        });
       }}
     />
   ));
