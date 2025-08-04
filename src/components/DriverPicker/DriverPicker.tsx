@@ -1,0 +1,58 @@
+import type { Driver } from '@/contracts/Roles';
+import { useSlots } from '@/hooks/useSlots';
+import { getAllDrivers } from '@/services/driverService';
+import { useState } from 'react';
+
+import { DriverCard } from '../DriverCard/DriverCard';
+import { DriverListItem } from '../DriverListItem/DriverListItem';
+import { ScrollArea } from '../ui/scroll-area';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+
+export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
+  const initialDrivers = getAllDrivers();
+  const { slots, pool, add, remove } = useSlots<Driver>(initialDrivers, slotsCount);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        {slots.map((driver, idx) => (
+          <DriverCard
+            key={idx}
+            driver={driver}
+            onOpenSheet={() => setActiveSlot(idx)}
+            onRemove={() => remove(idx)}
+          />
+        ))}
+      </div>
+
+      <Sheet open={activeSlot !== null} onOpenChange={(o) => !o && setActiveSlot(null)}>
+        <SheetTrigger asChild>
+          {/* invisible trigger, since we open imperatively via setActiveSlot */}
+          <div />
+        </SheetTrigger>
+        <SheetContent className="w-80 h-full flex flex-col">
+          <SheetHeader>
+            <SheetTitle>Select Driver</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="flex-1 h-full pr-4 pl-4 min-h-0">
+            <ul className="space-y-2">
+              {pool.map((driver) => (
+                <DriverListItem
+                  key={driver.id}
+                  driver={driver}
+                  onSelect={() => {
+                    if (activeSlot !== null) {
+                      add(activeSlot, driver);
+                      setActiveSlot(null);
+                    }
+                  }}
+                />
+              ))}
+            </ul>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
