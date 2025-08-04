@@ -12,7 +12,7 @@ export function ConstructorListItem({ constructor, onSelect }: ConstructorListIt
   return (
     <li className="flex justify-between items-center pb-4">
       <span>{constructor.name}</span>
-      <Button className="!bg-transparent" variant="ghost" onClick={onSelect}>
+      <Button variant="ghost" onClick={onSelect}>
         <CirclePlus />
       </Button>
     </li>

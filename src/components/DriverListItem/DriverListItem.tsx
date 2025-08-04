@@ -14,7 +14,7 @@ export function DriverListItem({ driver, onSelect }: DriverListItemProps) {
       <span>
         {driver.firstName} {driver.lastName}
       </span>
-      <Button className="!bg-transparent" variant="ghost" onClick={onSelect}>
+      <Button variant="ghost" onClick={onSelect}>
         <CirclePlus />
       </Button>
     </li>
