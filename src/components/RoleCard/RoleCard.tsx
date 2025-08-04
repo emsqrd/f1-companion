@@ -1,11 +1,45 @@
-import type { ReactNode } from 'react';
-
+import { AddRoleCardContent } from '../AddRoleCardContent/AddRoleCardContent';
+import { InfoRoleCardContent } from '../InfoRoleCardContent/InfoRoleCardContent';
 import { Card, CardContent } from '../ui/card';
 
-export function RoleCard({ renderCardContent }: { renderCardContent: () => ReactNode }) {
+interface RoleCardProps {
+  adding: boolean;
+  role: string;
+  name: string;
+  points: number;
+  price: number;
+  onOpenSheet: () => void;
+  onRemove: () => void;
+}
+
+export function RoleCard({
+  adding,
+  role,
+  name,
+  points,
+  price,
+  onOpenSheet,
+  onRemove,
+}: RoleCardProps) {
+  const renderCardContent = () => {
+    if (adding) {
+      return <AddRoleCardContent onOpenSheet={onOpenSheet} role={role} />;
+    } else {
+      return (
+        <InfoRoleCardContent
+          role={role}
+          name={name}
+          points={points}
+          price={price}
+          onRemove={onRemove}
+        />
+      );
+    }
+  };
+
   return (
-    <Card className="w-100 h-30">
-      <CardContent className="flex items-center justify-between group h-full">
+    <Card className="h-30 w-100">
+      <CardContent className="group flex h-full items-center justify-between">
         {renderCardContent()}
       </CardContent>
     </Card>
