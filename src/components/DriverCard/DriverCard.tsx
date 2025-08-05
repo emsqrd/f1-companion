@@ -14,8 +14,8 @@ export function DriverCard({ driver, onOpenSheet, onRemove }: DriverCardProps) {
       adding={!driver}
       role="Driver"
       name={`${driver?.firstName} ${driver?.lastName}`}
-      points={34}
-      price={14.5}
+      points={driver?.points ?? 0}
+      price={driver?.price ?? 0}
       onOpenSheet={onOpenSheet}
       onRemove={onRemove}
     />

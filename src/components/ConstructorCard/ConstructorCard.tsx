@@ -14,8 +14,8 @@ export function ConstructorCard({ constructor, onOpenSheet, onRemove }: Construc
       adding={!constructor}
       role="Constructor"
       name={constructor?.name ?? ''}
-      points={100}
-      price={32}
+      points={constructor?.points ?? 0}
+      price={constructor?.price ?? 0}
       onOpenSheet={onOpenSheet}
       onRemove={onRemove}
     />

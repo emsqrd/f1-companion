@@ -15,7 +15,7 @@ export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
 
   return (
     <>
-      <h2 className="scroll-m-20 text-center text-3xl sm:text-4xl font-extrabold tracking-tight text-balance">
+      <h2 className="scroll-m-20 text-center text-3xl font-extrabold tracking-tight text-balance sm:text-4xl">
         Drivers
       </h2>
       <div className="grid grid-cols-2 gap-4">
@@ -34,11 +34,11 @@ export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
           {/* invisible trigger, since we open imperatively via setActiveSlot */}
           <div />
         </SheetTrigger>
-        <SheetContent className="w-80 h-full flex flex-col">
+        <SheetContent className="flex h-full w-80 flex-col">
           <SheetHeader>
             <SheetTitle>Select Driver</SheetTitle>
           </SheetHeader>
-          <ScrollArea className="flex-1 h-full pr-4 pl-4 min-h-0">
+          <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
             <ul className="space-y-2">
               {pool.map((driver) => (
                 <DriverListItem

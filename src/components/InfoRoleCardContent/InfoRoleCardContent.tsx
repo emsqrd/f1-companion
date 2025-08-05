@@ -1,3 +1,4 @@
+import { formatMillions } from '@/lib/utils';
 import { Trash } from 'lucide-react';
 
 import { Button } from '../ui/button';
@@ -23,7 +24,7 @@ export function InfoRoleCardContent({
         <h3 className="text-xl font-bold">{name}</h3>
         <div className="mt-auto flex gap-8">
           <span className="text-lg">{points} pts.</span>
-          <span className="text-lg">${price}m</span>
+          <span className="text-lg">${formatMillions(price)}m</span>
         </div>
       </div>
       <Button
