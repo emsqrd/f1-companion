@@ -38,8 +38,8 @@ export function RoleCard({
   };
 
   return (
-    <Card className="h-30 w-100">
-      <CardContent className="group flex h-full items-center justify-between">
+    <Card className="h-20 w-70">
+      <CardContent className="group flex h-full items-center justify-between px-3">
         {renderCardContent()}
       </CardContent>
     </Card>

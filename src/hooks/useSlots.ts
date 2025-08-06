@@ -1,8 +1,17 @@
 import { useState } from 'react';
 
-export function useSlots<T extends { id: number }>(initialPool: T[], slotCount = 4) {
-  const [slots, setSlots] = useState<(T | null)[]>(Array(slotCount).fill(null));
-  const [pool, setPool] = useState(initialPool);
+export function useSlots<T extends { id: number }>(
+  initialPool: T[],
+  initialSlots: (T | null)[],
+  slotCount = 4,
+) {
+  const [slots, setSlots] = useState<(T | null)[]>(
+    initialSlots.length === slotCount
+      ? initialSlots
+      : [...initialSlots, ...Array(slotCount - initialSlots.length).fill(null)],
+  );
+  const selectedIds = initialSlots.filter(Boolean).map((d) => d!.id);
+  const [pool, setPool] = useState(initialPool.filter((d) => !selectedIds.includes(d.id)));
 
   const add = (idx: number, item: T) => {
     setSlots((prev) => {

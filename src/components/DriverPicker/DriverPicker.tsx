@@ -1,7 +1,7 @@
 import type { Driver } from '@/contracts/Roles';
 import { useSlots } from '@/hooks/useSlots';
 import { getAllDrivers } from '@/services/driverService';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { DriverCard } from '../DriverCard/DriverCard';
 import { DriverListItem } from '../DriverListItem/DriverListItem';
@@ -9,13 +9,23 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
-  const initialDrivers = getAllDrivers();
-  const { slots, pool, add, remove } = useSlots<Driver>(initialDrivers, slotsCount);
+  const initialDriverPool = getAllDrivers();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
+
+  const initialSlots = useMemo<(Driver | null)[]>(
+    () => [1, 2, 9, 11].map((id) => initialDriverPool.find((d) => d.id === id) ?? null),
+    [initialDriverPool],
+  );
+
+  const { slots, pool, add, remove } = useSlots<Driver>(
+    initialDriverPool,
+    initialSlots,
+    slotsCount,
+  );
 
   return (
     <>
-      <h2 className="scroll-m-20 text-center text-3xl font-extrabold tracking-tight text-balance sm:text-4xl">
+      <h2 className="scroll-m-20 text-center text-3xl font-bold tracking-tight text-balance">
         Drivers
       </h2>
       <div className="grid grid-cols-2 gap-4">

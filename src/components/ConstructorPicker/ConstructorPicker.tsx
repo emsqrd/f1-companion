@@ -1,7 +1,7 @@
 import type { Constructor } from '@/contracts/Roles';
 import { useSlots } from '@/hooks/useSlots';
 import { getAllConstructors } from '@/services/constructorService';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
 import { ConstructorListItem } from '../ConstructorListItem/ConstructorListItem';
@@ -9,13 +9,23 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 
 export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
-  const initialConstructors = getAllConstructors();
-  const { slots, pool, add, remove } = useSlots<Constructor>(initialConstructors, slotsCount);
+  const initialConstructorsPool = getAllConstructors();
+
+  const initialSlots = useMemo<(Constructor | null)[]>(
+    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id) ?? null),
+    [initialConstructorsPool],
+  );
+
+  const { slots, pool, add, remove } = useSlots<Constructor>(
+    initialConstructorsPool,
+    initialSlots,
+    slotsCount,
+  );
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
   return (
     <>
-      <h2 className="scroll-m-20 text-center text-3xl sm:text-4xl font-extrabold tracking-tight text-balance">
+      <h2 className="scroll-m-20 text-center text-3xl font-bold tracking-tight text-balance">
         Constructors
       </h2>
       <div className="grid grid-cols-2 gap-4">
@@ -33,11 +43,11 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
         <SheetTrigger asChild>
           <div />
         </SheetTrigger>
-        <SheetContent className="w-80 h-full flex flex-col">
+        <SheetContent className="flex h-full w-80 flex-col">
           <SheetHeader>
             <SheetTitle>Select Constructor</SheetTitle>
           </SheetHeader>
-          <ScrollArea className="flex-1 h-full pr-4 pl-4 min-h-0">
+          <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
             <ul className="space-y-2">
               {pool.map((constructor) => (
                 <ConstructorListItem
