@@ -1,48 +1,47 @@
-import { Trash } from 'lucide-react';
+import { AddRoleCardContent } from '../AddRoleCardContent/AddRoleCardContent';
+import { InfoRoleCardContent } from '../InfoRoleCardContent/InfoRoleCardContent';
+import { Card, CardContent } from '../ui/card';
 
-import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
-import AddRoleSheet from '../AddRoleSheet/AddRoleSheet';
-
-interface RoleCardProps<T> {
+interface RoleCardProps {
+  adding: boolean;
   role: string;
-  selected: T | null;
-  pool: T[];
-  onAddRole: (item: T) => void;
-  onRemoveRole: (item: T) => void;
-  getLabel: (item: T) => string;
-  getIcon: (item: T) => React.ReactNode;
+  name: string;
+  points: number;
+  price: number;
+  onOpenSheet: () => void;
+  onRemove: () => void;
 }
 
-export const RoleCard = <T extends { id: string | number }>(): React.FC<RoleCardProps<T>> =>
-  function InnerRoleCard({ role, selected, pool, onAddRole, onRemoveRole, getLabel, getIcon }) {
-    const DriverSheet = AddRoleSheet<T>();
-
-    const label = selected ? getLabel(selected) : '';
-    const body = label ? (
-      <div className="flex items-center justify-between group">
-        <Button className="flex items-center gap-2 text-white-500 !bg-transparent hover:!border-transparent">
-          <span className="flex items-center gap-2">
-            {getIcon(selected!)}
-            {label}
-          </span>
-        </Button>
-        <Button
-          size="icon"
-          className="text-red-500 hover:text-red-700 !bg-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label={`Remove ${role}`}
-          onClick={() => onRemoveRole(selected!)}
-        >
-          <Trash />
-        </Button>
-      </div>
-    ) : (
-      <DriverSheet role={role} pool={pool} onAddRole={onAddRole} getLabel={getLabel} />
-    );
-
-    return (
-      <Card className="w-60 h-20">
-        <CardContent className="flex items-center justify-center">{body}</CardContent>
-      </Card>
-    );
+export function RoleCard({
+  adding,
+  role,
+  name,
+  points,
+  price,
+  onOpenSheet,
+  onRemove,
+}: RoleCardProps) {
+  const renderCardContent = () => {
+    if (adding) {
+      return <AddRoleCardContent onOpenSheet={onOpenSheet} role={role} />;
+    } else {
+      return (
+        <InfoRoleCardContent
+          role={role}
+          name={name}
+          points={points}
+          price={price}
+          onRemove={onRemove}
+        />
+      );
+    }
   };
+
+  return (
+    <Card className="h-20 w-70">
+      <CardContent className="group flex h-full items-center justify-between px-3">
+        {renderCardContent()}
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,12 +1,15 @@
-export type Driver = {
+export interface BaseRole {
   id: number;
+  countryAbbreviation: string;
+  price: number;
+  points: number;
+}
+
+export interface Driver extends BaseRole {
   firstName: string;
   lastName: string;
-  countryAbbreviation: string;
-};
+}
 
-export type Constructor = {
-  id: number;
+export interface Constructor extends BaseRole {
   name: string;
-  countryAbbreviation: string;
-};
+}
