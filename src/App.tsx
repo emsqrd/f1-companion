@@ -1,38 +1,43 @@
-import { useState } from 'react';
-
 import './App.css';
 import { ConstructorPicker } from './components/ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from './components/DriverPicker/DriverPicker';
-import { Button } from './components/ui/button';
-import { cn } from './lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 
 function App() {
-  const [showTab, setShowTab] = useState('driver');
+  // const [showTab, setShowTab] = useState('driver');
 
   return (
-    <>
-      <div className="flex justify-between p-2">
-        <Button
-          variant="header"
-          className={cn(showTab === 'constructor' && 'text-muted-foreground')}
-          onClick={() => setShowTab('driver')}
-        >
+    <Tabs defaultValue="drivers">
+      <TabsList className="w-full">
+        <TabsTrigger className="cursor-pointer" value="drivers">
           Drivers
-        </Button>
-
-        <Button
-          variant="header"
-          className={cn(showTab === 'driver' && 'text-muted-foreground')}
-          onClick={() => setShowTab('constructor')}
-        >
+        </TabsTrigger>
+        <TabsTrigger className="cursor-pointer" value="constructors">
           Constructors
-        </Button>
-      </div>
-
-      {showTab === 'driver' && <DriverPicker slotsCount={4} />}
-
-      {showTab === 'constructor' && <ConstructorPicker slotsCount={4} />}
-    </>
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent className="mt-4" value="drivers">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Drivers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DriverPicker slotsCount={4} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent className="mt-4" value="constructors">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Constructors</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConstructorPicker slotsCount={4} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
 

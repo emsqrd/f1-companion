@@ -25,7 +25,7 @@ export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {slots.map((driver, idx) => (
           <DriverCard
             key={idx}
