@@ -25,9 +25,6 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
 
   return (
     <>
-      <h2 className="scroll-m-20 text-center text-3xl font-bold tracking-tight text-balance">
-        Constructors
-      </h2>
       <div className="grid grid-cols-2 gap-4">
         {slots.map((constructor, idx) => (
           <ConstructorCard

@@ -1,13 +1,20 @@
 import './App.css';
-import { ConstructorPicker } from './components/ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from './components/DriverPicker/DriverPicker';
+import { Button } from './components/ui/button';
 
 function App() {
   return (
-    <div className="space-y-12">
+    <>
+      <div className="flex justify-between p-2">
+        <Button variant="header">Drivers</Button>
+
+        <Button variant="header" className="text-muted-foreground">
+          Constructors
+        </Button>
+      </div>
       <DriverPicker slotsCount={4} />
-      <ConstructorPicker slotsCount={4} />
-    </div>
+      {/* <ConstructorPicker slotsCount={4} /> */}
+    </>
   );
 }
 
