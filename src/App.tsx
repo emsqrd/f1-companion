@@ -8,12 +8,8 @@ function App() {
   return (
     <Tabs defaultValue="drivers">
       <TabsList className="w-full">
-        <TabsTrigger className="cursor-pointer" value="drivers">
-          Drivers
-        </TabsTrigger>
-        <TabsTrigger className="cursor-pointer" value="constructors">
-          Constructors
-        </TabsTrigger>
+        <TabsTrigger value="drivers">Drivers</TabsTrigger>
+        <TabsTrigger value="constructors">Constructors</TabsTrigger>
       </TabsList>
       <TabsContent className="mt-4" value="drivers">
         <Card>
