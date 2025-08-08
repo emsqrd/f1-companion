@@ -5,8 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 
 function App() {
-  // const [showTab, setShowTab] = useState('driver');
-
   return (
     <Tabs defaultValue="drivers">
       <TabsList className="w-full">
