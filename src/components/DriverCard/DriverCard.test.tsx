@@ -19,7 +19,7 @@ describe('DriverCard', () => {
     vi.clearAllMocks();
   });
 
-  describe('when variant is filled', () => {
+  describe('Filled Variant', () => {
     const driver: Driver = {
       id: 1,
       firstName: 'Carlos',
@@ -35,7 +35,7 @@ describe('DriverCard', () => {
       render(<DriverCard driver={driver} onOpenSheet={onOpenSheet} onRemove={onRemove} />);
     });
 
-    it('should forward correct props to RoleCard', () => {
+    it('should transform driver data correctly for RoleCard', () => {
       expect(mockRoleCard).toHaveBeenCalledTimes(1);
       expect(mockRoleCard).toHaveBeenCalledWith({
         variant: 'filled',
@@ -45,14 +45,9 @@ describe('DriverCard', () => {
         onRemove,
       });
     });
-
-    it('should pass onRemove function reference correctly', () => {
-      const calledProps = mockRoleCard.mock.calls[0][0];
-      expect(calledProps.onRemove).toBe(onRemove);
-    });
   });
 
-  describe('when variant is empty', () => {
+  describe('Empty Variant', () => {
     const onOpenSheet = vi.fn();
     const onRemove = vi.fn();
 
@@ -60,18 +55,13 @@ describe('DriverCard', () => {
       render(<DriverCard driver={null} onOpenSheet={onOpenSheet} onRemove={onRemove} />);
     });
 
-    it('should forward correct props to RoleCard with empty variant', () => {
+    it('should pass Driver role string when driver is null', () => {
       expect(mockRoleCard).toHaveBeenCalledTimes(1);
       expect(mockRoleCard).toHaveBeenCalledWith({
         variant: 'empty',
         role: 'Driver',
         onOpenSheet,
       });
-    });
-
-    it('should pass onOpenSheet function reference correctly', () => {
-      const calledProps = mockRoleCard.mock.calls[0][0];
-      expect(calledProps.onOpenSheet).toBe(onOpenSheet);
     });
   });
 });

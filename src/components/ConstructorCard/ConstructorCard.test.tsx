@@ -19,7 +19,7 @@ describe('ConstructorCard', () => {
     vi.clearAllMocks();
   });
 
-  describe('when variant is filled', () => {
+  describe('Filled Variant', () => {
     const constructor: Constructor = {
       id: 1,
       name: 'Ferrari',
@@ -46,14 +46,9 @@ describe('ConstructorCard', () => {
         onRemove,
       });
     });
-
-    it('should pass onRemove function reference correctly', () => {
-      const calledProps = mockRoleCard.mock.calls[0][0];
-      expect(calledProps.onRemove).toBe(onRemove);
-    });
   });
 
-  describe('when variant is empty', () => {
+  describe('Empty Variant', () => {
     const onOpenSheet = vi.fn();
     const onRemove = vi.fn();
 
@@ -61,18 +56,13 @@ describe('ConstructorCard', () => {
       render(<ConstructorCard constructor={null} onOpenSheet={onOpenSheet} onRemove={onRemove} />);
     });
 
-    it('should forward correct props to RoleCard with empty variant', () => {
+    it('should pass Constructor role string when driver is null', () => {
       expect(mockRoleCard).toHaveBeenCalledTimes(1);
       expect(mockRoleCard).toHaveBeenCalledWith({
         variant: 'empty',
         role: 'Constructor',
         onOpenSheet,
       });
-    });
-
-    it('should pass onOpenSheet function reference correctly', () => {
-      const calledProps = mockRoleCard.mock.calls[0][0];
-      expect(calledProps.onOpenSheet).toBe(onOpenSheet);
     });
   });
 });

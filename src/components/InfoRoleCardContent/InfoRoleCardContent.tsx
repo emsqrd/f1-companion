@@ -1,6 +1,6 @@
 import { formatMillions } from '@/lib/utils';
 
-interface InfoRoleCardContentProps {
+export interface InfoRoleCardContentProps {
   name: string;
   points: number;
   price: number;
