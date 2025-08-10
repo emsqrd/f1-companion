@@ -10,11 +10,11 @@ interface DriverListItemProps {
 
 export function DriverListItem({ driver, onSelect }: DriverListItemProps) {
   return (
-    <li key={driver.id} className="flex justify-between items-center pb-4">
+    <li key={driver.id} className="flex items-center justify-between pb-4">
       <span>
         {driver.firstName} {driver.lastName}
       </span>
-      <Button variant="ghost" onClick={onSelect}>
+      <Button variant="ghost" aria-label="Add Driver" onClick={onSelect}>
         <CirclePlus />
       </Button>
     </li>
