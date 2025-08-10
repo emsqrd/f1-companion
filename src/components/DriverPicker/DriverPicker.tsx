@@ -6,7 +6,14 @@ import { useMemo, useState } from 'react';
 import { DriverCard } from '../DriverCard/DriverCard';
 import { DriverListItem } from '../DriverListItem/DriverListItem';
 import { ScrollArea } from '../ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../ui/sheet';
 
 export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
   const initialDriverPool = getAllDrivers();
@@ -44,6 +51,9 @@ export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
         <SheetContent className="flex h-full w-80 flex-col">
           <SheetHeader>
             <SheetTitle>Select Driver</SheetTitle>
+            <SheetDescription>
+              Choose a driver from the list below to add to your team.
+            </SheetDescription>
           </SheetHeader>
           <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
             <ul className="space-y-2">
