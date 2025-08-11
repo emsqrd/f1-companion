@@ -1,4 +1,4 @@
-import type { Constructor } from '@/contracts/Roles';
+import type { Constructor } from '@/contracts/Role';
 import { describe, expect, it } from 'vitest';
 
 import { getAllConstructors } from './constructorService';

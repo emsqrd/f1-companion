@@ -1,4 +1,4 @@
-import type { Constructor } from '@/contracts/Roles';
+import type { Constructor } from '@/contracts/Role';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

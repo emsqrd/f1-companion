@@ -1,4 +1,4 @@
-import type { Driver } from '@/contracts/Roles';
+import type { Driver } from '@/contracts/Role';
 
 export function getAllDrivers(): Driver[] {
   const drivers: Driver[] = [

@@ -1,4 +1,4 @@
-import type { Constructor } from '@/contracts/Roles';
+import type { Constructor } from '@/contracts/Role';
 import { CirclePlus } from 'lucide-react';
 
 import { Button } from '../ui/button';
