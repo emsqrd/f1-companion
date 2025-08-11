@@ -19,7 +19,7 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
   const initialConstructorsPool = getAllConstructors();
 
   const initialSlots = useMemo<(Constructor | null)[]>(
-    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id) ?? null),
+    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id)!),
     [initialConstructorsPool],
   );
 

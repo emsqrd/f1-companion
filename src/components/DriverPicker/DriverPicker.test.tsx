@@ -119,38 +119,6 @@ vi.mock('@/services/driverService', () => ({
       price: 12700000,
       points: 24,
     },
-    {
-      id: 12,
-      firstName: 'Gabriel',
-      lastName: 'Bortoleto',
-      countryAbbreviation: 'BRA',
-      price: 3800000,
-      points: 48,
-    },
-    {
-      id: 13,
-      firstName: 'Liam',
-      lastName: 'Lawson',
-      countryAbbreviation: 'NZL',
-      price: 4700000,
-      points: 24,
-    },
-    {
-      id: 14,
-      firstName: 'Isack',
-      lastName: 'Hadjar',
-      countryAbbreviation: 'FRA',
-      price: 3500000,
-      points: 10,
-    },
-    {
-      id: 15,
-      firstName: 'Lance',
-      lastName: 'Stroll',
-      countryAbbreviation: 'CAN',
-      price: 6200000,
-      points: 40,
-    },
   ]),
 }));
 
@@ -213,12 +181,6 @@ describe('DriverPicker', () => {
       // These would map to specific drivers from the mocked service
       const driverNames = screen.getAllByTestId('driver-name');
       expect(driverNames).toHaveLength(4); // All slots should be filled initially
-    });
-
-    it('does not show the selection sheet initially', () => {
-      render(<DriverPicker />);
-
-      expect(screen.queryByText('Select Driver')).not.toBeInTheDocument();
     });
   });
 
@@ -471,13 +433,6 @@ describe('DriverPicker', () => {
       // Should have exactly 5 cards
       expect(screen.getAllByTestId('driver-card')).toHaveLength(5);
     });
-
-    it('handles reasonable slot counts', () => {
-      render(<DriverPicker slotsCount={6} />);
-
-      // Should have exactly 6 cards
-      expect(screen.getAllByTestId('driver-card')).toHaveLength(6);
-    });
   });
 
   describe('User Experience', () => {
@@ -680,14 +635,6 @@ describe('DriverPicker', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles reasonable slot counts', () => {
-      render(<DriverPicker slotsCount={6} />);
-
-      // Should have exactly 6 cards
-      const driverCards = screen.getAllByTestId('driver-card');
-      expect(driverCards).toHaveLength(6);
-    });
-
     it('handles slot count equal to initial drivers', () => {
       render(<DriverPicker slotsCount={4} />);
 

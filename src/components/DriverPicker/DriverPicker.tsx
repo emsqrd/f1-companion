@@ -19,8 +19,8 @@ export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
   const initialDriverPool = getAllDrivers();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
-  const initialSlots = useMemo<(Driver | null)[]>(
-    () => [1, 2, 9, 11].map((id) => initialDriverPool.find((d) => d.id === id) ?? null),
+  const initialSlots = useMemo<Driver[]>(
+    () => [1, 2, 9, 11].map((id) => initialDriverPool.find((d) => d.id === id)!),
     [initialDriverPool],
   );
 
