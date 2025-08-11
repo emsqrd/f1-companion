@@ -1,14 +1,16 @@
+import type { Team } from '@/contracts/Team';
+
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
-export function Team() {
+export function Team({ team }: { team: Team }) {
   return (
     <>
       <span className="flex flex-col items-start pb-2">
         <p className="font-semibold">Team</p>
-        <h2 className="text-3xl font-semibold">Sainz of Trouble</h2>
+        <h2 className="text-3xl font-semibold">{team.name}</h2>
       </span>
       <Tabs defaultValue="drivers">
         <TabsList className="w-full">
