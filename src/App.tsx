@@ -1,8 +1,8 @@
 import './App.css';
-import { Team } from './components/Team/Team';
+import { League } from './components/League/League';
 
 function App() {
-  return <Team />;
+  return <League />;
 }
 
 export default App;
