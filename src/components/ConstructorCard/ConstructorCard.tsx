@@ -9,14 +9,16 @@ interface ConstructorCardProps {
 }
 
 export function ConstructorCard({ constructor, onOpenSheet, onRemove }: ConstructorCardProps) {
+  if (!constructor) {
+    return <RoleCard variant="empty" role="Constructor" onOpenSheet={onOpenSheet} />;
+  }
+
   return (
     <RoleCard
-      adding={!constructor}
-      role="Constructor"
-      name={constructor?.name ?? ''}
-      points={constructor?.points ?? 0}
-      price={constructor?.price ?? 0}
-      onOpenSheet={onOpenSheet}
+      variant="filled"
+      name={constructor.name}
+      points={constructor.points}
+      price={constructor.price}
       onRemove={onRemove}
     />
   );

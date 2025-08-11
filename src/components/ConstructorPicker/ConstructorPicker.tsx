@@ -6,13 +6,20 @@ import { useMemo, useState } from 'react';
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
 import { ConstructorListItem } from '../ConstructorListItem/ConstructorListItem';
 import { ScrollArea } from '../ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../ui/sheet';
 
 export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
   const initialConstructorsPool = getAllConstructors();
 
   const initialSlots = useMemo<(Constructor | null)[]>(
-    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id) ?? null),
+    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id)!),
     [initialConstructorsPool],
   );
 
@@ -43,6 +50,9 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
         <SheetContent className="flex h-full w-80 flex-col">
           <SheetHeader>
             <SheetTitle>Select Constructor</SheetTitle>
+            <SheetDescription>
+              Choose a constructor from the list below to add to your team.
+            </SheetDescription>
           </SheetHeader>
           <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
             <ul className="space-y-2">

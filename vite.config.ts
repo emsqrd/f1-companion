@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
           '**/*.config.ts',
           '**/tsconfig*.json',
           '**/*.d.ts',
+          'src/components/ui',
         ],
       },
     },
