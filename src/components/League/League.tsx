@@ -14,19 +14,14 @@ export function League() {
       </div>
       <hr className="border-border mb-4" />
       <ol className="grid grid-cols-1 gap-2">
-        {teams.map((team) => (
+        {teams.map((team, idx) => (
           <li key={team.id}>
             <Link to={`/team/${team.id}`}>
               <Card className="rounded-sm py-2">
                 <CardContent>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-center gap-2">
-                      <div className="text-muted-foreground font-mono text-sm">
-                        #
-                        {
-                          team.id //rank
-                        }
-                      </div>
+                      <div className="text-muted-foreground font-mono text-sm">#{idx + 1}</div>
                       <div className="font-semibold">{team.name}</div>
                     </div>
                     <div className="flex items-center gap-2">
