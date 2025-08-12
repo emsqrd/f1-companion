@@ -6,6 +6,9 @@ import { Card, CardContent } from '../ui/card';
 export function League() {
   const teams = getTeams();
 
+  // Generate random points between 0 and 8000 for mocking purposes
+  const getRandomPoints = () => Math.floor(Math.random() * 8001);
+
   return (
     <>
       <div className="flex flex-col items-start pb-1">
@@ -20,13 +23,18 @@ export function League() {
               <Card className="rounded-sm py-2">
                 <CardContent>
                   <div className="flex flex-col items-start gap-1">
-                    <div className="flex items-center gap-2">
+                    <div className="mb-2 flex items-center gap-2">
                       <div className="text-muted-foreground font-mono text-sm">#{idx + 1}</div>
                       <div className="font-semibold">{team.name}</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-muted-foreground text-sm">Owner:</div>
-                      <div>{team.owner}</div>
+                    <div className="flex w-full items-center gap-14">
+                      <div className="flex items-center gap-2">
+                        <div className="text-muted-foreground text-sm">Owner:</div>
+                        <div>{team.owner}</div>
+                      </div>
+                      <div className="ml-auto text-right">
+                        <div>{getRandomPoints().toLocaleString()} pts.</div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
