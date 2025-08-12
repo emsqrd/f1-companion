@@ -1,4 +1,3 @@
-import type { Team as TeamType } from '@/contracts/Team';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -31,15 +30,27 @@ vi.mock('../ConstructorPicker/ConstructorPicker', () => ({
   )),
 }));
 
-const mockTeam: TeamType = {
-  id: 1,
-  name: 'Test Team',
-};
+// Mock React Router hooks
+vi.mock('react-router', () => ({
+  useParams: vi.fn(() => ({ teamId: '1' })),
+  Link: vi.fn(({ children, to, ...props }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  )),
+}));
+
+vi.mock('@/services/teamService', () => ({
+  getTeamById: vi.fn(() => ({
+    id: 1,
+    name: 'Team 1',
+  })),
+}));
 
 describe('Team', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    render(<Team team={mockTeam} />);
+    render(<Team />);
   });
 
   describe('Initial State', () => {
