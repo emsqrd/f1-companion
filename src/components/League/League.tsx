@@ -11,16 +11,18 @@ export function League() {
 
   return (
     <>
-      <div className="flex flex-col items-start pb-1">
-        <p className="font-semibold">League</p>
-        <h2 className="text-3xl font-semibold">COTA 2025</h2>
-      </div>
+      <header className="mb-4">
+        <div className="flex flex-col items-start pb-1">
+          <p className="text-muted-foreground font-medium">League</p>
+          <h2 className="text-3xl font-bold">COTA 2025</h2>
+        </div>
+      </header>
       <hr className="border-border mb-4" />
       <ol className="grid grid-cols-1 gap-2">
         {teams.map((team, idx) => (
           <li key={team.id}>
             <Link to={`/team/${team.id}`}>
-              <Card className="rounded-sm py-2">
+              <Card className="hover:bg-accent rounded-sm py-2 transition-colors">
                 <CardContent>
                   <div className="flex flex-col items-start gap-1">
                     <div className="mb-2 flex items-center gap-2">

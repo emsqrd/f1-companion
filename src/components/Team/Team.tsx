@@ -1,9 +1,10 @@
 import { getTeamById } from '@/services/teamService';
+import { ChevronLeft } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 export function Team() {
@@ -17,31 +18,35 @@ export function Team() {
 
   return (
     <>
-      <span className="flex flex-col items-start pb-2">
-        <Link to={`/`}>&larr; Back to League</Link>
-        <p className="font-semibold">Team</p>
-        <h2 className="text-3xl font-semibold">{team.name}</h2>
-      </span>
+      <header className="mb-4">
+        <nav aria-label="Breadcrumb" className="mb-4">
+          <Link
+            to={`/`}
+            className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm transition-colors"
+          >
+            <ChevronLeft />
+            Back to League
+          </Link>
+        </nav>
+        <div className="space-y-1">
+          <p className="text-muted-foreground font-medium">Team</p>
+          <h1 className="text-3xl font-bold">{team.name}</h1>
+        </div>
+      </header>
       <Tabs defaultValue="drivers">
         <TabsList className="w-full">
           <TabsTrigger value="drivers">Drivers</TabsTrigger>
           <TabsTrigger value="constructors">Constructors</TabsTrigger>
         </TabsList>
-        <TabsContent className="mt-4" value="drivers">
+        <TabsContent value="drivers">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Drivers</CardTitle>
-            </CardHeader>
             <CardContent>
               <DriverPicker slotsCount={4} />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent className="mt-4" value="constructors">
+        <TabsContent value="constructors">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Constructors</CardTitle>
-            </CardHeader>
             <CardContent>
               <ConstructorPicker slotsCount={4} />
             </CardContent>
