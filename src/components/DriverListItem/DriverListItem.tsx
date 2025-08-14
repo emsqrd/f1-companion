@@ -1,4 +1,4 @@
-import type { Driver } from '@/contracts/Roles';
+import type { Driver } from '@/contracts/Role';
 import { CirclePlus } from 'lucide-react';
 
 import { Button } from '../ui/button';

@@ -30,15 +30,31 @@ vi.mock('../ConstructorPicker/ConstructorPicker', () => ({
   )),
 }));
 
+// Mock React Router hooks
+vi.mock('react-router', () => ({
+  useParams: vi.fn(() => ({ teamId: '1' })),
+  Link: vi.fn(({ children, to, ...props }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  )),
+}));
+
+vi.mock('@/services/teamService', () => ({
+  getTeamById: vi.fn(() => ({
+    id: 1,
+    name: 'Team 1',
+  })),
+}));
+
 describe('Team', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    render(<Team />);
   });
 
   describe('Initial State', () => {
     it('renders with drivers tab selected by default', () => {
-      render(<Team />);
-
       // Check that the drivers tab is active by default
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       expect(driversTab).toHaveAttribute('aria-selected', 'true');
@@ -49,8 +65,6 @@ describe('Team', () => {
     });
 
     it('displays drivers content by default', () => {
-      render(<Team />);
-
       // Drivers content should be visible
       expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
 
@@ -62,18 +76,18 @@ describe('Team', () => {
       expect(screen.queryByTestId('constructor-picker')).not.toBeInTheDocument();
     });
 
-    it('renders both tab options', () => {
-      render(<Team />);
+    //TODO: Commenting out for now until I finalize how the teams will display
+    // it('renders both tab options', () => {
+    //   render(<Team team={mockTeam} />);
 
-      expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /constructors/i })).toBeInTheDocument();
-    });
+    //   expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
+    //   expect(screen.getByRole('tab', { name: /constructors/i })).toBeInTheDocument();
+    // });
   });
 
   describe('Tab Navigation', () => {
     it('switches to constructors tab when clicked', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
       await user.click(constructorsTab);
@@ -88,8 +102,6 @@ describe('Team', () => {
 
     it('displays constructors content when constructors tab is selected', async () => {
       const user = userEvent.setup();
-      render(<Team />);
-
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
       await user.click(constructorsTab);
 
@@ -106,7 +118,6 @@ describe('Team', () => {
 
     it('switches back to drivers tab when clicked', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       // First switch to constructors
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -127,7 +138,6 @@ describe('Team', () => {
 
     it('supports keyboard navigation between tabs', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -149,15 +159,12 @@ describe('Team', () => {
 
   describe('Content Delivery', () => {
     it('passes correct slotsCount to DriverPicker', () => {
-      render(<Team />);
-
       const driverPicker = screen.getByTestId('driver-picker');
       expect(driverPicker).toHaveAttribute('data-slots-count', '4');
     });
 
     it('passes correct slotsCount to ConstructorPicker', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       // Switch to constructors tab
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -169,7 +176,6 @@ describe('Team', () => {
 
     it('ensures only one tab content is visible at a time', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       // Initially only drivers content should be visible
       expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
@@ -196,7 +202,6 @@ describe('Team', () => {
   describe('User Experience', () => {
     it('maintains state consistency throughout interaction', async () => {
       const user = userEvent.setup();
-      render(<Team />);
 
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -215,8 +220,6 @@ describe('Team', () => {
     });
 
     it('provides clear indication of current tab selection', () => {
-      render(<Team />);
-
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
 

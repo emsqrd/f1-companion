@@ -1,4 +1,4 @@
-import type { Constructor } from '@/contracts/Roles';
+import type { Constructor } from '@/contracts/Role';
 
 export function getAllConstructors(): Constructor[] {
   const constructors: Constructor[] = [
