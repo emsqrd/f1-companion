@@ -11,7 +11,7 @@ export function League() {
   const getRandomPoints = () => Math.floor(Math.random() * 8001);
 
   return (
-    <div className="p-12">
+    <div className="p-8">
       <div className="mx-auto max-w-7xl">
         <header>
           <div className="flex flex-col items-start pb-1">
@@ -21,8 +21,9 @@ export function League() {
         </header>
       </div>
       <div className="mx-auto max-w-sm px-4 md:max-w-lg md:px-8">
+        <h2 className="text-xl font-semibold">League Leaderboard</h2>
         <Table>
-          <TableHeader className="sticky font-bold">
+          <TableHeader className="sticky top-0 font-bold">
             <TableRow>
               <TableHead>Rank</TableHead>
               <TableHead className="min-w-48">Team</TableHead>
