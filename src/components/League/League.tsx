@@ -11,8 +11,8 @@ export function League() {
   const getRandomPoints = () => Math.floor(Math.random() * 8001);
 
   return (
-    <div className="p-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="p-2">
+      <div className="p-4">
         <header>
           <div className="flex flex-col items-start pb-1">
             <p className="text-muted-foreground font-medium">League</p>
@@ -21,30 +21,32 @@ export function League() {
         </header>
       </div>
       <div className="mx-auto max-w-sm px-4 md:max-w-lg md:px-8">
-        <h2 className="mb-2 text-xl font-semibold">League Leaderboard</h2>
+        <h2 className="mb-2 text-2xl font-semibold">League Leaderboard</h2>
         <Table className="bg-card overflow-hidden rounded-lg">
-          <TableHeader className="sticky top-0 font-bold">
+          <TableHeader className="bg-secondary sticky top-0 font-bold">
             <TableRow>
-              <TableHead className="text-center">Rank</TableHead>
-              <TableHead className="min-w-48">Team</TableHead>
-              <TableHead>Points</TableHead>
+              <TableHead className="text-center font-bold">Rank</TableHead>
+              <TableHead className="min-w-48 font-bold">Team</TableHead>
+              <TableHead className="text-center font-bold">Points</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {teams.map((team, idx) => (
               <TableRow
                 key={team.id}
-                className="hover:bg-muted/50 cursor-pointer"
+                className="cursor-pointer"
                 onClick={() => navigate(`/team/${team.id}`)}
               >
                 <TableCell className="text-center align-top">{idx + 1}</TableCell>
                 <TableCell className="min-w-48 align-top">
                   <div className="flex flex-col">
                     <div>{team.name}</div>
-                    <div className="text-muted-foreground text-sm">{team.owner}</div>
+                    <div className="text-muted-foreground text-xs">{team.owner}</div>
                   </div>
                 </TableCell>
-                <TableCell className="align-top">{getRandomPoints().toLocaleString()}</TableCell>
+                <TableCell className="text-center align-top">
+                  {getRandomPoints().toLocaleString()}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
