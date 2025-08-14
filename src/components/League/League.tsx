@@ -21,30 +21,30 @@ export function League() {
         </header>
       </div>
       <div className="mx-auto max-w-sm px-4 md:max-w-lg md:px-8">
-        <h2 className="text-xl font-semibold">League Leaderboard</h2>
-        <Table>
+        <h2 className="mb-2 text-xl font-semibold">League Leaderboard</h2>
+        <Table className="bg-card overflow-hidden rounded-lg">
           <TableHeader className="sticky top-0 font-bold">
             <TableRow>
-              <TableHead>Rank</TableHead>
+              <TableHead className="text-center">Rank</TableHead>
               <TableHead className="min-w-48">Team</TableHead>
               <TableHead>Points</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="bg-card outline">
+          <TableBody>
             {teams.map((team, idx) => (
               <TableRow
                 key={team.id}
                 className="hover:bg-muted/50 cursor-pointer"
                 onClick={() => navigate(`/team/${team.id}`)}
               >
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell className="min-w-48">
+                <TableCell className="text-center align-top">{idx + 1}</TableCell>
+                <TableCell className="min-w-48 align-top">
                   <div className="flex flex-col">
                     <div>{team.name}</div>
                     <div className="text-muted-foreground text-sm">{team.owner}</div>
                   </div>
                 </TableCell>
-                <TableCell>{getRandomPoints().toLocaleString()}</TableCell>
+                <TableCell className="align-top">{getRandomPoints().toLocaleString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
