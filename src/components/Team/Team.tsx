@@ -17,7 +17,7 @@ export function Team() {
   }
 
   return (
-    <>
+    <div className="p-12">
       <header className="mb-4">
         <nav aria-label="Breadcrumb" className="mb-4">
           <Link
@@ -53,6 +53,6 @@ export function Team() {
           </Card>
         </TabsContent>
       </Tabs>
-    </>
+    </div>
   );
 }

@@ -58,7 +58,7 @@ const medalColors: Record<number, string> = {
 // ---------------------------------------------
 // Component
 // ---------------------------------------------
-export default function Leaderboard({
+export default function LeaderboardDemo({
   rows,
   initialSort = 'totalPoints',
   initialDir = 'desc',
@@ -351,7 +351,7 @@ export function DemoLeaderboard() {
   ];
   return (
     <div className="p-4">
-      <Leaderboard rows={sample} />
+      <LeaderboardDemo rows={sample} />
     </div>
   );
 }

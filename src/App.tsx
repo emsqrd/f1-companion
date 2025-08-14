@@ -1,4 +1,3 @@
-import './App.css';
 import { League } from './components/League/League';
 
 function App() {

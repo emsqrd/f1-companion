@@ -1,50 +1,54 @@
 import { getTeams } from '@/services/teamService';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 
-import { Card, CardContent } from '../ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 export function League() {
   const teams = getTeams();
+  const navigate = useNavigate();
 
   // Generate random points between 0 and 8000 for mocking purposes
   const getRandomPoints = () => Math.floor(Math.random() * 8001);
 
   return (
-    <>
-      <header className="mb-4">
-        <div className="flex flex-col items-start pb-1">
-          <p className="text-muted-foreground font-medium">League</p>
-          <h2 className="text-3xl font-bold">COTA 2025</h2>
-        </div>
-      </header>
-      <hr className="border-border mb-4" />
-      <ol className="grid grid-cols-1 gap-2">
-        {teams.map((team, idx) => (
-          <li key={team.id}>
-            <Link to={`/team/${team.id}`}>
-              <Card className="hover:bg-accent rounded-sm py-2 transition-colors">
-                <CardContent>
-                  <div className="flex flex-col items-start gap-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <div className="text-muted-foreground font-mono text-sm">#{idx + 1}</div>
-                      <div className="font-semibold">{team.name}</div>
-                    </div>
-                    <div className="flex w-full items-center gap-14">
-                      <div className="flex items-center gap-2">
-                        <div className="text-muted-foreground text-sm">Owner:</div>
-                        <div>{team.owner}</div>
-                      </div>
-                      <div className="ml-auto text-right">
-                        <div>{getRandomPoints().toLocaleString()} pts.</div>
-                      </div>
-                    </div>
+    <div className="p-12">
+      <div className="mx-auto max-w-7xl">
+        <header>
+          <div className="flex flex-col items-start pb-1">
+            <p className="text-muted-foreground font-medium">League</p>
+            <h2 className="text-3xl font-bold">COTA 2025</h2>
+          </div>
+        </header>
+      </div>
+      <div className="mx-auto max-w-sm px-4 md:max-w-lg md:px-8">
+        <Table>
+          <TableHeader className="sticky font-bold">
+            <TableRow>
+              <TableHead>Rank</TableHead>
+              <TableHead className="min-w-48">Team</TableHead>
+              <TableHead>Points</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="bg-card outline">
+            {teams.map((team, idx) => (
+              <TableRow
+                key={team.id}
+                className="hover:bg-muted/50 cursor-pointer"
+                onClick={() => navigate(`/team/${team.id}`)}
+              >
+                <TableCell>{idx + 1}</TableCell>
+                <TableCell className="min-w-48">
+                  <div className="flex flex-col">
+                    <div>{team.name}</div>
+                    <div className="text-muted-foreground text-sm">{team.owner}</div>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </li>
-        ))}
-      </ol>
-    </>
+                </TableCell>
+                <TableCell>{getRandomPoints().toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }
