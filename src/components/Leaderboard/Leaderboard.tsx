@@ -11,7 +11,7 @@ export function Leaderboard() {
   const getRandomPoints = () => Math.floor(Math.random() * 8001);
 
   return (
-    <div className="mx-auto max-w-sm px-4 md:max-w-lg md:px-8">
+    <div className="mx-auto px-4 md:max-w-lg">
       <h2 className="mb-2 text-2xl font-semibold">League Leaderboard</h2>
       <Table className="bg-card overflow-hidden rounded-lg">
         <TableHeader className="bg-secondary sticky top-0 font-bold">

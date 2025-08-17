@@ -17,7 +17,7 @@ export function Team() {
   }
 
   return (
-    <div className="p-8">
+    <div className="mx-auto p-8 md:max-w-max">
       <header className="mb-4">
         <nav aria-label="Breadcrumb" className="mb-4">
           <Link
