@@ -1,4 +1,4 @@
-import type { Constructor } from '@/contracts/Roles';
+import type { Constructor } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
 import { getAllConstructors } from '@/services/constructorService';
 import { useMemo, useState } from 'react';

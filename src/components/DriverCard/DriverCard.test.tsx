@@ -1,4 +1,4 @@
-import type { Driver } from '@/contracts/Roles';
+import type { Driver } from '@/contracts/Role';
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 

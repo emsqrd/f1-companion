@@ -1,4 +1,4 @@
-import type { Driver } from '@/contracts/Roles';
+import type { Driver } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
 import { getAllDrivers } from '@/services/driverService';
 import { useMemo, useState } from 'react';
