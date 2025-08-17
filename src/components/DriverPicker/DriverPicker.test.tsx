@@ -1,18 +1,3 @@
-/**
- * Comprehensive test suite for DriverPicker component
- *
- * Tests cover:
- * - Initial state and rendering with different slot counts
- * - Opening and closing the selection sheet
- * - Driver selection and removal functionality
- * - Slot management and state handling
- * - User experience flows
- * - Driver-specific behavior (names, data structure)
- * - Edge cases and boundary conditions
- *
- * Tests focus on user behaviors rather than implementation details,
- * using mocked child components to isolate the DriverPicker logic.
- */
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
