@@ -63,10 +63,3 @@ Please analyze the file structure, dependencies, and functionality to determine 
 2. Replace `[FILE_PATH]` with the actual file path you want to test
 3. Paste it into your conversation with GitHub Copilot
 4. Copilot will analyze the file and create comprehensive tests following these guidelines
-
-## Example Usage
-
-```
-Please create comprehensive, meaningful tests for the file `src/services/teamService.ts`. The tests should follow these requirements and best practices:
-[rest of prompt...]
-```
