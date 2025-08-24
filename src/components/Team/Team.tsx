@@ -28,9 +28,28 @@ export function Team() {
             Back to League
           </Link>
         </nav>
-        <div className="space-y-1">
-          <p className="text-muted-foreground font-medium">Team</p>
-          <h1 className="text-3xl font-bold">{team.name}</h1>
+        <div className="mb-2">
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold">{team.name}</h1>
+          </div>
+          <div>
+            <p className="text-muted-foreground font-medium">Round 15</p>
+            <h1 className="text-2xl font-bold">Netherlands</h1>
+          </div>
+        </div>
+        <div className="flex flex-row gap-10">
+          <div className="flex flex-col items-center">
+            <p className="text-muted-foreground text-sm font-medium">Points</p>
+            <h1 className="text-lg font-bold">679</h1>
+          </div>
+          <div className="flex flex-col items-center">
+            <p className="text-muted-foreground text-sm font-medium">Budget</p>
+            <h1 className="text-lg font-bold">$200k</h1>
+          </div>
+          <div className="flex flex-col items-center">
+            <p className="text-muted-foreground text-sm font-medium">Trades</p>
+            <h1 className="text-lg font-bold">3/3</h1>
+          </div>
         </div>
       </header>
       <Tabs defaultValue="drivers">
@@ -39,15 +58,15 @@ export function Team() {
           <TabsTrigger value="constructors">Constructors</TabsTrigger>
         </TabsList>
         <TabsContent value="drivers">
-          <Card>
-            <CardContent>
+          <Card className="py-4">
+            <CardContent className="px-4">
               <DriverPicker slotsCount={4} />
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="constructors">
-          <Card>
-            <CardContent>
+          <Card className="py-4">
+            <CardContent className="px-4">
               <ConstructorPicker slotsCount={4} />
             </CardContent>
           </Card>

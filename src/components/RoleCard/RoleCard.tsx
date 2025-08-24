@@ -29,7 +29,7 @@ export function RoleCard(props: RoleCardProps) {
   };
 
   return (
-    <Card className="relative h-20 w-70">
+    <Card className="bg-secondary relative py-4">
       <CardContent className="group flex h-full items-center justify-between px-3">
         {renderCardContent()}
       </CardContent>
@@ -37,7 +37,7 @@ export function RoleCard(props: RoleCardProps) {
         <Button
           size="icon"
           variant="ghost"
-          className="bg-card absolute top-2 right-2 h-6 w-6 rounded-full text-white shadow-md"
+          className="bg-secondary absolute top-2 right-2 h-6 w-6 rounded-full text-white"
           aria-label="Remove role"
           onClick={props.onRemove}
         >
