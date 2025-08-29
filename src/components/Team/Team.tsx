@@ -4,7 +4,8 @@ import { Link, useParams } from 'react-router';
 
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardTitle } from '../ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 export function Team() {
@@ -17,7 +18,7 @@ export function Team() {
   }
 
   return (
-    <div className="mx-auto p-8 md:max-w-max">
+    <div className="mx-auto p-4 sm:p-8">
       <header className="mb-4">
         <nav aria-label="Breadcrumb" className="mb-4">
           <Link
@@ -28,28 +29,60 @@ export function Team() {
             Back to League
           </Link>
         </nav>
-        <div className="mb-2">
-          <div className="mb-4">
+
+        <div className="bg-card mb-8 space-y-4 rounded-2xl border-1 py-4">
+          <div className="flex w-full justify-center pb-2">
             <h1 className="text-3xl font-bold">{team.name}</h1>
           </div>
-          <div>
-            <p className="text-muted-foreground font-medium">Round 15</p>
-            <h1 className="text-2xl font-bold">Netherlands</h1>
+
+          <div className="flex flex-row justify-center gap-12">
+            <div className="flex flex-col items-center">
+              <p className="text-muted-foreground font-medium">Budget</p>
+              <h1 className="text-lg font-bold">$200k</h1>
+            </div>
+            <div className="flex flex-col items-center">
+              <p className="text-muted-foreground font-medium">Trades</p>
+              <h1 className="text-lg font-bold">3/3</h1>
+            </div>
           </div>
         </div>
-        <div className="flex flex-row gap-10">
-          <div className="flex flex-col items-center">
-            <p className="text-muted-foreground text-sm font-medium">Points</p>
-            <h1 className="text-lg font-bold">679</h1>
-          </div>
-          <div className="flex flex-col items-center">
-            <p className="text-muted-foreground text-sm font-medium">Budget</p>
-            <h1 className="text-lg font-bold">$200k</h1>
-          </div>
-          <div className="flex flex-col items-center">
-            <p className="text-muted-foreground text-sm font-medium">Trades</p>
-            <h1 className="text-lg font-bold">3/3</h1>
-          </div>
+
+        <div className="mb-4 flex flex-col space-y-4">
+          <Select defaultValue="round15">
+            <SelectTrigger className="h-auto min-h-[60px] w-full py-8 [&>span]:block [&>span]:w-full [&>span]:text-left">
+              <SelectValue placeholder="Pick a race" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="round15">
+                <div>
+                  <p className="text-muted-foreground font-medium">Round 15</p>
+                  <h1 className="text-2xl font-bold">Netherlands</h1>
+                </div>
+              </SelectItem>
+              <SelectItem value="round14">
+                <div>
+                  <p className="text-muted-foreground font-medium">Round 14</p>
+                  <h1 className="text-2xl font-bold">Hungary</h1>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Card className="gap-2 py-2">
+            <CardTitle className="pb-2 text-center text-xl font-bold">Round Results</CardTitle>
+            <CardContent>
+              <div className="flex justify-center gap-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground font-medium">Finished</p>
+                  <h1 className="text-lg font-bold">1st</h1>
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground font-medium">Points</p>
+                  <h1 className="text-lg font-bold">679</h1>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </header>
       <Tabs defaultValue="drivers">
