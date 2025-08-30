@@ -31,8 +31,8 @@ export function Leaderboard() {
               <TableCell className="text-center align-top">{idx + 1}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
-                  <div>{team.name}</div>
-                  <div className="text-muted-foreground text-xs">{team.owner}</div>
+                  <div className="text-lg">{team.name}</div>
+                  <div className="text-muted-foreground">{team.owner}</div>
                 </div>
               </TableCell>
               <TableCell className="text-center align-top">
