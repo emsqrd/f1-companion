@@ -31,22 +31,21 @@ export function Team() {
         </nav>
 
         <div className="gap-4 sm:grid sm:grid-cols-2">
-          <div className="bg-card mb-6 flex flex-col justify-center space-y-4 rounded-2xl border-1 py-4 sm:mb-0">
-            <div className="flex justify-center">
-              <h1 className="text-3xl font-bold">{team.name}</h1>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:justify-center">
-              <div className="flex flex-col items-center">
-                <p className="text-muted-foreground font-medium">Budget</p>
-                <h1 className="text-lg font-bold">$200k</h1>
+          <Card className="mb-6 flex justify-center sm:mb-0">
+            <CardTitle className="text-center text-3xl font-bold">{team.name}</CardTitle>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:justify-center">
+                <div className="flex flex-col items-center">
+                  <p className="text-muted-foreground font-medium">Budget</p>
+                  <h1 className="text-lg font-bold">$200k</h1>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p className="text-muted-foreground font-medium">Trades</p>
+                  <h1 className="text-lg font-bold">3/3</h1>
+                </div>
               </div>
-              <div className="flex flex-col items-center">
-                <p className="text-muted-foreground font-medium">Trades</p>
-                <h1 className="text-lg font-bold">3/3</h1>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           <div className="mb-4 flex flex-col space-y-4 sm:mb-0">
             <Select defaultValue="round15">
