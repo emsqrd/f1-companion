@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router';
 
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
-import { Card, CardContent, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -32,7 +32,9 @@ export function Team() {
 
         <div className="gap-4 sm:grid sm:grid-cols-2">
           <Card className="mb-6 flex justify-center sm:mb-0">
-            <CardTitle className="text-center text-3xl font-bold">{team.name}</CardTitle>
+            <CardHeader>
+              <CardTitle className="text-center text-3xl font-bold">{team.name}</CardTitle>
+            </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:justify-center">
                 <div className="flex flex-col items-center">
@@ -69,7 +71,9 @@ export function Team() {
             </Select>
 
             <Card className="gap-2 py-2">
-              <CardTitle className="pb-2 text-center text-2xl font-bold">Round Results</CardTitle>
+              <CardHeader>
+                <CardTitle className="pb-2 text-center text-2xl font-bold">Round Results</CardTitle>
+              </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 sm:flex sm:justify-center sm:gap-8 lg:gap-12">
                   <div className="text-center">
