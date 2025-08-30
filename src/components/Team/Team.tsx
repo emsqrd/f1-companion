@@ -69,7 +69,7 @@ export function Team() {
             </Select>
 
             <Card className="gap-2 py-2">
-              <CardTitle className="pb-2 text-center text-xl font-bold">Round Results</CardTitle>
+              <CardTitle className="pb-2 text-center text-2xl font-bold">Round Results</CardTitle>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4 sm:flex sm:justify-center sm:gap-8 lg:gap-12">
                   <div className="text-center">
