@@ -1,5 +1,7 @@
+import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
 import { ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
@@ -11,7 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 export function Team() {
   const params = useParams();
 
-  const team = getTeamById(Number(params.teamId));
+  const [team, setTeam] = useState<Team>();
+
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const data = await getTeamById(Number(params.teamId));
+        setTeam(data);
+      } catch {}
+    };
+
+    fetchTeam();
+  }, [params.teamId]);
 
   if (!team) {
     return <div>Team not found</div>;

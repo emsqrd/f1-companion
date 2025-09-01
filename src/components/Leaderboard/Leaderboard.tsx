@@ -1,14 +1,24 @@
+import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 export function Leaderboard() {
-  const teams = getTeams();
+  const [teams, setTeams] = useState<Team[]>([]);
+
   const navigate = useNavigate();
 
-  // Generate random points between 0 and 8000 for mocking purposes
-  const getRandomPoints = () => Math.floor(Math.random() * 8001);
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const data = await getTeams();
+        setTeams(data);
+      } catch {}
+    };
+    fetchTeams();
+  }, []);
 
   return (
     <div className="mx-auto px-4 md:max-w-lg">
@@ -16,9 +26,9 @@ export function Leaderboard() {
       <Table className="bg-card overflow-hidden rounded-lg">
         <TableHeader className="bg-secondary sticky top-0 font-bold">
           <TableRow>
-            <TableHead className="text-center font-bold">Rank</TableHead>
-            <TableHead className="min-w-48 font-bold">Team</TableHead>
-            <TableHead className="text-center font-bold">Points</TableHead>
+            <TableHead className="text-center text-lg font-bold">Rank</TableHead>
+            <TableHead className="min-w-48 text-lg font-bold">Team</TableHead>
+            <TableHead className="text-center text-lg font-bold">Points</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -28,16 +38,14 @@ export function Leaderboard() {
               className="cursor-pointer"
               onClick={() => navigate(`/team/${team.id}`)}
             >
-              <TableCell className="text-center align-top">{idx + 1}</TableCell>
+              <TableCell className="text-center align-top text-lg">{idx + 1}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
                   <div className="text-lg">{team.name}</div>
                   <div className="text-muted-foreground">{team.owner}</div>
                 </div>
               </TableCell>
-              <TableCell className="text-center align-top">
-                {getRandomPoints().toLocaleString()}
-              </TableCell>
+              <TableCell className="text-center align-top text-lg">{team.totalPoints}</TableCell>
             </TableRow>
           ))}
         </TableBody>
