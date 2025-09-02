@@ -32,13 +32,13 @@ export function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team, idx) => (
+          {teams.map((team) => (
             <TableRow
               key={team.id}
               className="cursor-pointer"
               onClick={() => navigate(`/team/${team.id}`)}
             >
-              <TableCell className="text-center align-top text-lg">{idx + 1}</TableCell>
+              <TableCell className="text-center align-top text-lg">{team.rank}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
                   <div className="text-lg">{team.name}</div>
