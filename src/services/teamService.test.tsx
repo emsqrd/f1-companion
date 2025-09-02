@@ -8,21 +8,21 @@ const mockTeams: Team[] = [
     id: 1,
     rank: 1,
     name: 'Team 1',
-    owner: 'Owner 1',
+    ownerName: 'Owner 1',
     totalPoints: 100,
   },
   {
     id: 2,
     rank: 2,
     name: 'Team 2',
-    owner: 'Owner 2',
+    ownerName: 'Owner 2',
     totalPoints: 200,
   },
   {
     id: 3,
     rank: 3,
     name: 'Team 3',
-    owner: 'Owner 3',
+    ownerName: 'Owner 3',
     totalPoints: 300,
   },
 ];
@@ -90,7 +90,7 @@ describe('teamService', () => {
           id: expect.any(Number),
           rank: expect.any(Number),
           name: expect.any(String),
-          owner: expect.any(String),
+          ownerName: expect.any(String),
           totalPoints: expect.any(Number),
         });
       });
@@ -142,7 +142,7 @@ describe('teamService', () => {
         id: expect.any(Number),
         rank: expect.any(Number),
         name: expect.any(String),
-        owner: expect.any(String),
+        ownerName: expect.any(String),
         totalPoints: expect.any(Number),
       });
       expect(mockFetch).toHaveBeenCalledTimes(1);

@@ -12,21 +12,21 @@ const mockTeams: Team[] = [
     id: 1,
     rank: 1,
     name: 'Team 1',
-    owner: 'Owner 1',
+    ownerName: 'Owner 1',
     totalPoints: 100,
   },
   {
     id: 2,
     rank: 2,
     name: 'Team 2',
-    owner: 'Owner 2',
+    ownerName: 'Owner 2',
     totalPoints: 200,
   },
   {
     id: 3,
     rank: 3,
     name: 'Team 3',
-    owner: 'Owner 3',
+    ownerName: 'Owner 3',
     totalPoints: 300,
   },
 ];
@@ -88,7 +88,7 @@ describe('Leaderboard', () => {
       mockTeams.forEach((team) => {
         expect(screen.getByText(team.rank)).toBeInTheDocument();
         expect(screen.getByText(team.name)).toBeInTheDocument();
-        expect(screen.getByText(team.owner)).toBeInTheDocument();
+        expect(screen.getByText(team.ownerName)).toBeInTheDocument();
         expect(screen.getByText(team.totalPoints.toString())).toBeInTheDocument();
       });
     });
@@ -116,9 +116,9 @@ describe('Leaderboard', () => {
 
     it('should display teams even when some data is missing', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([
-        { id: 1, rank: 1, name: 'Complete Team', owner: 'Complete Owner', totalPoints: 100 },
-        { id: 2, rank: 2, name: '', owner: 'Owner Only', totalPoints: 200 }, // Missing team name
-        { id: 3, rank: 3, name: 'Team Only', owner: '', totalPoints: 300 }, // Missing owner
+        { id: 1, rank: 1, name: 'Complete Team', ownerName: 'Complete Owner', totalPoints: 100 },
+        { id: 2, rank: 2, name: '', ownerName: 'Owner Only', totalPoints: 200 }, // Missing team name
+        { id: 3, rank: 3, name: 'Team Only', ownerName: '', totalPoints: 300 }, // Missing owner
       ]);
 
       render(
@@ -148,7 +148,7 @@ describe('Leaderboard', () => {
         id: i + 1,
         rank: i + 1,
         name: `Team ${i + 1}`,
-        owner: `Owner ${i + 1}`,
+        ownerName: `Owner ${i + 1}`,
         totalPoints: Number(`${i + 10}`),
       }));
 

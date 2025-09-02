@@ -42,7 +42,7 @@ export function Leaderboard() {
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
                   <div className="text-lg">{team.name}</div>
-                  <div className="text-muted-foreground">{team.owner}</div>
+                  <div className="text-muted-foreground">{team.ownerName}</div>
                 </div>
               </TableCell>
               <TableCell className="text-center align-top text-lg">{team.totalPoints}</TableCell>
