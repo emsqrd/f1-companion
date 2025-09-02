@@ -14,18 +14,26 @@ export function Team() {
   const params = useParams();
 
   const [team, setTeam] = useState<Team>();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTeam = async () => {
       try {
         const data = await getTeamById(Number(params.teamId));
         setTeam(data);
-      } catch {}
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load team:', err);
+        setError('Failed to load team. Please try again later.');
+      }
     };
 
     fetchTeam();
   }, [params.teamId]);
 
+  if (error) {
+    return <div>{error}</div>;
+  }
   if (!team) {
     return <div>Team not found</div>;
   }
