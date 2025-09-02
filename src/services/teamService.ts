@@ -1,23 +1,25 @@
 import type { Team } from '@/contracts/Team';
 
-export const teams: Team[] = [
-  { id: 1, name: 'Team Redline Owner', owner: 'John' },
-  { id: 2, name: 'Luigi Ferrari', owner: 'Katharine' },
-  { id: 3, name: 'Chili Carbono', owner: 'Heidi' },
-  { id: 4, name: 'DayAfter Ricciardo', owner: 'Jessica' },
-  { id: 5, name: 'New Sainz of Hope', owner: 'Mark' },
-  { id: 6, name: 'Vroom vroom', owner: 'Kyle' },
-  { id: 7, name: 'Mindys team', owner: 'Mindy' },
-  { id: 8, name: 'Il Vecchio Drogo', owner: 'Austin' },
-  { id: 9, name: 'Wayne Dennison', owner: 'Wayne' },
-  { id: 10, name: 'VerStopHim', owner: 'Jeremy' },
-  { id: 11, name: 'I Saw The Sainz', owner: 'Ryan' },
-];
+const API_BASE_URL = import.meta.env.VITE_F1_FANTASY_API;
 
-export function getTeams(): Team[] {
-  return teams;
+export async function getTeams(): Promise<Team[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/teams`);
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    throw error;
+  }
 }
 
-export function getTeamById(id: number): Team | undefined {
-  return teams.find((team) => team.id === id);
+export async function getTeamById(id: number): Promise<Team | undefined> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/teams/${id}`);
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching team by id:', error);
+    throw error;
+  }
 }

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { getTeamById } from '@/services/teamService';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -48,9 +49,16 @@ vi.mock('@/services/teamService', () => ({
 }));
 
 describe('Team', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
     render(<Team />);
+
+    vi.mocked(getTeamById);
+
+    await waitFor(() => {
+      expect(getTeamById).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Initial State', () => {

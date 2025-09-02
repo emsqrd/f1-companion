@@ -1,29 +1,38 @@
+import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from './Leaderboard';
 
+const mockTeams: Team[] = [
+  {
+    id: 1,
+    rank: 1,
+    name: 'Team 1',
+    owner: 'Owner 1',
+    totalPoints: 100,
+  },
+  {
+    id: 2,
+    rank: 2,
+    name: 'Team 2',
+    owner: 'Owner 2',
+    totalPoints: 200,
+  },
+  {
+    id: 3,
+    rank: 3,
+    name: 'Team 3',
+    owner: 'Owner 3',
+    totalPoints: 300,
+  },
+];
+
 vi.mock('@/services/teamService', () => ({
-  getTeams: vi.fn(() => [
-    {
-      id: 1,
-      name: 'Team 1',
-      owner: 'Owner 1',
-    },
-    {
-      id: 2,
-      name: 'Team 2',
-      owner: 'Owner 2',
-    },
-    {
-      id: 3,
-      name: 'Team 3',
-      owner: 'Owner 3',
-    },
-  ]),
+  getTeams: vi.fn(),
 }));
 
 const mockNavigate = vi.fn();
@@ -42,26 +51,25 @@ describe('Leaderboard', () => {
   });
 
   describe('Leaderboard display', () => {
-    it('should render correct number of team rows', () => {
+    it('should render correct number of team rows', async () => {
+      vi.mocked(getTeams).mockResolvedValue(mockTeams);
+
       render(
         <MemoryRouter>
           <Leaderboard />
         </MemoryRouter>,
       );
+
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
 
       const teamRows = screen.getAllByRole('row').slice(1);
       expect(teamRows).toHaveLength(3);
     });
 
-    it('should display complete leaderboard with all team information', () => {
-      // Mock Math.random to return predictable values
-      const mockMath = Object.create(global.Math);
-      mockMath.random = vi
-        .fn()
-        .mockReturnValueOnce(0.1) // 800 points (0.1 * 8000)
-        .mockReturnValueOnce(0.5) // 4000 points (0.5 * 8000)
-        .mockReturnValueOnce(0.9); // 7200 points (0.9 * 8000)
-      global.Math = mockMath;
+    it('should display complete leaderboard with all team information', async () => {
+      vi.mocked(getTeams).mockResolvedValue(mockTeams);
 
       render(
         <MemoryRouter>
@@ -69,24 +77,24 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
+
       // Verify structure
       expect(screen.getByText('League Leaderboard')).toBeInTheDocument();
 
       // Verify all teams are present with complete information
-      ['Team 1', 'Team 2', 'Team 3'].forEach((team, index) => {
-        expect(screen.getByText(`${index + 1}`)).toBeInTheDocument(); // rank
-        expect(screen.getByText(team)).toBeInTheDocument();
-        expect(screen.getByText(`Owner ${index + 1}`)).toBeInTheDocument();
+      mockTeams.forEach((team) => {
+        expect(screen.getByText(team.rank)).toBeInTheDocument();
+        expect(screen.getByText(team.name)).toBeInTheDocument();
+        expect(screen.getByText(team.owner)).toBeInTheDocument();
+        expect(screen.getByText(team.totalPoints.toString())).toBeInTheDocument();
       });
-
-      // Verify points match mocked values
-      expect(screen.getByText('800')).toBeInTheDocument();
-      expect(screen.getByText('4,000')).toBeInTheDocument();
-      expect(screen.getByText('7,200')).toBeInTheDocument();
     });
 
     it('should handle empty teams list gracefully', () => {
-      vi.mocked(getTeams).mockReturnValueOnce([]);
+      vi.mocked(getTeams).mockResolvedValueOnce([]);
 
       render(
         <MemoryRouter>
@@ -106,11 +114,11 @@ describe('Leaderboard', () => {
       expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
     });
 
-    it('should display teams even when some data is missing', () => {
-      vi.mocked(getTeams).mockReturnValueOnce([
-        { id: 1, name: 'Complete Team', owner: 'Complete Owner' },
-        { id: 2, name: '', owner: 'Owner Only' }, // Missing team name
-        { id: 3, name: 'Team Only', owner: '' }, // Missing owner
+    it('should display teams even when some data is missing', async () => {
+      vi.mocked(getTeams).mockResolvedValueOnce([
+        { id: 1, rank: 1, name: 'Complete Team', owner: 'Complete Owner', totalPoints: 100 },
+        { id: 2, rank: 2, name: '', owner: 'Owner Only', totalPoints: 200 }, // Missing team name
+        { id: 3, rank: 3, name: 'Team Only', owner: '', totalPoints: 300 }, // Missing owner
       ]);
 
       render(
@@ -118,6 +126,10 @@ describe('Leaderboard', () => {
           <Leaderboard />
         </MemoryRouter>,
       );
+
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
 
       // User should see all teams are listed (even with missing data)
       expect(screen.getByText('Complete Team')).toBeInTheDocument();
@@ -131,14 +143,16 @@ describe('Leaderboard', () => {
       expect(screen.getByText('3')).toBeInTheDocument();
     });
 
-    it('should handle displaying many teams', () => {
+    it('should handle displaying many teams', async () => {
       const manyTeams = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
+        rank: i + 1,
         name: `Team ${i + 1}`,
         owner: `Owner ${i + 1}`,
+        totalPoints: Number(`${i + 10}`),
       }));
 
-      vi.mocked(getTeams).mockReturnValueOnce(manyTeams);
+      vi.mocked(getTeams).mockResolvedValueOnce(manyTeams);
 
       render(
         <MemoryRouter>
@@ -146,13 +160,31 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
-      // User should see first and last teams
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
+
+      // Test overall structure
+      expect(screen.getAllByRole('row')).toHaveLength(21); // 20 teams + 1 header
+
+      // Test unique identifiers (team names)
       expect(screen.getByText('Team 1')).toBeInTheDocument();
       expect(screen.getByText('Team 20')).toBeInTheDocument();
+      expect(screen.getByText('Owner 1')).toBeInTheDocument();
+      expect(screen.getByText('Owner 20')).toBeInTheDocument();
 
-      // User should see correct ranking for first and last
-      expect(screen.getByText('1')).toBeInTheDocument();
-      expect(screen.getByText('20')).toBeInTheDocument();
+      // Test that we have correct number of rank cells by checking table structure
+      const rows = screen.getAllByRole('row').slice(1); // Remove header
+      const firstRow = rows[0];
+      const lastRow = rows[19];
+
+      // Each row should have 3 cells
+      expect(within(firstRow).getAllByRole('cell')).toHaveLength(3);
+      expect(within(lastRow).getAllByRole('cell')).toHaveLength(3);
+
+      // Test rank by position (first cell in row)
+      expect(within(firstRow).getAllByRole('cell')[0]).toHaveTextContent('1');
+      expect(within(lastRow).getAllByRole('cell')[0]).toHaveTextContent('20');
     });
   });
 
@@ -166,6 +198,10 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
+
       const teamRow = screen.getByText('Team 1').closest('tr');
       await user.click(teamRow!);
 
@@ -174,7 +210,7 @@ describe('Leaderboard', () => {
   });
 
   describe('Data Integration', () => {
-    it('should load and display team data from service', () => {
+    it('should load and display team data from service', async () => {
       const getTeamsSpy = vi.mocked(getTeams);
 
       render(
@@ -182,6 +218,10 @@ describe('Leaderboard', () => {
           <Leaderboard />
         </MemoryRouter>,
       );
+
+      await waitFor(() => {
+        expect(getTeams).toHaveBeenCalledTimes(1);
+      });
 
       // User expects data to be loaded when component renders
       expect(getTeamsSpy).toHaveBeenCalledTimes(1);
