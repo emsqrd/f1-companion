@@ -11,6 +11,33 @@ vi.mock('./App', () => ({
   default: () => <div data-testid="mock-app">Mock App Component</div>,
 }));
 
+// Mock Supabase
+vi.mock('./lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      }),
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    },
+  },
+}));
+
+// Mock AuthProvider
+vi.mock('./contexts/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="mock-auth-provider">{children}</div>
+  ),
+}));
+
+// Mock Team component
+vi.mock('./components/Team/Team', () => ({
+  Team: () => <div data-testid="mock-team">Mock Team Component</div>,
+}));
+
 describe('main.tsx', () => {
   const mockRoot = {
     render: vi.fn(),
@@ -30,7 +57,7 @@ describe('main.tsx', () => {
     vi.clearAllMocks();
   });
 
-  it('should render the App component inside StrictMode and BrowserRouter', async () => {
+  it('should render the App component inside StrictMode, AuthProvider, and BrowserRouter', async () => {
     // Import main to trigger the code execution
     await import('./main');
 
@@ -43,11 +70,16 @@ describe('main.tsx', () => {
     // Capture the rendered JSX by getting the first argument of the render call
     const renderedJSX = mockRoot.render.mock.calls[0][0];
 
-    // Verify the structure: StrictMode wrapping BrowserRouter
+    // Verify the structure: StrictMode wrapping AuthProvider
     expect(renderedJSX.type).toBe(StrictMode);
 
-    // Check that BrowserRouter is inside StrictMode
-    const browserRouter = renderedJSX.props.children;
+    // Check that AuthProvider mock is inside StrictMode
+    const authProvider = renderedJSX.props.children;
+    expect(authProvider.type).toBeDefined();
+    expect(authProvider.props.children).toBeDefined();
+
+    // Check that BrowserRouter is inside AuthProvider
+    const browserRouter = authProvider.props.children;
     expect(browserRouter.type).toBe(BrowserRouter);
 
     // Check that Routes are inside BrowserRouter
@@ -63,5 +95,10 @@ describe('main.tsx', () => {
     const appRoute = routeElements[0];
     expect(appRoute.props.path).toBe('/');
     expect(appRoute.props.element.type).toBe(App);
+
+    // Check the second route (Team component at /team/:teamId path)
+    const teamRoute = routeElements[1];
+    expect(teamRoute.props.path).toBe('/team/:teamId');
+    expect(teamRoute.props.element.type.name).toBe('Team');
   });
 });
