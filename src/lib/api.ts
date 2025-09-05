@@ -3,6 +3,16 @@ import { supabase } from './supabase';
 class ApiClient {
   private baseUrl = import.meta.env.VITE_API_BASE_URL;
 
+  constructor() {
+    const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    if (!envBaseUrl) {
+      throw new Error(
+        'VITE_API_BASE_URL environment variable is not set. Please configure it in your environment.',
+      );
+    }
+    this.baseUrl = envBaseUrl;
+  }
+
   private async getAuthHeaders() {
     const {
       data: { session },
