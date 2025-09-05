@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 class ApiClient {
-  private baseUrl = import.meta.env.VITE_API_BASE_URL;
+  private baseUrl: string;
 
   constructor() {
     const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
