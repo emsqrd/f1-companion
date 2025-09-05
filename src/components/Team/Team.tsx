@@ -43,7 +43,7 @@ export function Team() {
       <header className="mb-4">
         <nav aria-label="Breadcrumb" className="mb-4">
           <Link
-            to={`/`}
+            to={`/dashboard`}
             className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm transition-colors"
           >
             <ChevronLeft />

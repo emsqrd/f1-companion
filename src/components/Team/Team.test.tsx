@@ -1,5 +1,5 @@
 import { getTeamById } from '@/services/teamService';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -234,6 +234,24 @@ describe('Team', () => {
       // One tab should be selected, one should not
       expect(driversTab).toHaveAttribute('aria-selected', 'true');
       expect(constructorsTab).toHaveAttribute('aria-selected', 'false');
+    });
+  });
+
+  describe('Navigation', () => {
+    it('renders breadcrumb navigation to dashboard', () => {
+      // Test that the link exists with correct attributes
+      const dashboardLink = screen.getByRole('link', { name: /back to league/i });
+      expect(dashboardLink).toBeInTheDocument();
+      expect(dashboardLink).toHaveAttribute('href', '/dashboard');
+    });
+
+    it('provides accessible breadcrumb navigation', () => {
+      // Test ARIA compliance
+      const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i });
+      expect(breadcrumb).toBeInTheDocument();
+
+      const dashboardLink = within(breadcrumb).getByRole('link', { name: /back to league/i });
+      expect(dashboardLink).toBeInTheDocument();
     });
   });
 });
