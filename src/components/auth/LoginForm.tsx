@@ -29,8 +29,8 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Sign In</CardTitle>
-        <CardDescription>Enter you credentials to access your F1 fantasy league</CardDescription>
+        <CardTitle>Welcome</CardTitle>
+        <CardDescription>Sign in to access your F1 fantasy league</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

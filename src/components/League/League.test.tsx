@@ -9,6 +9,18 @@ vi.mock('../Leaderboard/Leaderboard', () => ({
   Leaderboard: () => <div data-testid="leaderboard">Mocked Leaderboard</div>,
 }));
 
+// Mock the useAuth hook to provide a mock signOut function
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user', email: 'test@example.com' },
+    session: { access_token: 'mock-token' },
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+  }),
+}));
+
 describe('League', () => {
   it('should display league information and leaderboard to the user', () => {
     render(

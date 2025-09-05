@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import type { ReactNode } from 'react';
 
-import { LoginForm } from './LoginForm';
+import { AuthPage } from './AuthPage';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <LoginForm />
+        <AuthPage />
       </div>
     );
   }
