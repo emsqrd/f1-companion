@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import App from './App';
@@ -24,9 +25,11 @@ vi.mock('./hooks/useAuth', () => ({
 describe('App', () => {
   it('should render the League component', () => {
     render(
-      <ProtectedRoute>
-        <App />
-      </ProtectedRoute>,
+      <BrowserRouter>
+        <ProtectedRoute>
+          <App />
+        </ProtectedRoute>
+      </BrowserRouter>,
     );
 
     const leagueComponent = screen.getByTestId('league-component');

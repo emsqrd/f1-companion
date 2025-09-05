@@ -6,8 +6,12 @@ import { SignUpForm } from './SignUpForm';
 
 type AuthMode = 'login' | 'signup';
 
-export function AuthPage() {
-  const [mode, setMode] = useState<AuthMode>('login');
+interface AuthPageProps {
+  initialMode?: AuthMode;
+}
+
+export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   return (
     <div className="flex min-h-screen w-full max-w-md items-center justify-center">
