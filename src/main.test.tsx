@@ -33,6 +33,11 @@ vi.mock('./contexts/AuthContext', () => ({
   ),
 }));
 
+// Mock LandingPage component
+vi.mock('./components/LandingPage/LandingPage', () => ({
+  LandingPage: () => <div data-testid="mock-landing-page">Mock Landing Page</div>,
+}));
+
 // Mock Team component
 vi.mock('./components/Team/Team', () => ({
   Team: () => <div data-testid="mock-team">Mock Team Component</div>,
@@ -57,7 +62,7 @@ describe('main.tsx', () => {
     vi.clearAllMocks();
   });
 
-  it('should render the App component inside StrictMode, AuthProvider, and BrowserRouter', async () => {
+  it('should render the LandingPage, App, and Team components with correct routing structure', async () => {
     // Import main to trigger the code execution
     await import('./main');
 
@@ -89,15 +94,20 @@ describe('main.tsx', () => {
     // Check that the routes contain the expected route elements
     const routeElements = routes.props.children;
     expect(Array.isArray(routeElements)).toBe(true);
-    expect(routeElements).toHaveLength(2);
+    expect(routeElements).toHaveLength(3);
 
-    // Check the first route (App component at root path)
-    const appRoute = routeElements[0];
-    expect(appRoute.props.path).toBe('/');
+    // Check the first route (LandingPage component at root path)
+    const landingRoute = routeElements[0];
+    expect(landingRoute.props.path).toBe('/');
+    expect(landingRoute.props.element.type.name).toBe('LandingPage');
+
+    // Check the second route (App component at /dashboard path)
+    const appRoute = routeElements[1];
+    expect(appRoute.props.path).toBe('/dashboard');
     expect(appRoute.props.element.type).toBe(App);
 
-    // Check the second route (Team component at /team/:teamId path)
-    const teamRoute = routeElements[1];
+    // Check the third route (Team component at /team/:teamId path)
+    const teamRoute = routeElements[2];
     expect(teamRoute.props.path).toBe('/team/:teamId');
     expect(teamRoute.props.element.type.name).toBe('Team');
   });
