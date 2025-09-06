@@ -1,7 +1,8 @@
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Trophy } from 'lucide-react';
+import { CircleUser, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
+import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -62,10 +63,14 @@ export function PageHeader() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
+                    className="data-[state=open]:bg-accent h-7 w-7 focus-visible:ring-0 focus-visible:ring-offset-0"
                     size="icon"
-                    className="data-[state=open]:bg-accent h-7 w-7"
                   >
-                    <Menu />
+                    <Avatar>
+                      <AvatarFallback>
+                        <CircleUser />
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
