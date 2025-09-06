@@ -77,33 +77,6 @@ export function PageHeader() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            {/* 
-            {user && isLandingPage && (
-              <Button
-                className="hidden sm:flex"
-                variant="outline"
-                onClick={() => navigate('/dashboard')}
-              >
-                Go to Dashboard
-              </Button>
-            )}
-
-            {user && !isAuthPage && <Button onClick={signOut}>Sign Out</Button>}
-
-            {!user && !isAuthPage && (
-              <>
-                <Button
-                  className="hidden sm:flex"
-                  variant="ghost"
-                  onClick={() => navigate('/sign-in')}
-                >
-                  Sign In
-                </Button>
-                <Button onClick={() => navigate('/sign-up')} className="hidden sm:inline-flex">
-                  Get Started
-                </Button>
-              </>
-            )} */}
           </div>
         </div>
       </div>
