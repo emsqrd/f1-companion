@@ -4,7 +4,10 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import App from './App.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
+import { Layout } from './components/Layout/Layout.tsx';
 import { Team } from './components/Team/Team.tsx';
+import { SignInForm } from './components/auth/SignInForm.tsx';
+import { SignUpForm } from './components/auth/SignUpForm.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
 
@@ -13,9 +16,13 @@ createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<App />} />
-          <Route path="/team/:teamId" element={<Team />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<LandingPage />} />
+            <Route path="/sign-in" element={<SignInForm />} />
+            <Route path="/sign-up" element={<SignUpForm />} />
+            <Route path="/dashboard" element={<App />} />
+            <Route path="/team/:teamId" element={<Team />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>

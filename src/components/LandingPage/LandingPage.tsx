@@ -1,8 +1,6 @@
-import { AuthPage } from '@/components/auth/AuthPage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
 import {
   ArrowRight,
   BarChart3,
@@ -15,81 +13,13 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 export function LandingPage() {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [showAuth, setShowAuth] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-
-  // Close auth modal and redirect when user becomes authenticated
-  useEffect(() => {
-    if (user && showAuth) {
-      setShowAuth(false);
-      // Optional: Auto-redirect to dashboard after successful auth
-      navigate('/dashboard');
-    }
-  }, [user, showAuth, navigate]);
-
-  if (showAuth) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="mb-6 text-center">
-            <Button variant="ghost" onClick={() => setShowAuth(false)} className="mb-4">
-              ← Back to Home
-            </Button>
-          </div>
-          <AuthPage initialMode={authMode} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="from-background to-muted/20 min-h-screen bg-gradient-to-b">
-      {/* Navigation */}
-      <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Trophy className="text-primary h-8 w-8" />
-              <span className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-xl font-bold text-transparent">
-                F1 Fantasy Sports
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setAuthMode('login');
-                      setShowAuth(true);
-                    }}
-                    className="hidden sm:inline-flex"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setAuthMode('signup');
-                      setShowAuth(true);
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="py-20 sm:py-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,14 +38,7 @@ export function LandingPage() {
               every race weekend like never before.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Button
-                size="lg"
-                onClick={() => {
-                  setAuthMode('signup');
-                  setShowAuth(true);
-                }}
-                className="text-lg"
-              >
+              <Button size="lg" onClick={() => navigate('/sign-in')} className="text-lg">
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -281,14 +204,7 @@ export function LandingPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setShowAuth(true);
-                  }}
-                  className="h-auto px-8 py-6 text-lg"
-                >
+                <Button size="lg" onClick={() => navigate('/sign-up')} className="text-lg">
                   Get Started Free
                   <Star className="ml-2 h-5 w-5" />
                 </Button>
