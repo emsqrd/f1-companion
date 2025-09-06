@@ -1,16 +1,33 @@
 import { useAuth } from '@/hooks/useAuth';
-import { Trophy } from 'lucide-react';
+import { Menu, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 
 export function PageHeader() {
   const { user, signOut } = useAuth();
-
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
     navigate('/');
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  const handleSignOut = () => {
+    signOut();
+  };
+
+  const handleSignIn = () => {
+    navigate('/sign-in');
   };
 
   // Hide auth buttons on auth pages
@@ -39,9 +56,34 @@ export function PageHeader() {
               F1 Fantasy Sports
             </span>
           </div>
-          <div className="hidden items-center space-x-4 sm:flex">
+          <div className="items-center space-x-4">
+            {!isAuthPage && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="data-[state=open]:bg-accent h-7 w-7"
+                  >
+                    <Menu />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {user && isLandingPage && (
+                    <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                  )}
+                  {user && <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>}
+                  {!user && <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {/* 
             {user && isLandingPage && (
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <Button
+                className="hidden sm:flex"
+                variant="outline"
+                onClick={() => navigate('/dashboard')}
+              >
                 Go to Dashboard
               </Button>
             )}
@@ -50,14 +92,18 @@ export function PageHeader() {
 
             {!user && !isAuthPage && (
               <>
-                <Button variant="ghost" onClick={() => navigate('/sign-in')}>
+                <Button
+                  className="hidden sm:flex"
+                  variant="ghost"
+                  onClick={() => navigate('/sign-in')}
+                >
                   Sign In
                 </Button>
                 <Button onClick={() => navigate('/sign-up')} className="hidden sm:inline-flex">
                   Get Started
                 </Button>
               </>
-            )}
+            )} */}
           </div>
         </div>
       </div>
