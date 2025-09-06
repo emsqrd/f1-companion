@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import { Button } from '../ui/button';
@@ -12,8 +12,16 @@ export function SignInForm() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
+
+  //TODO: Move this to a route guard instead
+  // Redirect authenticated users
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, isLoading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

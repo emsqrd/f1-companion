@@ -57,31 +57,33 @@ export function PageHeader() {
               F1 Fantasy Sports
             </span>
           </div>
-          <div className="items-center space-x-4">
-            {!isAuthPage && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="data-[state=open]:bg-accent h-7 w-7 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    size="icon"
-                  >
-                    <Avatar>
-                      <AvatarFallback>
-                        <CircleUser />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {user && isLandingPage && (
-                    <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
-                  )}
-                  {user && <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>}
-                  {!user && <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+          <div className="flex space-x-4">
+            <div className="items-center">
+              {!isAuthPage && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="data-[state=open]:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0"
+                      size="icon"
+                    >
+                      <Avatar>
+                        <AvatarFallback>
+                          <CircleUser />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {user && isLandingPage && (
+                      <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                    )}
+                    {user && <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>}
+                    {!user && <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
         </div>
       </div>
