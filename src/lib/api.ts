@@ -7,7 +7,7 @@ class ApiClient {
     const envBaseUrl = import.meta.env.VITE_F1_FANTASY_API;
     if (!envBaseUrl) {
       throw new Error(
-        'VITE_API_BASE_URL environment variable is not set. Please configure it in your environment.',
+        'VITE_F1_FANTASY_API environment variable is not set. Please configure it in your environment.',
       );
     }
     this.baseUrl = envBaseUrl;
