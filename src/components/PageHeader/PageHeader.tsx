@@ -1,0 +1,100 @@
+import { useAuth } from '@/hooks/useAuth';
+import { CircleUser, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router';
+
+import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+
+export function PageHeader() {
+  const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
+  const handleAccountClick = () => {
+    navigate('/account');
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    navigate('/');
+  };
+
+  const handleSignIn = () => {
+    navigate('/sign-in');
+  };
+
+  // Hide auth buttons on auth pages
+  const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up';
+
+  return (
+    <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <div
+            className="flex cursor-pointer items-center space-x-2"
+            onClick={handleLogoClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleLogoClick();
+              }
+            }}
+            aria-label="Navigate to home page"
+          >
+            <Trophy className="text-primary h-8 w-8" />
+            <span className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-xl font-bold text-transparent">
+              F1 Fantasy Sports
+            </span>
+          </div>
+          <div className="flex space-x-4">
+            <div className="items-center">
+              {!isAuthPage && !loading && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="data-[state=open]:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0"
+                      size="icon"
+                    >
+                      <Avatar>
+                        <AvatarFallback>
+                          <CircleUser />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {user ? (
+                      <>
+                        <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}

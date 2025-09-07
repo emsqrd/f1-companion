@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -37,11 +37,6 @@ describe('LandingPage', () => {
     expect(screen.getByRole('heading', { name: /Race to Glory with/i })).toBeInTheDocument();
   });
 
-  it('shows get started button when user is not authenticated', () => {
-    renderWithRouter(<LandingPage />);
-    expect(screen.getByText('Get Started')).toBeInTheDocument();
-  });
-
   it('displays key features', () => {
     renderWithRouter(<LandingPage />);
     expect(screen.getByText('Compete with Friends')).toBeInTheDocument();
@@ -54,13 +49,6 @@ describe('LandingPage', () => {
     expect(screen.getByText('Build Your Team')).toBeInTheDocument();
     expect(screen.getByText('Join a League')).toBeInTheDocument();
     expect(screen.getByText('Race for Points')).toBeInTheDocument();
-  });
-
-  it('opens auth modal when get started is clicked', () => {
-    renderWithRouter(<LandingPage />);
-    const getStartedButton = screen.getByText('Get Started');
-    fireEvent.click(getStartedButton);
-    expect(screen.getByText('← Back to Home')).toBeInTheDocument();
   });
 
   it('displays social proof statistics', () => {

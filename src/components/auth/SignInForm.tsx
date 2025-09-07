@@ -7,14 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 
-export function SignUpForm() {
+export function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, signUp } = useAuth();
+  const { user, signIn } = useAuth();
   const navigate = useNavigate();
 
   //TODO: Move this to a route guard instead
@@ -30,24 +28,12 @@ export function SignUpForm() {
     setIsLoading(true);
     setError(null);
 
-    // Client-side validation
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      await signUp(email, password, { displayName });
-      navigate('/dashboard', { replace: true });
+      await signIn(email, password);
+      navigate('/dashboard');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Sign up failed');
+      setError(error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed');
+      // Handle error (show toast, etc.)
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +44,8 @@ export function SignUpForm() {
       <div className="w-full max-w-md space-y-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Create Account</CardTitle>
-            <CardDescription>Join the F1 fantasy league</CardDescription>
+            <CardTitle>Welcome</CardTitle>
+            <CardDescription>Sign in to access your F1 fantasy league</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,67 +54,35 @@ export function SignUpForm() {
                   {error}
                 </div>
               )}
-
               <div className="space-y-2">
-                <Label htmlFor="display-name">Display Name</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="display-name"
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  required
-                  autoComplete="name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input
-                  id="signup-email"
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="email"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
-                  id="signup-password"
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
-                  autoComplete="new-password"
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
-              </div>
-
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Sign Up'}
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
           </CardContent>
         </Card>
-
         <div className="text-center">
           <Button variant="link" asChild className="text-sm">
-            <Link to="/sign-in">Already have an account? Sign in</Link>
+            <Link to="/sign-up">Don't have an account? Sign up</Link>
           </Button>
         </div>
       </div>

@@ -1,4 +1,6 @@
+import type { CreateProfileData } from '@/contracts/CreateProfileData';
 import { supabase } from '@/lib/supabase';
+import { userProfileService } from '@/services/userProfileService';
 import type { Session, User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
@@ -37,12 +39,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, additionalData: CreateProfileData) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
     if (error) throw error;
+
+    if (data.user) {
+      try {
+        await userProfileService.registerUser(additionalData);
+      } catch (apiError) {
+        console.error('Profile creation failed:', apiError);
+        throw new Error('Registration completed but profile setup failed.');
+      }
+    }
   };
 
   const signOut = async () => {

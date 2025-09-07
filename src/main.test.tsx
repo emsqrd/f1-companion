@@ -93,21 +93,29 @@ describe('main.tsx', () => {
 
     // Check that the routes contain the expected route elements
     const routeElements = routes.props.children;
-    expect(Array.isArray(routeElements)).toBe(true);
-    expect(routeElements).toHaveLength(3);
+    expect(Array.isArray(routeElements)).toBe(false); // Should be false because it's a single Route element
 
-    // Check the first route (LandingPage component at root path)
-    const landingRoute = routeElements[0];
-    expect(landingRoute.props.path).toBe('/');
+    // The routeElements should be a single Route element with Layout
+    expect(routeElements.props.path).toBe('/');
+    expect(routeElements.props.element.type.name).toBe('Layout');
+
+    // Check the nested routes inside the Layout route
+    const nestedRoutes = routeElements.props.children;
+    expect(Array.isArray(nestedRoutes)).toBe(true);
+    expect(nestedRoutes).toHaveLength(6);
+
+    // Check the index route (LandingPage component)
+    const landingRoute = nestedRoutes[0];
+    expect(landingRoute.props.index).toBe(true);
     expect(landingRoute.props.element.type.name).toBe('LandingPage');
 
-    // Check the second route (App component at /dashboard path)
-    const appRoute = routeElements[1];
+    // Check the dashboard route (App component)
+    const appRoute = nestedRoutes[3]; // Index 3 based on the structure
     expect(appRoute.props.path).toBe('/dashboard');
     expect(appRoute.props.element.type).toBe(App);
 
-    // Check the third route (Team component at /team/:teamId path)
-    const teamRoute = routeElements[2];
+    // Check the team route (Team component)
+    const teamRoute = nestedRoutes[4]; // Index 4 based on the structure
     expect(teamRoute.props.path).toBe('/team/:teamId');
     expect(teamRoute.props.element.type.name).toBe('Team');
   });
