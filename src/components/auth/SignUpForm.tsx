@@ -10,6 +10,7 @@ import { Label } from '../ui/label';
 export function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export function SignUpForm() {
     }
 
     try {
-      await signUp(email, password);
+      await signUp(email, password, { displayName });
       navigate('/dashboard', { replace: true });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Sign up failed');
@@ -67,6 +68,18 @@ export function SignUpForm() {
                   {error}
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="display-name">Display Name</Label>
+                <Input
+                  id="display-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  autoComplete="name"
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>

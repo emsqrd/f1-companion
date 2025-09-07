@@ -4,7 +4,7 @@ class ApiClient {
   private baseUrl: string;
 
   constructor() {
-    const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const envBaseUrl = import.meta.env.VITE_F1_FANTASY_API;
     if (!envBaseUrl) {
       throw new Error(
         'VITE_API_BASE_URL environment variable is not set. Please configure it in your environment.',

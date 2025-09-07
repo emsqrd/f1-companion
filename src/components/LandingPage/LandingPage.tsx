@@ -38,7 +38,7 @@ export function LandingPage() {
               every race weekend like never before.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Button size="lg" onClick={() => navigate('/sign-in')} className="text-lg">
+              <Button size="lg" onClick={() => navigate('/sign-up')} className="text-lg">
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>

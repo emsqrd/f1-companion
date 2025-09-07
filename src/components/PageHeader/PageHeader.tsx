@@ -12,11 +12,15 @@ import {
 } from '../ui/dropdown-menu';
 
 export function PageHeader() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
     navigate('/');
+  };
+
+  const handleAccountClick = () => {
+    navigate('/account');
   };
 
   const handleDashboard = () => {
@@ -25,6 +29,7 @@ export function PageHeader() {
 
   const handleSignOut = () => {
     signOut();
+    navigate('/');
   };
 
   const handleSignIn = () => {
@@ -33,7 +38,6 @@ export function PageHeader() {
 
   // Hide auth buttons on auth pages
   const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up';
-  const isLandingPage = location.pathname === '/';
 
   return (
     <nav className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur">
@@ -59,7 +63,7 @@ export function PageHeader() {
           </div>
           <div className="flex space-x-4">
             <div className="items-center">
-              {!isAuthPage && (
+              {!isAuthPage && !loading && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -75,11 +79,15 @@ export function PageHeader() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {user && isLandingPage && (
-                      <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                    {user ? (
+                      <>
+                        <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>
                     )}
-                    {user && <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>}
-                    {!user && <DropdownMenuItem onClick={handleSignIn}>Sign In</DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}

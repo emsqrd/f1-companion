@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
 import App from './App.tsx';
+import { Account } from './components/Account/Account.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
 import { Team } from './components/Team/Team.tsx';
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/sign-up" element={<SignUpForm />} />
             <Route path="/dashboard" element={<App />} />
             <Route path="/team/:teamId" element={<Team />} />
+            <Route path="/account" element={<Account />} />
           </Route>
         </Routes>
       </BrowserRouter>

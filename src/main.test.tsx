@@ -102,7 +102,7 @@ describe('main.tsx', () => {
     // Check the nested routes inside the Layout route
     const nestedRoutes = routeElements.props.children;
     expect(Array.isArray(nestedRoutes)).toBe(true);
-    expect(nestedRoutes).toHaveLength(5);
+    expect(nestedRoutes).toHaveLength(6);
 
     // Check the index route (LandingPage component)
     const landingRoute = nestedRoutes[0];
