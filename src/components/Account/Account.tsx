@@ -53,12 +53,12 @@ export function Account() {
           </div>
         )}
         <Card className="w-full max-w-md">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pr-14 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl">Profile Information</CardTitle>
-            <Avatar className="h-20 w-20">
+            <Avatar className="h-20 w-20 border-2">
               <AvatarImage src={avatarUrl} />
-              <AvatarFallback>
-                <CircleUserIcon size={64} />
+              <AvatarFallback className="flex w-full items-center justify-center">
+                <CircleUserIcon size={80} />
               </AvatarFallback>
             </Avatar>
           </CardHeader>
@@ -76,15 +76,6 @@ export function Account() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              ></Input>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="firstName">First name</Label>
               <Input
                 id="firstName"
@@ -100,6 +91,15 @@ export function Account() {
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+              ></Input>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               ></Input>
             </div>
           </CardContent>
