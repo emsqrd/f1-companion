@@ -51,6 +51,21 @@ class ApiClient {
 
     return response.json();
   }
+
+  async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
 }
 
 export const apiClient = new ApiClient();
