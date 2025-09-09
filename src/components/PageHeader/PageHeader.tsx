@@ -73,7 +73,7 @@ export function PageHeader() {
                     >
                       <Avatar>
                         <AvatarFallback>
-                          <CircleUser />
+                          <CircleUser className="size-8" />
                         </AvatarFallback>
                       </Avatar>
                     </Button>
