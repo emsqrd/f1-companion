@@ -1,5 +1,8 @@
 import { useAuth } from '@/hooks/useAuth';
+import { userProfileService } from '@/services/userProfileService';
+import { AvatarImage } from '@radix-ui/react-avatar';
 import { CircleUser, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -13,6 +16,8 @@ import {
 
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState('');
+
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -35,6 +40,19 @@ export function PageHeader() {
   const handleSignIn = () => {
     navigate('/sign-in');
   };
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const user = await userProfileService.getCurrentProfile();
+        setAvatarUrl(user.avatarUrl);
+      } catch (error) {
+        console.error('Failed to load avatar', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   // Hide auth buttons on auth pages
   const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up';
@@ -72,6 +90,7 @@ export function PageHeader() {
                       size="icon"
                     >
                       <Avatar>
+                        {avatarUrl && <AvatarImage src={avatarUrl} alt="User avatar" />}
                         <AvatarFallback>
                           <CircleUser className="size-8" />
                         </AvatarFallback>

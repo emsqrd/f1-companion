@@ -1,31 +1,28 @@
 import type { UserProfile } from '@/contracts/UserProfile';
+import { useAuth } from '@/hooks/useAuth';
 import { useFormFeedback } from '@/hooks/useFormFeedback';
 import { type UserProfileFormData, userProfileFormSchema } from '@/lib/validationSchema';
 import { userProfileService } from '@/services/userProfileService';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AvatarFallback } from '@radix-ui/react-avatar';
-import { CircleUserIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { AvatarUpload } from '../AvatarUpload/AvatarUpload';
 import { FormFieldInput } from '../FormField/FormField';
-import { Avatar, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function Account() {
-  const [avatarUrl, setAvatarUrl] = useState('');
-
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile>();
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
+  const [isLoading, setIsLoading] = useState(true);
+  const { showSuccess, showError, clearFeedback } = useFormFeedback();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isDirty },
     reset,
-    // watch,
   } = useForm<UserProfileFormData>({
     resolver: zodResolver(userProfileFormSchema),
     mode: 'onBlur', // Validate on blur for better UX
@@ -42,7 +39,6 @@ export function Account() {
       try {
         const data = await userProfileService.getCurrentProfile();
         setUserProfile(data);
-        setAvatarUrl('');
 
         // Reset form with fetched data
         reset({
@@ -57,12 +53,29 @@ export function Account() {
         console.error('Failed to load user profile:', err);
         showError('Failed to load user profile');
       } finally {
-        setIsInitialLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchUserProfile();
   }, [reset, clearFeedback, showError]);
+
+  const handleAvatarChange = async (avatarUrl: string) => {
+    if (!userProfile) return;
+
+    try {
+      const updatedProfile = await userProfileService.updateUserProfile({
+        ...userProfile,
+        avatarUrl,
+      });
+
+      setUserProfile(updatedProfile);
+      showSuccess(avatarUrl ? 'Avatar updated successfully!' : 'Avatar remvoed successfully!');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update avatar';
+      showError(message);
+    }
+  };
 
   const onSubmit = async (formData: UserProfileFormData) => {
     if (!userProfile) return;
@@ -84,24 +97,23 @@ export function Account() {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
       showError(message);
     }
-
-    if (isInitialLoading) {
-      return (
-        <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
-          <div className="text-center">
-            <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground">Loading profile...</p>
-          </div>
-        </div>
-      );
-    }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
       <div className="w-full max-w-md space-y-4">
         {/* Feedback Messages */}
-        {feedback.type && (
+        {/* {feedback.type && (
           <div
             className={`rounded-md p-3 text-sm ${
               feedback.type === 'success'
@@ -112,17 +124,18 @@ export function Account() {
           >
             {feedback.message}
           </div>
-        )}
+        )} */}
 
         <Card className="w-full max-w-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl">Profile Information</CardTitle>
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={avatarUrl} />
-              <AvatarFallback className="flex w-full items-center justify-center">
-                <CircleUserIcon size={80} />
-              </AvatarFallback>
-            </Avatar>
+            <AvatarUpload
+              userId={user?.id || ''}
+              currentAvatarUrl={userProfile?.avatarUrl || ''}
+              onAvatarChange={handleAvatarChange}
+              onError={showError}
+              size="lg"
+            />
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
