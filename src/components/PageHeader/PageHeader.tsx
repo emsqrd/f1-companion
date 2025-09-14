@@ -1,9 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
+import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
 import { AvatarImage } from '@radix-ui/react-avatar';
-import { CircleUser, Trophy } from 'lucide-react';
+import { CircleUser, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -17,6 +18,9 @@ import {
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const location = useLocation();
 
   const navigate = useNavigate();
 
@@ -43,15 +47,33 @@ export function PageHeader() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
+      if (!user) {
+        setAvatarUrl('');
+        return;
+      }
+
       try {
-        const user = await userProfileService.getCurrentProfile();
-        setAvatarUrl(user.avatarUrl);
+        setIsLoading(true);
+        const profile = await userProfileService.getCurrentProfile();
+        setAvatarUrl(profile.avatarUrl || '');
       } catch (error) {
         console.error('Failed to load avatar', error);
+        setAvatarUrl('');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchUserProfile();
+  }, [user]); // Only depend on user, not location
+
+  // Listen for avatar update events
+  useEffect(() => {
+    const unsubscribe = avatarEvents.subscribe((newAvatarUrl) => {
+      setAvatarUrl(newAvatarUrl);
+    });
+
+    return unsubscribe;
   }, []);
 
   // Hide auth buttons on auth pages
@@ -94,6 +116,12 @@ export function PageHeader() {
                         <AvatarFallback>
                           <CircleUser className="size-8" />
                         </AvatarFallback>
+                        {/* Loading Overlay */}
+                        {isLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                            <Loader2 className="h-6 w-6 animate-spin text-white" />
+                          </div>
+                        )}
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>

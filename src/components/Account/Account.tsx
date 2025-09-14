@@ -1,6 +1,7 @@
 import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormFeedback } from '@/hooks/useFormFeedback';
+import { avatarEvents } from '@/lib/avatarEvents';
 import { type UserProfileFormData, userProfileFormSchema } from '@/lib/validationSchema';
 import { userProfileService } from '@/services/userProfileService';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -70,6 +71,8 @@ export function Account() {
       });
 
       setUserProfile(updatedProfile);
+      // Emit avatar change event so PageHeader updates immediately
+      avatarEvents.emit(avatarUrl);
       showSuccess(avatarUrl ? 'Avatar updated successfully!' : 'Avatar remvoed successfully!');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update avatar';
