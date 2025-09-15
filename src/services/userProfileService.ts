@@ -10,4 +10,8 @@ export const userProfileService = {
   async getCurrentProfile(): Promise<UserProfile> {
     return apiClient.get<UserProfile>('/me/profile');
   },
+
+  async updateUserProfile(data: UserProfile): Promise<UserProfile> {
+    return apiClient.patch<UserProfile, Partial<UserProfile>>('/me/profile', data);
+  },
 };

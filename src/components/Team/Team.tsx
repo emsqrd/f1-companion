@@ -15,6 +15,7 @@ export function Team() {
 
   const [team, setTeam] = useState<Team>();
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchTeam = async () => {
@@ -25,6 +26,8 @@ export function Team() {
       } catch (err) {
         console.error('Failed to load team:', err);
         setError('Failed to load team. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -34,6 +37,21 @@ export function Team() {
   if (error) {
     return <div>{error}</div>;
   }
+
+  if (isLoading) {
+    return (
+      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+        <div className="text-center">
+          <div
+            role="status"
+            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
+          ></div>
+          <p className="text-muted-foreground">Loading Team...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!team) {
     return <div>Team not found</div>;
   }
