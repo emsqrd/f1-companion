@@ -17,7 +17,7 @@ export function Account() {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile>();
   const [isLoading, setIsLoading] = useState(true);
-  const { showSuccess, showError, clearFeedback } = useFormFeedback();
+  const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
 
   const {
     register,
@@ -73,7 +73,7 @@ export function Account() {
       setUserProfile(updatedProfile);
       // Emit avatar change event so PageHeader updates immediately
       avatarEvents.emit(avatarUrl);
-      showSuccess(avatarUrl ? 'Avatar updated successfully!' : 'Avatar remvoed successfully!');
+      showSuccess('Avatar updated successfully!');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update avatar';
       showError(message);
@@ -116,7 +116,7 @@ export function Account() {
     <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
       <div className="w-full max-w-md space-y-4">
         {/* Feedback Messages */}
-        {/* {feedback.type && (
+        {feedback.type && (
           <div
             className={`rounded-md p-3 text-sm ${
               feedback.type === 'success'
@@ -127,7 +127,7 @@ export function Account() {
           >
             {feedback.message}
           </div>
-        )} */}
+        )}
 
         <Card className="w-full max-w-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
