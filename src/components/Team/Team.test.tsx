@@ -1,3 +1,4 @@
+import type { Team as TeamType } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -48,7 +49,61 @@ vi.mock('@/services/teamService', () => ({
   })),
 }));
 
-describe('Team', () => {
+describe('Loading State', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('displays loading spinner and message while fetching team data', async () => {
+    // Create a deferred promise to control when the API call resolves
+    let resolveTeamFetch: (value: TeamType) => void;
+    const teamFetchPromise = new Promise<TeamType>((resolve) => {
+      resolveTeamFetch = resolve;
+    });
+
+    // Mock getTeamById to return our controlled promise
+    vi.mocked(getTeamById).mockReturnValueOnce(teamFetchPromise);
+
+    render(<Team />);
+
+    // Verify loading state is displayed immediately
+    expect(screen.getByText('Loading Team...')).toBeInTheDocument();
+
+    // Verify loading spinner is present
+    const spinner = screen.getByRole('status', { hidden: true });
+    expect(spinner).toBeInTheDocument();
+    expect(spinner).toHaveClass('animate-spin');
+
+    // Verify main content is not rendered during loading
+    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /constructors/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
+
+    // Resolve the API call
+    resolveTeamFetch!({
+      id: 1,
+      name: 'Test Team',
+      ownerName: 'Test Owner',
+      rank: 1,
+      totalPoints: 100,
+    });
+
+    // Wait for loading to complete and content to render
+    await waitFor(() => {
+      expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
+    });
+
+    // Verify main content is now rendered
+    expect(screen.getByText('Test Team')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
+    expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
+
+    // Verify getTeamById was called with correct team ID
+    expect(getTeamById).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('Loaded State', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -85,12 +140,12 @@ describe('Team', () => {
     });
 
     //TODO: Commenting out for now until I finalize how the teams will display
-    // it('renders both tab options', () => {
-    //   render(<Team team={mockTeam} />);
+    it('renders both tab options', () => {
+      render(<Team />);
 
-    //   expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
-    //   expect(screen.getByRole('tab', { name: /constructors/i })).toBeInTheDocument();
-    // });
+      expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /constructors/i })).toBeInTheDocument();
+    });
   });
 
   describe('Tab Navigation', () => {

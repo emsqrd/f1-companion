@@ -42,7 +42,10 @@ export function Team() {
     return (
       <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
         <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+          <div
+            role="status"
+            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
+          ></div>
           <p className="text-muted-foreground">Loading Team...</p>
         </div>
       </div>
