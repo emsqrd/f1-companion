@@ -112,7 +112,7 @@ export function PageHeader() {
                       size="icon"
                     >
                       <Avatar>
-                        {avatarUrl && <AvatarImage src={avatarUrl} alt="User avatar" />}
+                        <AvatarImage src={avatarUrl} alt="User avatar" />
                         <AvatarFallback>
                           <CircleUser className="size-8" />
                         </AvatarFallback>
