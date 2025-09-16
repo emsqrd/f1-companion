@@ -1,12 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
-import { AvatarImage } from '@radix-ui/react-avatar';
 import { CircleUser, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 
-import { Avatar, AvatarFallback } from '../ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
