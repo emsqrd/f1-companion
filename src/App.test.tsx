@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import App from './App';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { ProtectedRoute } from './components/auth/ProtectedRoute/ProtectedRoute.tsx';
 
 // Mock the League component to isolate App component testing
 vi.mock('./components/League/League', () => ({

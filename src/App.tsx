@@ -1,5 +1,6 @@
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute/ProtectedRoute.tsx';
+
 import { League } from './components/League/League';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   return (

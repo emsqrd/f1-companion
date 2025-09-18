@@ -1,3 +1,5 @@
+import { SignInForm } from '@/components/auth/SignInForm/SignInForm.tsx';
+import { SignUpForm } from '@/components/auth/SingUpForm/SignUpForm.tsx';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
@@ -7,8 +9,6 @@ import { Account } from './components/Account/Account.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
 import { Team } from './components/Team/Team.tsx';
-import { SignInForm } from './components/auth/SignInForm.tsx';
-import { SignUpForm } from './components/auth/SignUpForm.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
 
