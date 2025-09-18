@@ -113,6 +113,7 @@ formatMillions(value) // For currency display
 - Test user interactions, not implementation details
 - Mock external dependencies (services, contexts)
 - Use `screen.getByRole()` and `data-testid` for element queries
+- Tests should use the `it(should...)` convention
 
 ### File Naming
 
