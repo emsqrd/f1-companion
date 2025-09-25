@@ -1,8 +1,13 @@
-import type { AuthError, Session, User } from '@supabase/supabase-js';
+import type { AuthChangeEvent, AuthError, Session, User } from '@supabase/supabase-js';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { userProfileService } from '../services/userProfileService';
+import { AuthProvider } from './AuthContext.tsx';
 
 // Mock modules with factory functions to avoid hoisting issues
 vi.mock('../lib/supabase', () => ({
@@ -23,7 +28,53 @@ vi.mock('../services/userProfileService', () => ({
   },
 }));
 
-describe('AuthProvider Logic', () => {
+// Test component that consumes the auth context
+function TestComponent() {
+  const { user, session, loading, signIn, signUp, signOut } = useAuth();
+
+  const handleSignIn = async () => {
+    try {
+      await signIn('test@example.com', 'password');
+    } catch {
+      // Errors are expected in some tests, silently handle them
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      await signUp('test@example.com', 'password', { displayName: 'Test User' });
+    } catch {
+      // Errors are expected in some tests, silently handle them
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch {
+      // Errors are expected in some tests, silently handle them
+    }
+  };
+
+  return (
+    <div>
+      <div data-testid="loading">{loading.toString()}</div>
+      <div data-testid="user">{user?.email ?? 'null'}</div>
+      <div data-testid="session">{session ? 'active' : 'null'}</div>
+      <button onClick={handleSignIn} data-testid="sign-in-btn">
+        Sign In
+      </button>
+      <button onClick={handleSignUp} data-testid="sign-up-btn">
+        Sign Up
+      </button>
+      <button onClick={handleSignOut} data-testid="sign-out-btn">
+        Sign Out
+      </button>
+    </div>
+  );
+}
+
+describe('AuthProvider', () => {
   const mockUser: User = {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -44,267 +95,314 @@ describe('AuthProvider Logic', () => {
     user: mockUser,
   };
 
+  let mockUnsubscribe: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUnsubscribe = vi.fn();
+
+    // Default mock setup
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+
+    vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
+      data: { subscription: { unsubscribe: mockUnsubscribe, id: 'test', callback: vi.fn() } },
+    });
   });
 
   afterEach(() => {
     vi.resetAllMocks();
   });
 
-  describe('Supabase Integration', () => {
-    it('should be able to call getSession', async () => {
+  describe('Initial State', () => {
+    it('should provide initial loading state', async () => {
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      expect(screen.getByTestId('loading').textContent).toBe('true');
+      expect(screen.getByTestId('user').textContent).toBe('null');
+      expect(screen.getByTestId('session').textContent).toBe('null');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('loading').textContent).toBe('false');
+      });
+    });
+
+    it('should load existing session on mount', async () => {
       vi.mocked(supabase.auth.getSession).mockResolvedValue({
-        data: { session: null },
+        data: { session: mockSession },
         error: null,
       });
 
-      const result = await supabase.auth.getSession();
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
 
-      expect(supabase.auth.getSession).toHaveBeenCalledOnce();
-      expect(result.data.session).toBeNull();
+      await waitFor(() => {
+        expect(screen.getByTestId('user').textContent).toBe('test@example.com');
+        expect(screen.getByTestId('session').textContent).toBe('active');
+        expect(screen.getByTestId('loading').textContent).toBe('false');
+      });
     });
 
-    it('should be able to call signInWithPassword', async () => {
+    it('should set up auth state change listener', () => {
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      expect(supabase.auth.onAuthStateChange).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should clean up subscription on unmount', () => {
+      const { unmount } = render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      unmount();
+
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+  });
+
+  describe('Auth Methods', () => {
+    it('should call signIn and handle success', async () => {
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
       });
 
-      const result = await supabase.auth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'password',
-      });
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      await userEvent.click(screen.getByTestId('sign-in-btn'));
 
       expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',
       });
-      expect(result.data.user).toBe(mockUser);
     });
 
-    it('should be able to call signUp', async () => {
-      vi.mocked(supabase.auth.signUp).mockResolvedValue({
-        data: { user: mockUser, session: mockSession },
-        error: null,
-      });
-
-      const result = await supabase.auth.signUp({
-        email: 'test@example.com',
-        password: 'password',
-      });
-
-      expect(supabase.auth.signUp).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password',
-      });
-      expect(result.data.user).toBe(mockUser);
-    });
-
-    it('should be able to call signOut', async () => {
-      vi.mocked(supabase.auth.signOut).mockResolvedValue({
-        error: null,
-      });
-
-      const result = await supabase.auth.signOut();
-
-      expect(supabase.auth.signOut).toHaveBeenCalledOnce();
-      expect(result.error).toBeNull();
-    });
-
-    it('should be able to set up auth state change listener', () => {
-      const mockUnsubscribe = vi.fn();
-      vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
-        data: { subscription: { unsubscribe: mockUnsubscribe, id: 'test', callback: vi.fn() } },
-      });
-
-      const callback = vi.fn();
-      const result = supabase.auth.onAuthStateChange(callback);
-
-      expect(supabase.auth.onAuthStateChange).toHaveBeenCalledWith(callback);
-      expect(result.data.subscription.unsubscribe).toBe(mockUnsubscribe);
-    });
-  });
-
-  describe('UserProfile Service Integration', () => {
-    it('should be able to call registerUser', async () => {
-      const mockProfile = {
-        id: 'profile-id',
-        email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
-        displayName: 'Test User',
-        avatarUrl: '',
-      };
-
-      vi.mocked(userProfileService.registerUser).mockResolvedValue(mockProfile);
-
-      const result = await userProfileService.registerUser({
-        displayName: 'Test User',
-      });
-
-      expect(userProfileService.registerUser).toHaveBeenCalledWith({
-        displayName: 'Test User',
-      });
-      expect(result).toBe(mockProfile);
-    });
-
-    it('should handle registerUser errors', async () => {
-      const error = new Error('Profile creation failed');
-      vi.mocked(userProfileService.registerUser).mockRejectedValue(error);
-
-      await expect(userProfileService.registerUser({ displayName: 'Test User' })).rejects.toThrow(
-        'Profile creation failed',
-      );
-
-      expect(userProfileService.registerUser).toHaveBeenCalledWith({
-        displayName: 'Test User',
-      });
-    });
-  });
-
-  describe('Error Handling Scenarios', () => {
-    it('should handle signIn errors', async () => {
-      const signInError = new Error('Invalid credentials') as unknown as AuthError;
+    it('should handle signIn error', async () => {
+      const signInError = new Error('Invalid credentials') as AuthError;
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: { user: null, session: null },
         error: signInError,
       });
 
-      const result = await supabase.auth.signInWithPassword({
-        email: 'test@example.com',
-        password: 'wrong-password',
-      });
+      let thrownError: Error | null = null;
+      function TestErrorComponent() {
+        const { signIn } = useAuth();
 
-      expect(result.error).toBe(signInError);
+        React.useEffect(() => {
+          signIn('test@example.com', 'password').catch((err) => {
+            thrownError = err;
+          });
+        }, [signIn]);
+
+        return null;
+      }
+
+      render(
+        <AuthProvider>
+          <TestErrorComponent />
+        </AuthProvider>,
+      );
+
+      await waitFor(() => {
+        expect(thrownError?.message).toBe('Invalid credentials');
+      });
     });
 
-    it('should handle signUp errors', async () => {
-      const signUpError = new Error('Email already exists') as unknown as AuthError;
+    it('should call signUp with profile creation', async () => {
+      vi.mocked(supabase.auth.signUp).mockResolvedValue({
+        data: { user: mockUser, session: mockSession },
+        error: null,
+      });
+
+      vi.mocked(userProfileService.registerUser).mockResolvedValue({
+        id: 'profile-id',
+        email: 'test@example.com',
+        firstName: '',
+        lastName: '',
+        displayName: 'Test User',
+        avatarUrl: '',
+      });
+
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      await userEvent.click(screen.getByTestId('sign-up-btn'));
+
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password',
+      });
+
+      expect(userProfileService.registerUser).toHaveBeenCalledWith({
+        displayName: 'Test User',
+      });
+    });
+
+    it('should handle signUp error', async () => {
+      const signUpError = new Error('Email already exists') as AuthError;
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: null, session: null },
         error: signUpError,
       });
 
-      const result = await supabase.auth.signUp({
-        email: 'existing@example.com',
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      // Verify that signUp is called with correct parameters
+      // The error will be thrown internally by the auth method
+      await userEvent.click(screen.getByTestId('sign-up-btn'));
+
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'test@example.com',
         password: 'password',
       });
-
-      expect(result.error).toBe(signUpError);
     });
 
-    it('should handle signOut errors', async () => {
-      const signOutError = new Error('Sign out failed') as unknown as AuthError;
-      vi.mocked(supabase.auth.signOut).mockResolvedValue({
-        error: signOutError,
-      });
-
-      const result = await supabase.auth.signOut();
-
-      expect(result.error).toBe(signOutError);
-    });
-
-    it('should handle getSession errors', async () => {
-      const sessionError = new Error('Session retrieval failed') as unknown as AuthError;
-      vi.mocked(supabase.auth.getSession).mockResolvedValue({
-        data: { session: null },
-        error: sessionError,
-      });
-
-      const result = await supabase.auth.getSession();
-
-      expect(result.error).toBe(sessionError);
-    });
-  });
-
-  describe('Auth Flow Scenarios', () => {
-    it('should simulate successful sign up with profile creation', async () => {
-      // Mock successful signUp
+    it('should handle profile creation failure during signUp', async () => {
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
       });
 
-      // Mock successful profile creation
-      vi.mocked(userProfileService.registerUser).mockResolvedValue({
-        id: 'profile-id',
+      vi.mocked(userProfileService.registerUser).mockRejectedValue(
+        new Error('Profile creation failed'),
+      );
+
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      // Verify the service methods are called correctly
+      await userEvent.click(screen.getByTestId('sign-up-btn'));
+
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
-        firstName: 'Test',
-        lastName: 'User',
+        password: 'password',
+      });
+
+      expect(userProfileService.registerUser).toHaveBeenCalledWith({
         displayName: 'Test User',
-        avatarUrl: '',
       });
-
-      // Step 1: Sign up
-      const signUpResult = await supabase.auth.signUp({
-        email: 'test@example.com',
-        password: 'password',
-      });
-
-      expect(signUpResult.data.user).toBe(mockUser);
-      expect(signUpResult.error).toBeNull();
-
-      // Step 2: Create profile (only if user exists)
-      if (signUpResult.data.user) {
-        const profileResult = await userProfileService.registerUser({
-          displayName: 'Test User',
-        });
-
-        expect(profileResult.displayName).toBe('Test User');
-      }
-
-      expect(supabase.auth.signUp).toHaveBeenCalledOnce();
-      expect(userProfileService.registerUser).toHaveBeenCalledOnce();
-    });
-
-    it('should simulate sign up with profile creation failure', async () => {
-      // Mock successful signUp
-      vi.mocked(supabase.auth.signUp).mockResolvedValue({
-        data: { user: mockUser, session: mockSession },
-        error: null,
-      });
-
-      // Mock profile creation failure
-      const profileError = new Error('Profile creation failed');
-      vi.mocked(userProfileService.registerUser).mockRejectedValue(profileError);
-
-      // Step 1: Sign up
-      const signUpResult = await supabase.auth.signUp({
-        email: 'test@example.com',
-        password: 'password',
-      });
-
-      expect(signUpResult.data.user).toBe(mockUser);
-
-      // Step 2: Profile creation should fail
-      if (signUpResult.data.user) {
-        await expect(userProfileService.registerUser({ displayName: 'Test User' })).rejects.toThrow(
-          'Profile creation failed',
-        );
-      }
-
-      expect(supabase.auth.signUp).toHaveBeenCalledOnce();
-      expect(userProfileService.registerUser).toHaveBeenCalledOnce();
     });
 
     it('should not attempt profile creation if signUp returns no user', async () => {
-      // Mock signUp with no user (e.g., email confirmation required)
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: null, session: null },
         error: null,
       });
 
-      const signUpResult = await supabase.auth.signUp({
-        email: 'test@example.com',
-        password: 'password',
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      await userEvent.click(screen.getByTestId('sign-up-btn'));
+
+      expect(supabase.auth.signUp).toHaveBeenCalled();
+      expect(userProfileService.registerUser).not.toHaveBeenCalled();
+    });
+
+    it('should call signOut', async () => {
+      vi.mocked(supabase.auth.signOut).mockResolvedValue({
+        error: null,
       });
 
-      expect(signUpResult.data.user).toBeNull();
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
 
-      // Profile creation should not be attempted
-      expect(supabase.auth.signUp).toHaveBeenCalledOnce();
-      expect(userProfileService.registerUser).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByTestId('sign-out-btn'));
+
+      expect(supabase.auth.signOut).toHaveBeenCalled();
+    });
+
+    it('should handle signOut error', async () => {
+      const signOutError = new Error('Sign out failed') as AuthError;
+      vi.mocked(supabase.auth.signOut).mockResolvedValue({
+        error: signOutError,
+      });
+
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      // Verify that signOut is called
+      await userEvent.click(screen.getByTestId('sign-out-btn'));
+
+      expect(supabase.auth.signOut).toHaveBeenCalled();
+    });
+  });
+
+  describe('Auth State Changes', () => {
+    it('should update state when auth changes', async () => {
+      let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
+
+      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
+        authCallback = callback;
+        return {
+          data: { subscription: { unsubscribe: mockUnsubscribe, id: 'test', callback: vi.fn() } },
+        };
+      });
+
+      render(
+        <AuthProvider>
+          <TestComponent />
+        </AuthProvider>,
+      );
+
+      // Initially no user
+      await waitFor(() => {
+        expect(screen.getByTestId('user').textContent).toBe('null');
+      });
+
+      // Simulate auth change with session
+      authCallback!('SIGNED_IN', mockSession);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('user').textContent).toBe('test@example.com');
+        expect(screen.getByTestId('session').textContent).toBe('active');
+        expect(screen.getByTestId('loading').textContent).toBe('false');
+      });
+
+      // Simulate sign out
+      authCallback!('SIGNED_OUT', null);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('user').textContent).toBe('null');
+        expect(screen.getByTestId('session').textContent).toBe('null');
+      });
     });
   });
 });
