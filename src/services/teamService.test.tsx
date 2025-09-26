@@ -106,6 +106,46 @@ describe('teamService', () => {
       const result = await getTeams();
       expect(result).toEqual([]);
     });
+
+    it('should throw error when fetch fails', async () => {
+      const mockError = new Error('Network error');
+      mockFetch.mockRejectedValueOnce(mockError);
+
+      await expect(getTeams()).rejects.toThrow('Network error');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw error when JSON parsing fails', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      await expect(getTeams()).rejects.toThrow('Invalid JSON');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle API server errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: vi.fn().mockResolvedValue({ error: 'Internal Server Error' }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      const result = await getTeams();
+      expect(result).toEqual({ error: 'Internal Server Error' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle API unavailable errors', async () => {
+      const mockError = new Error('Failed to fetch');
+      mockFetch.mockRejectedValueOnce(mockError);
+
+      await expect(getTeams()).rejects.toThrow('Failed to fetch');
+    });
   });
 
   describe('getTeamById', () => {
@@ -163,6 +203,52 @@ describe('teamService', () => {
       expect(team).toBeUndefined();
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/teams/999'));
+    });
+
+    it('should throw error when fetch fails', async () => {
+      const mockError = new Error('Network error');
+      mockFetch.mockRejectedValueOnce(mockError);
+
+      await expect(getTeamById(1)).rejects.toThrow('Network error');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw error when JSON parsing fails', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      await expect(getTeamById(1)).rejects.toThrow('Invalid JSON');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle API server errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: vi.fn().mockResolvedValue({ error: 'Internal Server Error' }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      const result = await getTeamById(1);
+      expect(result).toEqual({ error: 'Internal Server Error' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle team not found errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        json: vi.fn().mockResolvedValue({ error: 'Team not found' }),
+      };
+      mockFetch.mockResolvedValueOnce(mockResponse);
+
+      const result = await getTeamById(999);
+      expect(result).toEqual({ error: 'Team not found' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 

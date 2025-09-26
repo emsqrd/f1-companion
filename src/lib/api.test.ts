@@ -43,6 +43,77 @@ describe('ApiClient', () => {
     vi.unstubAllGlobals();
   });
 
+  describe('constructor', () => {
+    it('should throw error when VITE_F1_FANTASY_API environment variable is not set', async () => {
+      // Store original value
+      const originalValue = import.meta.env.VITE_F1_FANTASY_API;
+
+      // Mock the environment variable to be undefined
+      vi.stubEnv('VITE_F1_FANTASY_API', undefined);
+
+      // Reset modules to force fresh import
+      vi.resetModules();
+
+      try {
+        // This should throw when the module is imported and apiClient is instantiated
+        await expect(import('./api')).rejects.toThrow(
+          'VITE_F1_FANTASY_API environment variable is not set. Please configure it in your environment.',
+        );
+      } finally {
+        // Restore the original environment variable and reset modules
+        vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
+        vi.resetModules();
+      }
+    });
+
+    it('should throw error when VITE_F1_FANTASY_API environment variable is empty string', async () => {
+      // Store original value
+      const originalValue = import.meta.env.VITE_F1_FANTASY_API;
+
+      // Mock the environment variable to be empty string
+      vi.stubEnv('VITE_F1_FANTASY_API', '');
+
+      // Reset modules to force fresh import
+      vi.resetModules();
+
+      try {
+        // This should throw when the module is imported and apiClient is instantiated
+        await expect(import('./api')).rejects.toThrow(
+          'VITE_F1_FANTASY_API environment variable is not set. Please configure it in your environment.',
+        );
+      } finally {
+        // Restore the original environment variable and reset modules
+        vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
+        vi.resetModules();
+      }
+    });
+
+    it('should successfully create apiClient when VITE_F1_FANTASY_API is set', async () => {
+      // Store original value
+      const originalValue = import.meta.env.VITE_F1_FANTASY_API;
+
+      // Ensure environment variable is set
+      const envValue = 'http://localhost:3000/api';
+      vi.stubEnv('VITE_F1_FANTASY_API', envValue);
+
+      // Reset modules to force fresh import
+      vi.resetModules();
+
+      try {
+        // This should succeed
+        const { apiClient: freshApiClient } = await import('./api');
+        expect(freshApiClient).toBeDefined();
+        expect(freshApiClient.get).toBeInstanceOf(Function);
+        expect(freshApiClient.post).toBeInstanceOf(Function);
+        expect(freshApiClient.patch).toBeInstanceOf(Function);
+      } finally {
+        // Restore the original environment variable and reset modules
+        vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
+        vi.resetModules();
+      }
+    });
+  });
+
   describe('get method', () => {
     it('should make successful GET request with no authentication', async () => {
       const mockResponseData = { id: 1, name: 'Test Data' };
