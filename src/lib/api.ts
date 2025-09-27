@@ -1,5 +1,11 @@
 import { supabase } from './supabase';
 
+type RequestConfig<D = unknown> = {
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
+  data?: D;
+  headers?: HeadersInit;
+};
+
 class ApiClient {
   private baseUrl: string;
 
@@ -13,7 +19,7 @@ class ApiClient {
     this.baseUrl = envBaseUrl;
   }
 
-  private async getAuthHeaders() {
+  private async getBaseHeaders() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -26,45 +32,44 @@ class ApiClient {
     };
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}${endpoint}`, { headers });
+  private async makeRequest<T, D = unknown>(
+    endpoint: string,
+    config: RequestConfig<D> = {},
+  ): Promise<T> {
+    const { method = 'GET', data, headers: customHeaders } = config;
+    const baseHeaders = await this.getBaseHeaders();
 
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method,
+        headers: { ...baseHeaders, ...customHeaders },
+        ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Network error: ${error.message}`);
+      }
+
+      throw new Error('Unknown network error occurred');
     }
+  }
 
-    return response.json();
+  async get<T>(endpoint: string): Promise<T> {
+    return this.makeRequest<T>(endpoint);
   }
 
   async post<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
-    }
-
-    return response.json();
+    return this.makeRequest<T, D>(endpoint, { method: 'POST', data });
   }
 
   async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    const headers = await this.getAuthHeaders();
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
-    }
-
-    return response.json();
+    return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
   }
 }
 

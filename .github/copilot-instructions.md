@@ -6,28 +6,31 @@ This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supa
 
 ### Key Architectural Patterns
 
-- **Authentication Flow**: Uses Supabase auth with `AuthProvider` context wrapping the entire app. All protected routes use `ProtectedRoute` component
-- **Routing Structure**: React Router with nested routes in `main.tsx`. Landing page is public, dashboard/team pages require auth
-- **Service Layer**: API calls abstracted into service modules (`teamService.ts`, `driverService.ts`, etc.) with consistent error handling
-- **Component Composition**: Uses discriminated union props pattern (see `RoleCard.tsx`) for flexible component variants
+- **Authentication Flow**: Uses Supabase auth with `AuthProvider` context wrapping the entire app in `main.tsx`. All protected routes use `ProtectedRoute` component. Registration includes automatic profile creation via `userProfileService`
+- **Routing Structure**: React Router v7 with nested routes in `main.tsx`. Layout component wraps all routes. Landing page is public, dashboard/team pages require auth
+- **Service Layer**: API calls abstracted into service modules (`teamService.ts`, `driverService.ts`, etc.) with consistent error handling. Currently uses mock data for development
+- **Component Composition**: Uses discriminated union props pattern (see `RoleCard.tsx`) for flexible component variants. Separate content components for different states
 
 ## Development Workflow
 
 ### Essential Commands
 
 ```bash
-npm run dev           # Start dev server with Vite
-npm test             # Run Vitest test suite
+npm run dev           # Start dev server with Vite on port 5173
+npm test             # Run Vitest test suite (one-time)
+npm run test:watch   # Run tests in watch mode
 npm run test:coverage # Generate coverage reports
 npm run lint         # ESLint with TypeScript rules
+npm run build        # Type check + build for production
 ```
 
 ### Testing Conventions
 
-- **Vitest + React Testing Library**: All components have `.test.tsx` files
-- **Mock Strategy**: Uses `vi.fn()` and `vi.mock()` for external dependencies
-- **Test Data**: Use `data-testid` attributes for reliable element selection
-- **Coverage**: Excludes `src/components/ui` (shadcn/ui), `src/contracts`, and demo files
+- **Vitest + React Testing Library**: All components have `.test.tsx` files co-located with components
+- **Mock Strategy**: Uses `vi.fn()` and `vi.mock()` for external dependencies. Component tests mock child components to isolate behavior
+- **Test Data**: Use `data-testid` attributes for reliable element selection. Prefer `screen.getByRole()` for semantic queries
+- **Coverage**: Excludes `src/components/ui` (shadcn/ui), `src/contracts`, `src/demos`, and config files in `vite.config.ts`
+- **Setup**: Global test setup in `src/setupTests.ts` includes `@testing-library/jest-dom` and automatic cleanup
 
 ## Component Patterns
 
@@ -39,9 +42,10 @@ npm run lint         # ESLint with TypeScript rules
 
 ### Business Components
 
-- **Discriminated Unions**: Use TypeScript discriminated unions for component variants (see `RoleCard`)
+- **Discriminated Unions**: Use TypeScript discriminated unions for component variants (see `RoleCard`). Props pattern: `variant: 'empty' | 'filled'` with conditional props
 - **Composition**: Separate content components (`AddRoleCardContent`, `InfoRoleCardContent`) for different states
-- **Custom Hooks**: Business logic in hooks like `useSlots.ts` for slot management
+- **Custom Hooks**: Business logic in hooks like `useSlots.ts` for slot management. Generic type constraint: `<T extends { id: number }>`
+- **Conditional Rendering**: Use `renderCardContent()` helper functions for complex conditional component logic
 
 ### State Management Patterns
 
@@ -98,8 +102,9 @@ formatMillions(value) // For currency display
 ### Common Data Patterns
 
 - **Teams**: `{ id, name, ownerName, rank, totalPoints }`
-- **Slots**: Generic slot management with `useSlots<T extends { id: number }>`
-- **Auth**: Supabase user + custom profile creation flow
+- **Drivers/Constructors**: Extend `BaseRole` interface with `id`, `countryAbbreviation`, `price`, `points`
+- **Slots**: Generic slot management with `useSlots<T extends { id: number }>` - rebuilds pool in original order when items removed
+- **Auth**: Supabase user + custom profile creation flow via `userProfileService.registerUser()`
 
 ## Testing Strategy
 
@@ -108,6 +113,7 @@ formatMillions(value) // For currency display
 - Test user interactions, not implementation details
 - Mock external dependencies (services, contexts)
 - Use `screen.getByRole()` and `data-testid` for element queries
+- Tests should use the `it(should...)` convention
 
 ### File Naming
 
