@@ -113,7 +113,13 @@ describe('Account', () => {
     });
 
     it('handles empty profile fields gracefully', async () => {
-      const emptyProfile = { ...mockUserProfile, firstName: '', lastName: '', displayName: '' };
+      const emptyProfile = {
+        ...mockUserProfile,
+        firstName: '',
+        lastName: '',
+        displayName: '',
+        email: '',
+      };
       mockUserProfileService.getCurrentProfile.mockResolvedValue(emptyProfile);
 
       renderWithAuth(<Account />);
@@ -125,6 +131,7 @@ describe('Account', () => {
       expect(screen.getByPlaceholderText('Enter your display name')).toHaveValue('');
       expect(screen.getByPlaceholderText('Enter your first name')).toHaveValue('');
       expect(screen.getByPlaceholderText('Enter your last name')).toHaveValue('');
+      expect(screen.getByPlaceholderText('Enter your email address')).toHaveValue('');
     });
   });
 
@@ -165,6 +172,52 @@ describe('Account', () => {
       });
 
       expect(screen.getByText('Update failed')).toBeInTheDocument();
+    });
+
+    it('shows fallback error message when avatar update throws non-Error', async () => {
+      // Mock updateUserProfile to reject with a string (not an Error instance)
+      mockUserProfileService.updateUserProfile.mockRejectedValue('some string error');
+
+      renderWithAuth(<Account />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+
+      const avatarUploadButton = screen.getByTestId('avatar-upload-success');
+      await userEvent.click(avatarUploadButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Failed to update avatar')).toBeInTheDocument();
+    });
+
+    it('should show fallback error message when saving account throws non-error', async () => {
+      // Mock updateUserProfile to reject with a string (not an Error instance)
+      mockUserProfileService.updateUserProfile.mockRejectedValue('some string error');
+
+      renderWithAuth(<Account />);
+
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+
+      const displayNameInput = screen.getByLabelText(/display name/i);
+      await user.clear(displayNameInput);
+      await user.type(displayNameInput, 'Updated Name');
+
+      const saveButton = screen.getByRole('button', { name: /save/i });
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Failed to update profile'));
     });
   });
 

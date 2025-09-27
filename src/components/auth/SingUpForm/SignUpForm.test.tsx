@@ -1,3 +1,4 @@
+import type { Session, User } from '@supabase/supabase-js';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -118,6 +119,19 @@ describe('SignUpForm', () => {
     expect(await screen.findByText(/sign up failed/i)).toBeInTheDocument();
   });
 
+  it('shows generic error message if signUp throws non-Error object', async () => {
+    mockSignUp.mockRejectedValue('Network error');
+    setup();
+    fireEvent.change(screen.getByLabelText(/display name/i), { target: { value: 'Test User' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
+    expect(await screen.findByText('Sign up failed')).toBeInTheDocument();
+  });
+
   it('disables submit button while loading', async () => {
     mockSignUp.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
     setup();
@@ -130,5 +144,40 @@ describe('SignUpForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
     expect(screen.getByRole('button', { name: /creating account/i })).toBeDisabled();
     await waitFor(() => expect(mockSignUp).toHaveBeenCalled());
+  });
+
+  it('redirects authenticated user to dashboard', () => {
+    // Mock an authenticated user
+    const mockUser: User = {
+      id: '123',
+      email: 'user@example.com',
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: '2023-01-01T00:00:00Z',
+    };
+
+    const mockSession: Session = {
+      access_token: 'token',
+      refresh_token: 'refresh',
+      expires_in: 3600,
+      expires_at: Date.now() / 1000 + 3600,
+      token_type: 'bearer',
+      user: mockUser,
+    };
+
+    vi.mocked(useAuth).mockReturnValue({
+      user: mockUser,
+      session: mockSession,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: mockSignUp,
+      signOut: vi.fn(),
+    });
+
+    setup();
+
+    // Verify navigation was called with correct parameters
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
   });
 });

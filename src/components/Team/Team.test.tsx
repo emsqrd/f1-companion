@@ -2,6 +2,7 @@ import type { Team as TeamType } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useParams } from 'react-router';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Team } from './Team';
@@ -50,10 +51,6 @@ vi.mock('@/services/teamService', () => ({
 }));
 
 describe('Loading State', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays loading spinner and message while fetching team data', async () => {
     // Create a deferred promise to control when the API call resolves
     let resolveTeamFetch: (value: TeamType) => void;
@@ -139,7 +136,6 @@ describe('Loaded State', () => {
       expect(screen.queryByTestId('constructor-picker')).not.toBeInTheDocument();
     });
 
-    //TODO: Commenting out for now until I finalize how the teams will display
     it('renders both tab options', () => {
       render(<Team />);
 
@@ -307,6 +303,103 @@ describe('Loaded State', () => {
 
       const dashboardLink = within(breadcrumb).getByRole('link', { name: /back to league/i });
       expect(dashboardLink).toBeInTheDocument();
+    });
+  });
+});
+
+describe('Error Handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should display error message when team fetch fails', async () => {
+    // Mock console.error to avoid log pollution in test output
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock the service to reject with an error
+    vi.mocked(getTeamById).mockRejectedValue(new Error('Network error'));
+
+    render(<Team />);
+
+    // Wait for error state to be displayed
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
+    });
+
+    // Verify loading state is no longer displayed
+    expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
+
+    // Verify main content is not rendered
+    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
+
+    // Verify console.error was called
+    expect(consoleError).toHaveBeenCalledWith('Failed to load team:', expect.any(Error));
+
+    consoleError.mockRestore();
+  });
+
+  it('should display team not found message when team is undefined', async () => {
+    // Mock the service to return undefined (team not found)
+    vi.mocked(getTeamById).mockResolvedValue(undefined);
+
+    render(<Team />);
+
+    // Wait for the "not found" message to appear
+    await waitFor(() => {
+      expect(screen.getByText('Team not found')).toBeInTheDocument();
+    });
+
+    // Verify loading state is no longer displayed
+    expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
+
+    // Verify main content is not rendered
+    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
+
+    // Verify the service was called with correct team ID
+    expect(getTeamById).toHaveBeenCalledWith(1);
+  });
+
+  it('should handle API server errors gracefully', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Mock service to return error response (as seen in teamService tests)
+    vi.mocked(getTeamById).mockRejectedValue(new Error('Internal Server Error'));
+
+    render(<Team />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
+
+  it('should handle invalid team ID parameter', async () => {
+    // Mock useParams to return invalid team ID
+    vi.mocked(useParams).mockReturnValue({ teamId: 'invalid' });
+
+    render(<Team />);
+
+    await waitFor(() => {
+      // The component will call getTeamById(NaN) which should be handled
+      expect(getTeamById).toHaveBeenCalledWith(NaN);
+    });
+  });
+
+  it('should handle missing team ID parameter', async () => {
+    // Mock useParams to return undefined teamId
+    vi.mocked(useParams).mockReturnValue({});
+
+    render(<Team />);
+
+    await waitFor(() => {
+      // The component will call getTeamById(NaN) which should be handled
+      expect(getTeamById).toHaveBeenCalledWith(NaN);
     });
   });
 });
