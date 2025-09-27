@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { AppContainer } from '../AppContainer/AppContainer';
 import { AvatarUpload } from '../AvatarUpload/AvatarUpload';
 import { FormFieldInput } from '../FormField/FormField';
 import { Button } from '../ui/button';
@@ -113,7 +114,11 @@ export function Account() {
     );
   }
   return (
-    <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+    // <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+    <AppContainer
+      maxWidth="sm"
+      className="flex w-full items-center justify-center p-8 md:min-h-screen"
+    >
       <div className="w-full max-w-md space-y-4">
         {/* Feedback Messages */}
         {feedback.type && (
@@ -187,6 +192,6 @@ export function Account() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppContainer>
   );
 }
