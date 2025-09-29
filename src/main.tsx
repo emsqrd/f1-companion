@@ -4,13 +4,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
-import App from './App.tsx';
 import { Account } from './components/Account/Account.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
+import { League } from './components/League/League.tsx';
 import { Team } from './components/Team/Team.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
+import { withProtection } from './utils/routeHelpers.tsx';
+
+const ProtectedLeague = withProtection(League);
+const ProtectedTeam = withProtection(Team);
+const ProtectedAccount = withProtection(Account);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,12 +23,15 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            {/* Public routes */}
             <Route index element={<LandingPage />} />
             <Route path="/sign-in" element={<SignInForm />} />
             <Route path="/sign-up" element={<SignUpForm />} />
-            <Route path="/dashboard" element={<App />} />
-            <Route path="/team/:teamId" element={<Team />} />
-            <Route path="/account" element={<Account />} />
+
+            {/* Protected routes */}
+            <Route path="/dashboard" element={<ProtectedLeague />} />
+            <Route path="/team/:teamId" element={<ProtectedTeam />} />
+            <Route path="/account" element={<ProtectedAccount />} />
           </Route>
         </Routes>
       </BrowserRouter>
