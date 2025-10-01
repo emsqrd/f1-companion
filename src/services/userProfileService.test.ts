@@ -168,7 +168,7 @@ describe('userProfileService', () => {
       const result = await userProfileService.getCurrentProfile();
 
       expect(result).toEqual(profileWithoutAvatar);
-      expect(result.avatarUrl).toBe('');
+      expect(result?.avatarUrl).toBe('');
     });
 
     it('should throw error when user is not authenticated', async () => {

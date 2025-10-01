@@ -339,9 +339,9 @@ describe('Error Handling', () => {
     consoleError.mockRestore();
   });
 
-  it('should display team not found message when team is undefined', async () => {
-    // Mock the service to return undefined (team not found)
-    vi.mocked(getTeamById).mockResolvedValue(undefined);
+  it('should display team not found message when team is not found', async () => {
+    // Mock the service to return null (team not found)
+    vi.mocked(getTeamById).mockResolvedValue(null);
 
     render(<Team />);
 

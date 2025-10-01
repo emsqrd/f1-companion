@@ -31,8 +31,8 @@ export function PageHeader() {
     navigate('/account');
   };
 
-  const handleDashboard = () => {
-    navigate('/dashboard');
+  const handleLeagues = () => {
+    navigate('/leagues');
   };
 
   const handleSignOut = () => {
@@ -54,7 +54,7 @@ export function PageHeader() {
       try {
         setIsLoading(true);
         const profile = await userProfileService.getCurrentProfile();
-        setAvatarUrl(profile.avatarUrl || '');
+        setAvatarUrl(profile?.avatarUrl || '');
       } catch (error) {
         console.error('Failed to load avatar', error);
         setAvatarUrl('');
@@ -128,7 +128,7 @@ export function PageHeader() {
                     {user ? (
                       <>
                         <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleDashboard}>Dashboard</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
                         <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
                       </>
                     ) : (

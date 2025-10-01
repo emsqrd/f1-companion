@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 export function Team() {
   const params = useParams();
 
-  const [team, setTeam] = useState<Team>();
+  const [team, setTeam] = useState<Team | null>();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

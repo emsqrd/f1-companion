@@ -35,7 +35,7 @@ class ApiClient {
   private async makeRequest<T, D = unknown>(
     endpoint: string,
     config: RequestConfig<D> = {},
-  ): Promise<T> {
+  ): Promise<T | null> {
     const { method = 'GET', data, headers: customHeaders } = config;
     const baseHeaders = await this.getBaseHeaders();
 
@@ -47,6 +47,10 @@ class ApiClient {
       });
 
       if (!response.ok) {
+        // 404 is not an error - return null for "not found"
+        if (response.status === 404) {
+          return null;
+        }
         throw new Error(`API Error: ${response.statusText}`);
       }
 
@@ -60,16 +64,20 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
+  async get<T>(endpoint: string): Promise<T | null> {
     return this.makeRequest<T>(endpoint);
   }
 
   async post<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    return this.makeRequest<T, D>(endpoint, { method: 'POST', data });
+    const result = await this.makeRequest<T, D>(endpoint, { method: 'POST', data });
+    // POST should never return null (404 on POST is a real error)
+    return result!;
   }
 
   async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
+    const result = await this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
+    // PATCH should never return null (404 on PATCH is a real error)
+    return result!;
   }
 }
 

@@ -8,11 +8,13 @@ import { Account } from './components/Account/Account.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
 import { League } from './components/League/League.tsx';
+import { LeagueList } from './components/LeagueList/LeagueList.tsx';
 import { Team } from './components/Team/Team.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
 import { withProtection } from './utils/routeHelpers.tsx';
 
+const ProtectedLeagueList = withProtection(LeagueList);
 const ProtectedLeague = withProtection(League);
 const ProtectedTeam = withProtection(Team);
 const ProtectedAccount = withProtection(Account);
@@ -29,7 +31,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/sign-up" element={<SignUpForm />} />
 
             {/* Protected routes */}
-            <Route path="/dashboard" element={<ProtectedLeague />} />
+            <Route path="/leagues" element={<ProtectedLeagueList />} />
+            <Route path="/league/:leagueId" element={<ProtectedLeague />} />
             <Route path="/team/:teamId" element={<ProtectedTeam />} />
             <Route path="/account" element={<ProtectedAccount />} />
           </Route>

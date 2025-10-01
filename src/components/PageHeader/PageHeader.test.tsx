@@ -169,7 +169,7 @@ describe('PageHeader', () => {
       if (dropdownTrigger) {
         await user.click(dropdownTrigger);
         expect(screen.getByRole('menuitem', { name: 'My Account' })).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', { name: 'Dashboard' })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'My Leagues' })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: 'Sign Out' })).toBeInTheDocument();
       }
     });
@@ -237,10 +237,10 @@ describe('PageHeader', () => {
       )!;
       await user.click(dropdownTrigger);
 
-      const dashboardMenuItem = screen.getByRole('menuitem', { name: 'Dashboard' });
+      const dashboardMenuItem = screen.getByRole('menuitem', { name: 'My Leagues' });
       await user.click(dashboardMenuItem);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/leagues');
     });
 
     it('should navigate to sign-in page when Sign In is clicked', async () => {

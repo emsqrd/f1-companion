@@ -7,7 +7,7 @@ import { AppContainer } from '../AppContainer/AppContainer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 export function Leaderboard() {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<Team[] | null>([]);
 
   const navigate = useNavigate();
 
@@ -33,7 +33,7 @@ export function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team) => (
+          {teams?.map((team) => (
             <TableRow
               key={team.id}
               className="cursor-pointer"

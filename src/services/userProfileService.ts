@@ -7,7 +7,7 @@ export const userProfileService = {
     return apiClient.post<UserProfile, CreateProfileData>('/me/register', data);
   },
 
-  async getCurrentProfile(): Promise<UserProfile> {
+  async getCurrentProfile(): Promise<UserProfile | null> {
     return apiClient.get<UserProfile>('/me/profile');
   },
 

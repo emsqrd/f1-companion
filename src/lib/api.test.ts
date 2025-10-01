@@ -179,7 +179,7 @@ describe('ApiClient', () => {
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
 
-      await expect(apiClient.get('/nonexistent-endpoint')).rejects.toThrow('API Error: Not Found');
+      await expect(apiClient.get('/nonexistent-endpoint')).resolves.toBeNull();
     });
 
     it('should handle network errors and throw meaningful error messages', async () => {
