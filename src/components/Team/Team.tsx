@@ -1,8 +1,7 @@
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
-import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
@@ -59,18 +58,6 @@ export function Team() {
 
   return (
     <AppContainer maxWidth="md">
-      <header className="m-4">
-        <nav aria-label="Breadcrumb" className="mb-4">
-          <Link
-            to={`/dashboard`}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center text-sm transition-colors"
-          >
-            <ChevronLeft />
-            Back to League
-          </Link>
-        </nav>
-      </header>
-
       <div className="mb-4 gap-4 sm:grid sm:grid-cols-2">
         <Card className="mb-6 flex justify-center sm:mb-0">
           <CardHeader>

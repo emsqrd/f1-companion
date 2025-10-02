@@ -9,6 +9,7 @@ import { Card, CardContent } from '../ui/card';
 export function LeagueList() {
   const [leagues, setLeagues] = useState<League[] | null>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>();
 
   const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ export function LeagueList() {
         setLeagues(data);
       } catch (err) {
         console.error('Failed to load leagues: ', err);
+        setError('Failed to load leagues');
       } finally {
         setIsLoading(false);
       }
@@ -27,9 +29,13 @@ export function LeagueList() {
     fetchLeagues();
   }, []);
 
+  if (error) {
+    return <div role="error">{error}</div>;
+  }
+
   if (isLoading) {
     return (
-      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+      <div role="loader" className="flex w-full items-center justify-center p-8 md:min-h-screen">
         <div className="text-center">
           <div
             role="status"
@@ -43,19 +49,17 @@ export function LeagueList() {
 
   return (
     <AppContainer maxWidth="md" className="p-8">
-      <h2 className="mb-2 text-2xl font-semibold">My Leagues</h2>
-      <div>
-        <ul>
-          {leagues?.map((league) => (
-            <Card
-              key={league.id}
-              className="mb-4 cursor-pointer"
-              onClick={() => navigate(`/league/${league.id}`)}
-            >
-              <CardContent>{league.name}</CardContent>
-            </Card>
-          ))}
-        </ul>
+      <h2 className="mb-2 text-2xl font-semibold">Joined Leagues</h2>
+      <div aria-label="league-list">
+        {leagues?.map((league) => (
+          <Card
+            key={league.id}
+            className="mb-4 cursor-pointer"
+            onClick={() => navigate(`/league/${league.id}`)}
+          >
+            <CardContent>{league.name}</CardContent>
+          </Card>
+        ))}
       </div>
     </AppContainer>
   );

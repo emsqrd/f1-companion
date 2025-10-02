@@ -1,15 +1,12 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 export function Leaderboard() {
   const [teams, setTeams] = useState<Team[] | null>([]);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -23,7 +20,6 @@ export function Leaderboard() {
 
   return (
     <AppContainer maxWidth="md">
-      <h2 className="mb-2 text-2xl font-semibold">League Leaderboard</h2>
       <Table className="bg-card overflow-hidden rounded-lg">
         <TableHeader className="bg-secondary sticky top-0 font-bold">
           <TableRow>
@@ -34,11 +30,7 @@ export function Leaderboard() {
         </TableHeader>
         <TableBody>
           {teams?.map((team) => (
-            <TableRow
-              key={team.id}
-              className="cursor-pointer"
-              onClick={() => navigate(`/team/${team.id}`)}
-            >
+            <TableRow key={team.id} className="cursor-pointer">
               <TableCell className="text-center align-top text-lg">{team.rank}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">

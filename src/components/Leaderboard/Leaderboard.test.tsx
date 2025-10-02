@@ -1,7 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
 import { render, screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -81,9 +80,6 @@ describe('Leaderboard', () => {
         expect(getTeams).toHaveBeenCalledTimes(1);
       });
 
-      // Verify structure
-      expect(screen.getByText('League Leaderboard')).toBeInTheDocument();
-
       // Verify all teams are present with complete information
       mockTeams.forEach((team) => {
         expect(screen.getByText(team.rank)).toBeInTheDocument();
@@ -101,9 +97,6 @@ describe('Leaderboard', () => {
           <Leaderboard />
         </MemoryRouter>,
       );
-
-      // User should still see the leaderboard title
-      expect(screen.getByText('League Leaderboard')).toBeInTheDocument();
 
       // User should see table headers but no team data
       expect(screen.getByText('Rank')).toBeInTheDocument();
@@ -185,27 +178,6 @@ describe('Leaderboard', () => {
       // Test rank by position (first cell in row)
       expect(within(firstRow).getAllByRole('cell')[0]).toHaveTextContent('1');
       expect(within(lastRow).getAllByRole('cell')[0]).toHaveTextContent('20');
-    });
-  });
-
-  describe('Interactions', () => {
-    it('should navigate to team component when team row is clicked', async () => {
-      const user = userEvent.setup();
-
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
-
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
-
-      const teamRow = screen.getByText('Team 1').closest('tr');
-      await user.click(teamRow!);
-
-      expect(mockNavigate).toHaveBeenCalledWith('/team/1');
     });
   });
 
