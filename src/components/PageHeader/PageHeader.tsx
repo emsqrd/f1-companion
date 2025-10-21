@@ -124,7 +124,7 @@ export function PageHeader() {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent className="[&>*]:cursor-pointer" align="end">
                     {user ? (
                       <>
                         <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>

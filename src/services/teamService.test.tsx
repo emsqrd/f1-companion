@@ -12,7 +12,6 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
-// In your test setup
 const mockApiClient = vi.mocked(apiClient);
 
 const mockTeams: Team[] = [

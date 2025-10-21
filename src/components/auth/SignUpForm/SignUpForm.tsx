@@ -20,7 +20,7 @@ export function SignUpForm() {
   // Redirect authenticated users
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/dashboard', { replace: true });
+      navigate('/account', { replace: true });
     }
   }, [user, isLoading, navigate]);
 

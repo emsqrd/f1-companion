@@ -178,6 +178,6 @@ describe('SignUpForm', () => {
     setup();
 
     // Verify navigation was called with correct parameters
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/account', { replace: true });
   });
 });
