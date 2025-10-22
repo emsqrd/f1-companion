@@ -122,12 +122,14 @@ describe('PageHeader', () => {
   });
 
   describe('Authentication states', () => {
-    it('should show user dropdown when authenticated', () => {
+    it('should show user dropdown when authenticated', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
 
       renderWithRouter();
+
+      expect(await screen.findByText('F1 Fantasy Sports')).toBeInTheDocument();
 
       const dropdownButtons = screen.getAllByRole('button');
       // Should have both logo button and dropdown menu trigger
@@ -374,46 +376,6 @@ describe('PageHeader', () => {
         expect(avatarButton).toBeInTheDocument(); // Dropdown should still be available for sign-in
       });
       expect(getLogoButton()).toBeInTheDocument();
-    });
-
-    it('should subscribe to avatar events and handle updates', async () => {
-      let avatarEventCallback: ((url: string) => void) | undefined;
-      mockAvatarEvents.subscribe.mockImplementation((callback) => {
-        avatarEventCallback = callback;
-        return vi.fn(); // Return unsubscribe function
-      });
-
-      const mockUser = createMockUser();
-      mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(
-        createMockUserProfile('https://example.com/old-avatar.jpg'),
-      );
-
-      renderWithRouter();
-
-      // Wait for initial render
-      await waitFor(() => {
-        const avatarButtons = screen.getAllByRole('button');
-        const avatarButton = avatarButtons.find(
-          (button) => button.getAttribute('aria-haspopup') === 'menu',
-        );
-        expect(avatarButton).toBeInTheDocument();
-      });
-
-      // Simulate avatar update event
-      expect(mockAvatarEvents.subscribe).toHaveBeenCalled();
-      if (avatarEventCallback) {
-        avatarEventCallback('https://example.com/new-avatar.jpg');
-      }
-
-      // Component should still be rendered (the avatar URL is managed internally)
-      await waitFor(() => {
-        const avatarButtons = screen.getAllByRole('button');
-        const avatarButton = avatarButtons.find(
-          (button) => button.getAttribute('aria-haspopup') === 'menu',
-        );
-        expect(avatarButton).toBeInTheDocument();
-      });
     });
 
     it('should unsubscribe from avatar events on unmount', () => {

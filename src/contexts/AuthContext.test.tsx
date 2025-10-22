@@ -152,7 +152,7 @@ describe('AuthProvider', () => {
       });
     });
 
-    it('should set up auth state change listener', () => {
+    it('should set up auth state change listener', async () => {
       render(
         <AuthProvider>
           <TestComponent />
@@ -160,6 +160,11 @@ describe('AuthProvider', () => {
       );
 
       expect(supabase.auth.onAuthStateChange).toHaveBeenCalledWith(expect.any(Function));
+
+      // Wait for initial async setup to complete
+      await waitFor(() => {
+        expect(screen.getByTestId('loading').textContent).toBe('false');
+      });
     });
 
     it('should clean up subscription on unmount', () => {
@@ -284,6 +289,9 @@ describe('AuthProvider', () => {
     });
 
     it('should handle profile creation failure during signUp', async () => {
+      // Suppress console.error for this test since we're intentionally testing error handling
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
@@ -310,6 +318,8 @@ describe('AuthProvider', () => {
       expect(userProfileService.registerUser).toHaveBeenCalledWith({
         displayName: 'Test User',
       });
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should not attempt profile creation if signUp returns no user', async () => {
@@ -384,11 +394,15 @@ describe('AuthProvider', () => {
 
       // Initially no user
       await waitFor(() => {
-        expect(screen.getByTestId('user').textContent).toBe('null');
+        expect(screen.getByTestId('loading').textContent).toBe('false');
       });
 
-      // Simulate auth change with session
-      authCallback!('SIGNED_IN', mockSession);
+      expect(screen.getByTestId('user').textContent).toBe('null');
+
+      // Simulate auth change with session - wrap in waitFor to handle state updates
+      await waitFor(() => {
+        authCallback!('SIGNED_IN', mockSession);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('user').textContent).toBe('test@example.com');
@@ -396,8 +410,10 @@ describe('AuthProvider', () => {
         expect(screen.getByTestId('loading').textContent).toBe('false');
       });
 
-      // Simulate sign out
-      authCallback!('SIGNED_OUT', null);
+      // Simulate sign out - wrap in waitFor to handle state updates
+      await waitFor(() => {
+        authCallback!('SIGNED_OUT', null);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('user').textContent).toBe('null');

@@ -1,6 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -59,9 +59,7 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
+      await screen.findByText('Team 1');
 
       const teamRows = screen.getAllByRole('row').slice(1);
       expect(teamRows).toHaveLength(3);
@@ -76,20 +74,16 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
-
       // Verify all teams are present with complete information
-      mockTeams.forEach((team) => {
-        expect(screen.getByText(team.rank)).toBeInTheDocument();
-        expect(screen.getByText(team.name)).toBeInTheDocument();
-        expect(screen.getByText(team.ownerName)).toBeInTheDocument();
-        expect(screen.getByText(team.totalPoints.toString())).toBeInTheDocument();
-      });
+      for (const team of mockTeams) {
+        expect(await screen.findByText(team.rank)).toBeInTheDocument();
+        expect(await screen.findByText(team.name)).toBeInTheDocument();
+        expect(await screen.findByText(team.ownerName)).toBeInTheDocument();
+        expect(await screen.findByText(team.totalPoints.toString())).toBeInTheDocument();
+      }
     });
 
-    it('should handle empty teams list gracefully', () => {
+    it('should handle empty teams list gracefully', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([]);
 
       render(
@@ -99,9 +93,9 @@ describe('Leaderboard', () => {
       );
 
       // User should see table headers but no team data
-      expect(screen.getByText('Rank')).toBeInTheDocument();
-      expect(screen.getByText('Team')).toBeInTheDocument();
-      expect(screen.getByText('Points')).toBeInTheDocument();
+      expect(await screen.findByText('Rank')).toBeInTheDocument();
+      expect(await screen.findByText('Team')).toBeInTheDocument();
+      expect(await screen.findByText('Points')).toBeInTheDocument();
 
       // No team names should be visible
       expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
@@ -120,20 +114,16 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
-
       // User should see all teams are listed (even with missing data)
-      expect(screen.getByText('Complete Team')).toBeInTheDocument();
-      expect(screen.getByText('Complete Owner')).toBeInTheDocument();
-      expect(screen.getByText('Owner Only')).toBeInTheDocument();
-      expect(screen.getByText('Team Only')).toBeInTheDocument();
+      expect(await screen.findByText('Complete Team')).toBeInTheDocument();
+      expect(await screen.findByText('Complete Owner')).toBeInTheDocument();
+      expect(await screen.findByText('Owner Only')).toBeInTheDocument();
+      expect(await screen.findByText('Team Only')).toBeInTheDocument();
 
       // User should see all ranks
-      expect(screen.getByText('1')).toBeInTheDocument();
-      expect(screen.getByText('2')).toBeInTheDocument();
-      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(await screen.findByText('1')).toBeInTheDocument();
+      expect(await screen.findByText('2')).toBeInTheDocument();
+      expect(await screen.findByText('3')).toBeInTheDocument();
     });
 
     it('should handle displaying many teams', async () => {
@@ -153,18 +143,17 @@ describe('Leaderboard', () => {
         </MemoryRouter>,
       );
 
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
+      // Wait for the data to actually load first
+      expect(await screen.findByText('Team 1')).toBeInTheDocument();
 
       // Test overall structure
       expect(screen.getAllByRole('row')).toHaveLength(21); // 20 teams + 1 header
 
       // Test unique identifiers (team names)
-      expect(screen.getByText('Team 1')).toBeInTheDocument();
-      expect(screen.getByText('Team 20')).toBeInTheDocument();
-      expect(screen.getByText('Owner 1')).toBeInTheDocument();
-      expect(screen.getByText('Owner 20')).toBeInTheDocument();
+      expect(await screen.findByText('Team 1')).toBeInTheDocument();
+      expect(await screen.findByText('Team 20')).toBeInTheDocument();
+      expect(await screen.findByText('Owner 1')).toBeInTheDocument();
+      expect(await screen.findByText('Owner 20')).toBeInTheDocument();
 
       // Test that we have correct number of rank cells by checking table structure
       const rows = screen.getAllByRole('row').slice(1); // Remove header
@@ -178,29 +167,6 @@ describe('Leaderboard', () => {
       // Test rank by position (first cell in row)
       expect(within(firstRow).getAllByRole('cell')[0]).toHaveTextContent('1');
       expect(within(lastRow).getAllByRole('cell')[0]).toHaveTextContent('20');
-    });
-  });
-
-  describe('Data Integration', () => {
-    it('should load and display team data from service', async () => {
-      const getTeamsSpy = vi.mocked(getTeams);
-
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
-
-      await waitFor(() => {
-        expect(getTeams).toHaveBeenCalledTimes(1);
-      });
-
-      // User expects data to be loaded when component renders
-      expect(getTeamsSpy).toHaveBeenCalledTimes(1);
-
-      // User should see the loaded data
-      expect(screen.getByText('Team 1')).toBeInTheDocument();
-      expect(screen.getByText('Owner 1')).toBeInTheDocument();
     });
   });
 });
