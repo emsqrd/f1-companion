@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from '../FormField/FormField';
@@ -76,10 +77,12 @@ export function LeagueList() {
 
       navigate(`/league/${createdLeague.id}`);
 
+      toast.success('League created successfully!');
+
       reset(formData);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create league';
-      console.error(message);
+      toast.error(message);
     }
   };
 

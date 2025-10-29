@@ -1,5 +1,6 @@
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm.tsx';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm.tsx';
+import { Toaster } from '@/components/ui/sonner';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
@@ -21,6 +22,7 @@ const ProtectedAccount = withProtection(Account);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <Toaster position="top-center" />
     <AuthProvider>
       <BrowserRouter>
         <Routes>
