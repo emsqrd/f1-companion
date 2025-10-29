@@ -23,11 +23,15 @@ const leaguesMock: League[] = [
     id: 1,
     name: 'League 1',
     ownerName: 'Test Owner',
+    description: 'Desc for league 1',
+    isPrivate: true,
   },
   {
     id: 2,
     name: 'League 2',
     ownerName: 'Test Owner',
+    description: 'Desc for league 2',
+    isPrivate: true,
   },
 ];
 

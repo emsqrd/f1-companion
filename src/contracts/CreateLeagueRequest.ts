@@ -1,7 +1,5 @@
-export interface League {
-  id: number;
+export interface CreateLeagueRequest {
   name: string;
   description: string;
-  ownerName: string;
   isPrivate: boolean;
 }

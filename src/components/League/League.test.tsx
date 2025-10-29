@@ -80,6 +80,8 @@ describe('League', () => {
       id: 1,
       name: 'League 1',
       ownerName: 'Test Owner',
+      description: 'Desc for league 1',
+      isPrivate: true,
     });
 
     // Wait for loading to complete and content to render

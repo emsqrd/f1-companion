@@ -2,8 +2,11 @@ import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormFeedback } from '@/hooks/useFormFeedback';
 import { avatarEvents } from '@/lib/avatarEvents';
-import { type UserProfileFormData, userProfileFormSchema } from '@/lib/validationSchema';
 import { userProfileService } from '@/services/userProfileService';
+import {
+  type UserProfileFormData,
+  userProfileFormSchema,
+} from '@/validations/userProfileFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -117,7 +120,6 @@ export function Account() {
     );
   }
   return (
-    // <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
     <AppContainer
       maxWidth="sm"
       className="flex w-full items-center justify-center p-8 md:min-h-screen"
