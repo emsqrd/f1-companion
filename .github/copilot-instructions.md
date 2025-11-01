@@ -32,6 +32,14 @@ npm run build        # Type check + build for production
 - **Coverage**: Excludes `src/components/ui` (shadcn/ui), `src/contracts`, `src/demos`, and config files in `vite.config.ts`
 - **Setup**: Global test setup in `src/setupTests.ts` includes `@testing-library/jest-dom` and automatic cleanup
 
+**Example Test Generation Prompt:**
+
+```
+Generate high-value tests for this component following our testing philosophy.
+Focus on business logic only - do not test third-party library behavior,
+framework internals, or language features. Keep it lean (~10-15 tests).
+```
+
 ## Component Patterns
 
 ### UI Components (shadcn/ui)
@@ -108,12 +116,42 @@ formatMillions(value) // For currency display
 
 ## Testing Strategy
 
+### Testing Philosophy
+
+**What to Test (High Value):**
+
+- Business logic specific to your component
+- User-facing behavior and workflows
+- Integration of validation/form/submission pipeline (not individual rules)
+- Error handling and retry logic
+- User feedback (toasts, error messages)
+- State cleanup and reset behavior
+- Data transformations (e.g., whitespace trimming)
+
+**What NOT to Test (Low Value):**
+
+- Third-party library behavior (React Hook Form state management, Radix UI dialog open/close, Switch toggle mechanics)
+- Framework internals (React re-rendering, effect timing)
+- Language features (optional chaining `?.`, TypeScript type safety)
+- Styling concerns (CSS classes, Tailwind utilities, required field indicators)
+- Static JSX rendering (headings, labels present)
+- Validation schema rules (test those in schema unit tests if needed)
+- Default values from config objects (unless computed/conditional)
+
+**Testing Approach:**
+
+- Use `@testing-library/user-event` for realistic user interactions
+- Test one integration path through validation to prove it works, not every rule
+- Focus on "what could break my business logic" not "what could break React/libraries"
+- Keep tests lean - 10-15 focused tests is better than 30 mixed-value tests
+
 ### Component Testing
 
 - Test user interactions, not implementation details
 - Mock external dependencies (services, contexts)
 - Use `screen.getByRole()` and `data-testid` for element queries
 - Tests should use the `it(should...)` convention
+- Prefer `user.type()` over `fireEvent` for form inputs
 
 ### File Naming
 
