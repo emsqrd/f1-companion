@@ -1,55 +1,18 @@
 import type { League } from '@/contracts/League';
-import { createLeague, getLeagues } from '@/services/leagueService';
-import {
-  type CreateLeagueFormData,
-  createLeagueFormSchema,
-} from '@/validations/createLeagueFormSchema';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { getLeagues } from '@/services/leagueService';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
 
 import { AppContainer } from '../AppContainer/AppContainer';
-import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from '../FormField/FormField';
-import { Button } from '../ui/button';
+import { CreateLeague } from '../CreateLeague/CreateLeague';
 import { Card, CardContent } from '../ui/card';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
 
 export function LeagueList() {
   const [leagues, setLeagues] = useState<League[] | null>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>();
-  const [isOpen, setIsOpen] = useState(false);
+
   const navigate = useNavigate();
-
-  //TODO: Keep feedback but fold toasts into feedback?
-  //const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<CreateLeagueFormData>({
-    resolver: zodResolver(createLeagueFormSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      leagueName: '',
-      leagueDescription: '',
-      leagueIsPrivate: true,
-    },
-  });
 
   useEffect(() => {
     const fetchLeagues = async () => {
@@ -66,32 +29,6 @@ export function LeagueList() {
 
     fetchLeagues();
   }, []);
-
-  const onSubmit = async (formData: CreateLeagueFormData) => {
-    try {
-      const createdLeague = await createLeague({
-        name: formData.leagueName,
-        description: formData.leagueDescription,
-        isPrivate: formData.leagueIsPrivate,
-      });
-
-      navigate(`/league/${createdLeague.id}`);
-
-      toast.success('League created successfully!');
-
-      reset(formData);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create league';
-      toast.error(message);
-    }
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      reset();
-    }
-  };
 
   if (error) {
     return <div role="error">{error}</div>;
@@ -115,55 +52,7 @@ export function LeagueList() {
     <AppContainer maxWidth="md" className="p-8">
       <header className="flex justify-between pb-4">
         <h2 className="mb-2 text-2xl font-semibold">Joined Leagues</h2>
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button>Create League</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-              <DialogHeader>
-                <DialogTitle>Create League</DialogTitle>
-                <DialogDescription>Create your league here</DialogDescription>
-              </DialogHeader>
-              <FormFieldInput
-                label="League Name"
-                id="leagueName"
-                required
-                error={errors.leagueName?.message}
-                register={register('leagueName')}
-                placeholder="Name your league"
-              />
-              <FormFieldTextarea
-                label="Description"
-                id="leagueDescription"
-                error={errors.leagueDescription?.message}
-                register={register('leagueDescription')}
-                placeholder="Your league description"
-              />
-              <Controller
-                name="leagueIsPrivate"
-                control={control}
-                render={({ field }) => (
-                  <FormFieldSwitch
-                    label="Private"
-                    id="leagueIsPrivate"
-                    error={errors.leagueIsPrivate?.message}
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                )}
-              />
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="secondary">Close</Button>
-                </DialogClose>
-                <Button disabled={isSubmitting || !isDirty} type="submit">
-                  Submit
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreateLeague onLeagueCreated={(league) => navigate(`/league/${league.id}`)}></CreateLeague>
       </header>
       <div aria-label="league-list">
         {leagues?.map((league) => (

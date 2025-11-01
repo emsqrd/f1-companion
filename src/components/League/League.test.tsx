@@ -92,7 +92,7 @@ describe('League', () => {
     expect(getLeagueById).toHaveBeenCalledWith(1);
   });
 
-  it('should display error when getLeagueById fetch fails', async () => {
+  it('should display error when loading league fails', async () => {
     vi.mocked(getLeagueById).mockRejectedValueOnce({ error: 'Failed to load league' });
 
     render(<League />);
