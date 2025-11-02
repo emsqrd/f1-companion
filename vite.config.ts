@@ -23,6 +23,7 @@ export default defineConfig(() => {
           'node_modules/',
           'dist/',
           'src/setupTests.ts',
+          'src/main.tsx',
           'src/contracts/**',
           '**/*.config.js',
           '**/*.config.ts',
