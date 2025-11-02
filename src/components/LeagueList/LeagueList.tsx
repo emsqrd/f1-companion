@@ -1,5 +1,5 @@
 import type { League } from '@/contracts/League';
-import { getLeagues } from '@/services/leagueService';
+import { getMyLeagues } from '@/services/leagueService';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -17,7 +17,7 @@ export function LeagueList() {
   useEffect(() => {
     const fetchLeagues = async () => {
       try {
-        const data = await getLeagues();
+        const data = await getMyLeagues();
         setLeagues(data);
       } catch (err) {
         console.error('Failed to load leagues: ', err);

@@ -10,6 +10,10 @@ export async function getLeagues(): Promise<League[] | null> {
   return apiClient.get('/leagues');
 }
 
+export async function getMyLeagues(): Promise<League[] | null> {
+  return apiClient.get('/me/leagues');
+}
+
 export async function getLeagueById(id: number): Promise<League | null> {
   return apiClient.get(`/leagues/${id}`);
 }

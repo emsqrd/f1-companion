@@ -1,5 +1,5 @@
 import type { League } from '@/contracts/League';
-import { getLeagues } from '@/services/leagueService';
+import { getMyLeagues } from '@/services/leagueService';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe } from 'node:test';
@@ -15,7 +15,7 @@ vi.mock('react-router', async () => ({
 
 // Mock leagueService to mock league data
 vi.mock('@/services/leagueService', () => ({
-  getLeagues: vi.fn(),
+  getMyLeagues: vi.fn(),
 }));
 
 const leaguesMock: League[] = [
@@ -41,7 +41,7 @@ describe('Leagues', () => {
   });
 
   it('should display leagues', async () => {
-    vi.mocked(getLeagues).mockResolvedValue(leaguesMock);
+    vi.mocked(getMyLeagues).mockResolvedValue(leaguesMock);
 
     render(<LeagueList />);
 
@@ -61,7 +61,7 @@ describe('Leagues', () => {
     });
 
     // Mock getLeagues to return controlled promise
-    vi.mocked(getLeagues).mockReturnValueOnce(leaguesFetchPromise);
+    vi.mocked(getMyLeagues).mockReturnValueOnce(leaguesFetchPromise);
 
     render(<LeagueList />);
 
@@ -83,11 +83,11 @@ describe('Leagues', () => {
       expect(screen.queryByText('Loading Leagues...')).not.toBeInTheDocument();
     });
 
-    expect(getLeagues).toHaveBeenCalledOnce();
+    expect(getMyLeagues).toHaveBeenCalledOnce();
   });
 
-  it('should display error when getLeagues fetch fails', async () => {
-    vi.mocked(getLeagues).mockRejectedValueOnce({ error: 'Failed to load leagues' });
+  it('should display error when getting leagues fails', async () => {
+    vi.mocked(getMyLeagues).mockRejectedValueOnce({ error: 'Failed to load leagues' });
 
     render(<LeagueList />);
 
