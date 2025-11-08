@@ -80,7 +80,7 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Create League</DialogTitle>
-            <DialogDescription>Create your league here</DialogDescription>
+            <DialogDescription>Enter your league details below</DialogDescription>
           </DialogHeader>
           <FormFieldInput
             label="League Name"

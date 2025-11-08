@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { CreateLeague } from '../CreateLeague/CreateLeague';
-import { Card, CardContent } from '../ui/card';
+import { Card } from '../ui/card';
 
 export function LeagueList() {
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -56,12 +56,15 @@ export function LeagueList() {
       </header>
       <div aria-label="league-list">
         {leagues.map((league) => (
-          <Card
-            key={league.id}
-            className="mb-4 cursor-pointer"
-            onClick={() => navigate(`/league/${league.id}`)}
-          >
-            <CardContent>{league.name}</CardContent>
+          <Card key={league.id} className="mb-4 overflow-hidden p-0">
+            <button
+              type="button"
+              className="hover:bg-accent focus:ring-ring w-full cursor-pointer p-6 text-left transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
+              aria-label={`View league: ${league.name}`}
+              onClick={() => navigate(`/league/${league.id}`)}
+            >
+              <h3 className="text-lg font-medium">{league.name}</h3>
+            </button>
           </Card>
         ))}
       </div>

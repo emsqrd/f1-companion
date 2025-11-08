@@ -25,7 +25,7 @@ vi.mock('./lib/supabase', () => ({
         error: null,
       }),
       onAuthStateChange: vi.fn().mockReturnValue({
-        data: { subscription: { unsubscribe: vi.fn(), id: 'test', callback: vi.fn() } },
+        data: { subscription: { unsubscribe: vi.fn() } },
       }),
     },
   },
