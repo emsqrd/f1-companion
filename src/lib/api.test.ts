@@ -179,25 +179,23 @@ describe('ApiClient', () => {
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
 
-      await expect(apiClient.get('/nonexistent-endpoint')).resolves.toBeNull();
+      await expect(apiClient.get('/nonexistent-endpoint')).rejects.toThrow(
+        'GET /nonexistent-endpoint failed: Not Found',
+      );
     });
 
     it('should handle network errors and throw meaningful error messages', async () => {
       const networkError = new Error('Network connection failed');
       mockFetch.mockRejectedValueOnce(networkError);
 
-      await expect(apiClient.get('/network-error')).rejects.toThrow(
-        'Network error: Network connection failed',
-      );
+      await expect(apiClient.get('/network-error')).rejects.toThrow('Network connection failed');
     });
 
     it('should handle unknown errors and throw generic message', async () => {
       // Simulate throwing a non-Error object
       mockFetch.mockRejectedValueOnce('Unknown error');
 
-      await expect(apiClient.get('/unknown-error')).rejects.toThrow(
-        'Unknown network error occurred',
-      );
+      await expect(apiClient.get('/unknown-error')).rejects.toThrow('Unknown error');
     });
   });
 
@@ -270,7 +268,7 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
 
       await expect(apiClient.post('/bad-request', postData)).rejects.toThrow(
-        'API Error: Bad Request',
+        'POST /bad-request failed: Bad Request',
       );
     });
 
@@ -366,7 +364,7 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
 
       await expect(apiClient.patch('/invalid-update/1', patchData)).rejects.toThrow(
-        'API Error: Unprocessable Entity',
+        'PATCH /invalid-update/1 failed: Unprocessable Entity',
       );
     });
   });
@@ -473,9 +471,7 @@ describe('ApiClient', () => {
     it('should handle fetch throwing TypeError for network issues', async () => {
       mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
-      await expect(apiClient.get('/network-failure')).rejects.toThrow(
-        'Network error: Failed to fetch',
-      );
+      await expect(apiClient.get('/network-failure')).rejects.toThrow('Failed to fetch');
     });
 
     it('should handle response.json() failing', async () => {

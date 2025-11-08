@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createLeague, getLeagues, getLeagueById } from './leagueService';
-import { apiClient } from '@/lib/api';
 import type { CreateLeagueRequest } from '@/contracts/CreateLeagueRequest';
 import type { League } from '@/contracts/League';
+import { apiClient } from '@/lib/api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { createLeague, getLeagueById, getLeagues } from './leagueService';
 
 vi.mock('@/lib/api', () => ({
   apiClient: {
@@ -81,12 +82,12 @@ describe('leagueService', () => {
       expect(result).toEqual(mockLeagues);
     });
 
-    it('should return null when no leagues exist', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue(null);
+    it('should return empty array when no leagues exist', async () => {
+      vi.mocked(apiClient.get).mockResolvedValue([]);
 
       const result = await getLeagues();
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
       expect(apiClient.get).toHaveBeenCalledWith('/leagues');
     });
 

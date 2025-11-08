@@ -8,7 +8,7 @@ import { CreateLeague } from '../CreateLeague/CreateLeague';
 import { Card, CardContent } from '../ui/card';
 
 export function LeagueList() {
-  const [leagues, setLeagues] = useState<League[] | null>([]);
+  const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>();
 
@@ -55,7 +55,7 @@ export function LeagueList() {
         <CreateLeague onLeagueCreated={(league) => navigate(`/league/${league.id}`)}></CreateLeague>
       </header>
       <div aria-label="league-list">
-        {leagues?.map((league) => (
+        {leagues.map((league) => (
           <Card
             key={league.id}
             className="mb-4 cursor-pointer"

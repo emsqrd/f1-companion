@@ -35,49 +35,37 @@ class ApiClient {
   private async makeRequest<T, D = unknown>(
     endpoint: string,
     config: RequestConfig<D> = {},
-  ): Promise<T | null> {
+  ): Promise<T> {
     const { method = 'GET', data, headers: customHeaders } = config;
     const baseHeaders = await this.getBaseHeaders();
 
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method,
-        headers: { ...baseHeaders, ...customHeaders },
-        ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
-      });
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method,
+      headers: { ...baseHeaders, ...customHeaders },
+      ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
+    });
 
-      if (!response.ok) {
-        // 404 is not an error - return null for "not found"
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`API Error: ${response.statusText}`);
-      }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Network error: ${error.message}`);
-      }
-
-      throw new Error('Unknown network error occurred');
+    if (!response.ok) {
+      const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
+        status: number;
+      };
+      error.status = response.status;
+      throw error;
     }
+
+    return response.json();
   }
 
-  async get<T>(endpoint: string): Promise<T | null> {
+  async get<T>(endpoint: string): Promise<T> {
     return this.makeRequest<T>(endpoint);
   }
 
   async post<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    const result = await this.makeRequest<T, D>(endpoint, { method: 'POST', data });
-    // POST should never return null (404 on POST is a real error)
-    return result!;
+    return this.makeRequest<T, D>(endpoint, { method: 'POST', data });
   }
 
   async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    const result = await this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
-    // PATCH should never return null (404 on PATCH is a real error)
-    return result!;
+    return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
   }
 }
 
