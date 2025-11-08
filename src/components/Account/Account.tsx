@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function Account() {
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
 
@@ -45,7 +45,7 @@ export function Account() {
         const data = await userProfileService.getCurrentProfile();
         setUserProfile(data);
 
-        // destructure with defaults
+        // Destructure with defaults
         const { displayName = '', firstName = '', lastName = '', email = '' } = data || {};
 
         // Reset form with fetched data

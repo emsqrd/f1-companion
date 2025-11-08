@@ -10,7 +10,7 @@ import { Card, CardContent } from '../ui/card';
 export function LeagueList() {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>();
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 

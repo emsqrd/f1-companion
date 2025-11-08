@@ -1,7 +1,7 @@
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
 
-export async function getTeams(): Promise<Team[] | null> {
+export async function getTeams(): Promise<Team[]> {
   return await apiClient.get('/teams');
 }
 

@@ -6,7 +6,7 @@ import { AppContainer } from '../AppContainer/AppContainer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 export function Leaderboard() {
-  const [teams, setTeams] = useState<Team[] | null>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -29,8 +29,8 @@ export function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams?.map((team) => (
-            <TableRow key={team.id} className="cursor-pointer">
+          {teams.map((team) => (
+            <TableRow key={team.id}>
               <TableCell className="text-center align-top text-lg">{team.rank}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">

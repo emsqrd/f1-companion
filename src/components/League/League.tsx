@@ -10,7 +10,7 @@ import { Leaderboard } from '../Leaderboard/Leaderboard';
 export function League() {
   const params = useParams();
 
-  const [league, setLeague] = useState<League | null>();
+  const [league, setLeague] = useState<League | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
