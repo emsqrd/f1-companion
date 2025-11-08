@@ -39,25 +39,21 @@ class ApiClient {
     const { method = 'GET', data, headers: customHeaders } = config;
     const baseHeaders = await this.getBaseHeaders();
 
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method,
-        headers: { ...baseHeaders, ...customHeaders },
-        ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
-      });
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method,
+      headers: { ...baseHeaders, ...customHeaders },
+      ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
+    });
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-      }
-
-      return response.json();
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Network error: ${error.message}`);
-      }
-
-      throw new Error('Unknown network error occurred');
+    if (!response.ok) {
+      const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
+        status: number;
+      };
+      error.status = response.status;
+      throw error;
     }
+
+    return response.json();
   }
 
   async get<T>(endpoint: string): Promise<T> {

@@ -2,12 +2,16 @@ import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormFeedback } from '@/hooks/useFormFeedback';
 import { avatarEvents } from '@/lib/avatarEvents';
-import { type UserProfileFormData, userProfileFormSchema } from '@/lib/validationSchema';
 import { userProfileService } from '@/services/userProfileService';
+import {
+  type UserProfileFormData,
+  userProfileFormSchema,
+} from '@/validations/userProfileFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { AppContainer } from '../AppContainer/AppContainer';
 import { AvatarUpload } from '../AvatarUpload/AvatarUpload';
 import { FormFieldInput } from '../FormField/FormField';
 import { Button } from '../ui/button';
@@ -15,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function Account() {
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<UserProfile>();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
 
@@ -41,12 +45,15 @@ export function Account() {
         const data = await userProfileService.getCurrentProfile();
         setUserProfile(data);
 
+        // Destructure with defaults
+        const { displayName = '', firstName = '', lastName = '', email = '' } = data || {};
+
         // Reset form with fetched data
         reset({
-          displayName: data.displayName || '',
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          email: data.email || '',
+          displayName,
+          firstName,
+          lastName,
+          email,
         });
 
         clearFeedback();
@@ -113,7 +120,10 @@ export function Account() {
     );
   }
   return (
-    <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+    <AppContainer
+      maxWidth="sm"
+      className="flex w-full items-center justify-center p-8 md:min-h-screen"
+    >
       <div className="w-full max-w-md space-y-4">
         {/* Feedback Messages */}
         {feedback.type && (
@@ -187,6 +197,6 @@ export function Account() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppContainer>
   );
 }

@@ -63,7 +63,7 @@ describe('SignInForm', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('calls signIn and navigates on successful login', async () => {
+  it('calls signIn and navigates to leagues page on successful login', async () => {
     signInMock.mockResolvedValueOnce(undefined);
     render(
       <MemoryRouter>
@@ -75,7 +75,7 @@ describe('SignInForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     expect(signInMock).toHaveBeenCalledWith('user@example.com', 'password123');
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/leagues');
     });
   });
 
@@ -120,7 +120,7 @@ describe('SignInForm', () => {
     });
   });
 
-  it('redirects to dashboard if already authenticated', () => {
+  it('redirects to leagues page if already authenticated', () => {
     useAuthMock.mockReturnValue({
       user,
       session: null,
@@ -134,7 +134,7 @@ describe('SignInForm', () => {
         <SignInForm />
       </MemoryRouter>,
     );
-    expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/leagues', { replace: true });
   });
 
   it('has a link to sign up', () => {

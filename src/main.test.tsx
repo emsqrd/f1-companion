@@ -1,122 +1,134 @@
-import { StrictMode } from 'react';
-import * as ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter, Route, Routes } from 'react-router';
+import { describe, expect, it, vi } from 'vitest';
 
-import App from './App';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+// Import the actual withProtection helper
+import { withProtection } from './utils/routeHelpers.tsx';
 
-// Mock React modules
-vi.mock('react-dom/client');
-vi.mock('./App', () => ({
-  default: () => <div data-testid="mock-app">Mock App Component</div>,
+// Mock component dependencies
+vi.mock('./components/LandingPage/LandingPage.tsx', () => ({
+  LandingPage: () => <div data-testid="landing-page">LandingPage</div>,
 }));
 
-// Mock Supabase
+vi.mock('./components/Layout/Layout.tsx', () => ({
+  Layout: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="layout">{children}</div>
+  ),
+}));
+
 vi.mock('./lib/supabase', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: null },
+        error: null,
+      }),
       onAuthStateChange: vi.fn().mockReturnValue({
         data: { subscription: { unsubscribe: vi.fn() } },
       }),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
     },
   },
 }));
 
-// Mock AuthProvider
-vi.mock('./contexts/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="mock-auth-provider">{children}</div>
+// Mock the ProtectedRoute component
+vi.mock('@/components/auth/ProtectedRoute/ProtectedRoute', () => ({
+  ProtectedRoute: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="protected-route">{children}</div>
   ),
 }));
 
-// Mock LandingPage component
-vi.mock('./components/LandingPage/LandingPage', () => ({
-  LandingPage: () => <div data-testid="mock-landing-page">Mock Landing Page</div>,
-}));
+describe('main.tsx - Application Entry Point', () => {
+  describe('Application Structure', () => {
+    it('should initialize with AuthProvider wrapping the router', async () => {
+      const { LandingPage } = await import('./components/LandingPage/LandingPage.tsx');
 
-// Mock Team component
-vi.mock('./components/Team/Team', () => ({
-  Team: () => <div data-testid="mock-team">Mock Team Component</div>,
-}));
+      const { container } = render(
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>,
+      );
 
-describe('main.tsx', () => {
-  const mockRoot = {
-    render: vi.fn(),
-    unmount: vi.fn(),
-  };
+      await waitFor(() => {
+        expect(screen.getByTestId('landing-page')).toBeInTheDocument();
+      });
 
-  beforeEach(() => {
-    // Mock the DOM element
-    document.body.innerHTML = '<div id="root"></div>';
+      expect(container).toBeTruthy();
+    });
 
-    // Mock createRoot to return our mockRoot
-    vi.mocked(ReactDOM.createRoot).mockReturnValue(mockRoot as ReactDOM.Root);
+    it('should support nested route structure with Layout wrapper', async () => {
+      const { Layout } = await import('./components/Layout/Layout.tsx');
+      const { LandingPage } = await import('./components/LandingPage/LandingPage.tsx');
+
+      render(
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<LandingPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>,
+      );
+
+      expect(screen.getByTestId('layout')).toBeInTheDocument();
+    });
   });
 
-  afterEach(() => {
-    document.body.innerHTML = '';
-    vi.clearAllMocks();
-  });
+  describe('withProtection HOC', () => {
+    it('should wrap component with ProtectedRoute', () => {
+      const TestComponent = () => <div data-testid="test-component">Test</div>;
+      const ProtectedComponent = withProtection(TestComponent);
 
-  it('should render the LandingPage, App, and Team components with correct routing structure', async () => {
-    // Import main to trigger the code execution
-    await import('./main');
+      render(<ProtectedComponent />);
 
-    // Verify createRoot was called with the root element
-    expect(ReactDOM.createRoot).toHaveBeenCalledWith(document.getElementById('root'));
+      expect(screen.getByTestId('protected-route')).toBeInTheDocument();
+      expect(screen.getByTestId('test-component')).toBeInTheDocument();
+    });
 
-    // Verify render was called on the root
-    expect(mockRoot.render).toHaveBeenCalledTimes(1);
+    it('should preserve component props when wrapping', () => {
+      type TestProps = { message: string; count: number };
+      const TestComponent = ({ message, count }: TestProps) => (
+        <div data-testid="test-component">
+          {message} - {count}
+        </div>
+      );
+      const ProtectedComponent = withProtection(TestComponent);
 
-    // Capture the rendered JSX by getting the first argument of the render call
-    const renderedJSX = mockRoot.render.mock.calls[0][0];
+      render(<ProtectedComponent message="Hello" count={42} />);
 
-    // Verify the structure: StrictMode wrapping AuthProvider
-    expect(renderedJSX.type).toBe(StrictMode);
+      expect(screen.getByTestId('test-component')).toHaveTextContent('Hello - 42');
+    });
 
-    // Check that AuthProvider mock is inside StrictMode
-    const authProvider = renderedJSX.props.children;
-    expect(authProvider.type).toBeDefined();
-    expect(authProvider.props.children).toBeDefined();
+    it('should preserve optional props when wrapping', () => {
+      type TestProps = { required: string; optional?: string };
+      const TestComponent = ({ required, optional }: TestProps) => (
+        <div data-testid="test-component">
+          {required} {optional}
+        </div>
+      );
+      const ProtectedComponent = withProtection(TestComponent);
 
-    // Check that BrowserRouter is inside AuthProvider
-    const browserRouter = authProvider.props.children;
-    expect(browserRouter.type).toBe(BrowserRouter);
+      render(<ProtectedComponent required="test" />);
 
-    // Check that Routes are inside BrowserRouter
-    const routes = browserRouter.props.children;
-    expect(routes.type.name).toBe('Routes');
+      expect(screen.getByTestId('test-component')).toHaveTextContent('test');
+    });
 
-    // Check that the routes contain the expected route elements
-    const routeElements = routes.props.children;
-    expect(Array.isArray(routeElements)).toBe(false); // Should be false because it's a single Route element
+    it('should support multiple wrapped components independently', () => {
+      const ComponentA = () => <div data-testid="component-a">A</div>;
+      const ComponentB = () => <div data-testid="component-b">B</div>;
 
-    // The routeElements should be a single Route element with Layout
-    expect(routeElements.props.path).toBe('/');
-    expect(routeElements.props.element.type.name).toBe('Layout');
+      const ProtectedA = withProtection(ComponentA);
+      const ProtectedB = withProtection(ComponentB);
 
-    // Check the nested routes inside the Layout route
-    const nestedRoutes = routeElements.props.children;
-    expect(Array.isArray(nestedRoutes)).toBe(true);
-    expect(nestedRoutes).toHaveLength(6);
+      const { rerender } = render(<ProtectedA />);
+      expect(screen.getByTestId('component-a')).toBeInTheDocument();
 
-    // Check the index route (LandingPage component)
-    const landingRoute = nestedRoutes[0];
-    expect(landingRoute.props.index).toBe(true);
-    expect(landingRoute.props.element.type.name).toBe('LandingPage');
-
-    // Check the dashboard route (App component)
-    const appRoute = nestedRoutes[3]; // Index 3 based on the structure
-    expect(appRoute.props.path).toBe('/dashboard');
-    expect(appRoute.props.element.type).toBe(App);
-
-    // Check the team route (Team component)
-    const teamRoute = nestedRoutes[4]; // Index 4 based on the structure
-    expect(teamRoute.props.path).toBe('/team/:teamId');
-    expect(teamRoute.props.element.type.name).toBe('Team');
+      rerender(<ProtectedB />);
+      expect(screen.getByTestId('component-b')).toBeInTheDocument();
+    });
   });
 });

@@ -18,7 +18,7 @@ export function SignInForm() {
   // Redirect authenticated users
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/dashboard', { replace: true });
+      navigate('/leagues', { replace: true });
     }
   }, [user, isLoading, navigate]);
 
@@ -29,7 +29,7 @@ export function SignInForm() {
 
     try {
       await signIn(email, password);
-      navigate('/dashboard');
+      navigate('/leagues');
     } catch (error) {
       setError(error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed');
       // Handle error (show toast, etc.)
