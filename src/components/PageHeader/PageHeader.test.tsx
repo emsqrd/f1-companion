@@ -336,15 +336,9 @@ describe('PageHeader', () => {
 
       renderWithRouter();
 
+      // Components no longer capture exceptions - API client handles it
       await waitFor(() => {
-        expect(captureException).toHaveBeenCalledWith(
-          expect.any(Error),
-          expect.objectContaining({
-            contexts: expect.objectContaining({
-              user: expect.any(Object),
-            }),
-          }),
-        );
+        expect(captureException).not.toHaveBeenCalled();
       });
     });
 

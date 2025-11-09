@@ -34,6 +34,7 @@ Sentry.init({
   environment: import.meta.env.MODE,
   // Only enable in production or when DSN is configured
   enabled: !!import.meta.env.VITE_SENTRY_DSN,
+  enableLogs: true,
 });
 
 const ProtectedLeagueList = withProtection(LeagueList);

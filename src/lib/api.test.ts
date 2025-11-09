@@ -175,6 +175,7 @@ describe('ApiClient', () => {
         ok: false,
         status: 404,
         statusText: 'Not Found',
+        text: vi.fn().mockResolvedValue('Not found error body'),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -263,6 +264,7 @@ describe('ApiClient', () => {
         ok: false,
         status: 400,
         statusText: 'Bad Request',
+        text: vi.fn().mockResolvedValue('Bad request error body'),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -359,6 +361,7 @@ describe('ApiClient', () => {
         ok: false,
         status: 422,
         statusText: 'Unprocessable Entity',
+        text: vi.fn().mockResolvedValue('Unprocessable entity error body'),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);

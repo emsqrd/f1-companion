@@ -1,9 +1,19 @@
 import type { CreateLeagueRequest } from '@/contracts/CreateLeagueRequest';
 import type { League } from '@/contracts/League';
 import { apiClient } from '@/lib/api';
+import * as Sentry from '@sentry/react';
 
-export async function createLeague(league: CreateLeagueRequest): Promise<League> {
-  return apiClient.post('/leagues', league);
+export async function createLeague(data: CreateLeagueRequest): Promise<League> {
+  const league = await apiClient.post<League, CreateLeagueRequest>('/leagues', data);
+
+  // INFO - significant business event
+  Sentry.logger.info('League created', {
+    leagueId: league.id,
+    leagueName: league.name,
+    isPrivate: league.isPrivate,
+  });
+
+  return league;
 }
 
 export async function getLeagues(): Promise<League[]> {

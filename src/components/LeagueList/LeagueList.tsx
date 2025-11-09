@@ -1,6 +1,5 @@
 import type { League } from '@/contracts/League';
 import { getMyLeagues } from '@/services/leagueService';
-import * as Sentry from '@sentry/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -20,8 +19,8 @@ export function LeagueList() {
       try {
         const data = await getMyLeagues();
         setLeagues(data);
-      } catch (err) {
-        Sentry.captureException(err);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         setError('Failed to load leagues');
       } finally {
         setIsLoading(false);

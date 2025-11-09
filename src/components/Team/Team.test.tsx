@@ -299,15 +299,8 @@ describe('Error Handling', () => {
     expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
     expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
 
-    // Verify Sentry.captureException was called with error and context
-    expect(captureException).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        contexts: expect.objectContaining({
-          team: expect.any(Object),
-        }),
-      }),
-    );
+    // Components no longer capture exceptions - API client handles it
+    expect(captureException).not.toHaveBeenCalled();
   });
 
   it('should display team not found message when team is not found', async () => {

@@ -1,6 +1,5 @@
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
-import * as Sentry from '@sentry/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
@@ -24,12 +23,8 @@ export function Team() {
         const data = await getTeamById(Number(params.teamId));
         setTeam(data);
         setError(null);
-      } catch (err) {
-        Sentry.captureException(err, {
-          contexts: {
-            team: { id: params.teamId },
-          },
-        });
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         setError('Failed to load team. Please try again later.');
       } finally {
         setIsLoading(false);

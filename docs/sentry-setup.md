@@ -5,6 +5,7 @@ This guide explains how Sentry is configured in the F1 Fantasy Sports React app 
 ## Overview
 
 Sentry provides:
+
 - **Error Tracking**: Real-time error reporting with stack traces
 - **Performance Monitoring**: Track slow components and API calls
 - **Session Replay**: Video-like reproductions of user sessions when errors occur
@@ -55,6 +56,7 @@ All `console.error()` calls have been replaced with `Sentry.captureException()` 
 - Authentication errors
 
 **Example**:
+
 ```typescript
 catch (error) {
   Sentry.captureException(error, {
@@ -69,6 +71,7 @@ catch (error) {
 ### Performance Monitoring
 
 Tracks:
+
 - Component render times
 - API call durations
 - Page load performance
@@ -79,6 +82,7 @@ Tracks:
 ### Session Replay
 
 Records user sessions when errors occur:
+
 - 10% of all sessions recorded
 - 100% of sessions with errors recorded
 - Text and media not masked (adjust in `main.tsx` if needed)
@@ -183,16 +187,18 @@ replaysSessionSampleRate: 0.05, // Reduce to 5%
 Sentry.replayIntegration({
   maskAllText: true,
   blockAllMedia: true,
-})
+});
 ```
 
 ## Cost Management
 
 ### Free Tier Limits
+
 - 5,000 errors/month
 - 500 session replays/month
 
 ### Optimization Tips
+
 1. Lower sample rates in high-traffic periods
 2. Use release filters to exclude dev/staging errors
 3. Set up error grouping rules to reduce duplicate issues
