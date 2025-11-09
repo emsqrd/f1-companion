@@ -19,8 +19,8 @@ export function LeagueList() {
       try {
         const data = await getMyLeagues();
         setLeagues(data);
-      } catch (err) {
-        console.error('Failed to load leagues: ', err);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         setError('Failed to load leagues');
       } finally {
         setIsLoading(false);

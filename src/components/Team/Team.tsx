@@ -23,8 +23,8 @@ export function Team() {
         const data = await getTeamById(Number(params.teamId));
         setTeam(data);
         setError(null);
-      } catch (err) {
-        console.error('Failed to load team:', err);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         setError('Failed to load team. Please try again later.');
       } finally {
         setIsLoading(false);

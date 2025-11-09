@@ -20,8 +20,9 @@ export function League() {
         const data = await getLeagueById(Number(params.leagueId));
         setLeague(data);
         setError(null);
-      } catch (error) {
-        console.error('Failed to load league', error);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
+        // Just handle the UX here
         setError('Failed to load league');
       } finally {
         setIsLoading(false);

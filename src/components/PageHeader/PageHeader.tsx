@@ -55,8 +55,8 @@ export function PageHeader() {
         setIsLoading(true);
         const profile = await userProfileService.getCurrentProfile();
         setAvatarUrl(profile?.avatarUrl || '');
-      } catch (error) {
-        console.error('Failed to load avatar', error);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         setAvatarUrl('');
       } finally {
         setIsLoading(false);

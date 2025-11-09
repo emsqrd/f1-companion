@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/react';
+
 import { supabase } from './supabase';
 
 type RequestConfig<D = unknown> = {
@@ -39,21 +41,82 @@ class ApiClient {
     const { method = 'GET', data, headers: customHeaders } = config;
     const baseHeaders = await this.getBaseHeaders();
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers: { ...baseHeaders, ...customHeaders },
-      ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method,
+        headers: { ...baseHeaders, ...customHeaders },
+        ...(data && method !== 'GET' && { body: JSON.stringify(data) }),
+      });
 
-    if (!response.ok) {
-      const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
-        status: number;
-      };
-      error.status = response.status;
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => 'Unable to read response body');
+        const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
+          status: number;
+          responseBody?: string;
+        };
+        error.status = response.status;
+        error.responseBody = errorBody;
+
+        // Only capture 5xx server errors as exceptions (not 4xx client errors)
+        const isServerError = response.status >= 500 && response.status < 600;
+
+        if (isServerError) {
+          // 5xx errors are unexpected server failures - capture as exceptions
+          Sentry.withScope((scope) => {
+            scope.setTag('api.endpoint', endpoint);
+            scope.setTag('api.method', method);
+            scope.setTag('api.status_code', response.status);
+            scope.setContext('response', {
+              body: errorBody,
+            });
+
+            // Structured log for server errors
+            Sentry.logger.error(Sentry.logger.fmt`API server error: ${method} ${endpoint}`, {
+              status: response.status,
+              statusText: response.statusText,
+              endpoint,
+              method,
+              responseBody: errorBody,
+            });
+
+            Sentry.captureException(error);
+          });
+        } else {
+          // 4xx errors are expected client errors - log as warnings, not exceptions
+          Sentry.logger.warn(Sentry.logger.fmt`API client error: ${method} ${endpoint}`, {
+            status: response.status,
+            statusText: response.statusText,
+            endpoint,
+            method,
+            responseBody: errorBody,
+          });
+        }
+
+        throw error;
+      }
+
+      return response.json();
+    } catch (error) {
+      // Capture network errors and other exceptions
+      if (error instanceof Error && !('status' in error)) {
+        Sentry.withScope((scope) => {
+          scope.setTag('api.endpoint', endpoint);
+          scope.setTag('api.method', method);
+          scope.setTag('error.type', 'network');
+
+          // Structured log for network errors
+          Sentry.logger.error(Sentry.logger.fmt`API network error: ${method} ${endpoint}`, {
+            error: error.message,
+            endpoint,
+            method,
+          });
+
+          Sentry.captureException(error);
+        });
+      }
+
       throw error;
     }
-
-    return response.json();
   }
 
   async get<T>(endpoint: string): Promise<T> {

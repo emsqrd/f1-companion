@@ -1,6 +1,7 @@
 import type { CreateProfileData } from '@/contracts/CreateProfileData';
 import { supabase } from '@/lib/supabase';
 import { userProfileService } from '@/services/userProfileService';
+import * as Sentry from '@sentry/react';
 import type { Session, User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
@@ -50,7 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await userProfileService.registerUser(additionalData);
       } catch (apiError) {
-        console.error('Profile creation failed:', apiError);
+        Sentry.captureException(apiError, {
+          contexts: {
+            auth: { userId: data.user.id, email },
+          },
+        });
         throw new Error('Registration completed but profile setup failed.');
       }
     }

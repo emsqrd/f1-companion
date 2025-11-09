@@ -16,6 +16,9 @@ import { PageHeader } from './PageHeader';
 vi.mock('@/hooks/useAuth');
 vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
+vi.mock('@sentry/react', () => ({
+  captureException: vi.fn(),
+}));
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
@@ -329,15 +332,14 @@ describe('PageHeader', () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Failed to fetch'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { captureException } = await import('@sentry/react');
 
       renderWithRouter();
 
+      // Components no longer capture exceptions - API client handles it
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith('Failed to load avatar', expect.any(Error));
+        expect(captureException).not.toHaveBeenCalled();
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('should clear avatar state when user logs out', async () => {

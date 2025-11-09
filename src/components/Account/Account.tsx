@@ -57,8 +57,8 @@ export function Account() {
         });
 
         clearFeedback();
-      } catch (err) {
-        console.error('Failed to load user profile:', err);
+      } catch {
+        // Error already captured by API client (5xx or network errors)
         showError('Failed to load user profile');
       } finally {
         setIsLoading(false);

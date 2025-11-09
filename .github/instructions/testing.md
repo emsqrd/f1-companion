@@ -1,0 +1,179 @@
+# Testing Guidelines
+
+## Testing Philosophy
+
+### What to Test (High Value)
+
+- Business logic specific to your component/service
+- User-facing behavior and workflows
+- Integration of validation/form/submission pipeline (not individual rules)
+- Error handling and retry logic
+- User feedback (toasts, error messages)
+- State cleanup and reset behavior
+- Data transformations (e.g., whitespace trimming)
+- Edge cases, boundary values, and error conditions
+- Asynchronous behavior with proper async/await patterns
+
+### What NOT to Test (Low Value)
+
+- Third-party library behavior (React Hook Form state management, Radix UI dialog mechanics)
+- Framework internals (React re-rendering, effect timing)
+- Language features (optional chaining `?.`, TypeScript type safety)
+- Styling concerns (CSS classes, Tailwind utilities, required field indicators)
+- Static JSX rendering (headings, labels present)
+- Validation schema rules (test those in schema unit tests if needed)
+- Default values from config objects (unless computed/conditional)
+
+## Testing Standards
+
+### Framework & Tools
+
+- **Test Runner**: Vitest
+- **Component Testing**: React Testing Library
+- **User Interactions**: `@testing-library/user-event` (not `fireEvent`)
+- **Patterns**: React 19 best practices
+
+### Test Structure
+
+- **Naming**: Use `it('should...')` format consistently
+- **File Naming**: `ComponentName.test.tsx` (co-located with components)
+- **Organization**: Use `describe` blocks for grouping related tests
+- **Pattern**: Follow AAA (Arrange, Act, Assert)
+- **Isolation**: Use `beforeEach`/`afterEach` for proper test isolation
+
+### Query Strategy
+
+1. **Prefer semantic queries**: `getByRole`, `getByLabelText`, `getByText`
+2. **Fallback to**: `data-testid` attributes when semantic queries aren't practical
+3. **Test from user's perspective**: How would a user interact with this?
+
+### Mock Strategy
+
+- Mock external dependencies (services, contexts, APIs)
+- Mock child components to isolate behavior
+- Use `vi.fn()` and `vi.mock()` for Vitest mocks
+- Ensure mocks are deterministic and don't rely on external state
+- Test both success and failure scenarios
+
+### Coverage Configuration
+
+- **Excludes**: `src/components/ui` (shadcn/ui), `src/contracts`, `src/demos`, config files
+- **Setup**: Global test setup in `src/setupTests.ts` with `@testing-library/jest-dom`
+- **Global Mocks**: `ResizeObserver` for Radix UI components
+
+## Test Categories
+
+### 1. User Interaction Tests
+
+Test how users interact with your component:
+
+```typescript
+it('should handle form submission when user clicks submit button', async () => {
+  const user = userEvent.setup();
+  render(<MyComponent />);
+
+  await user.type(screen.getByLabelText(/name/i), 'John Doe');
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+
+  expect(mockSubmitFn).toHaveBeenCalledWith({ name: 'John Doe' });
+});
+```
+
+### 2. Error Handling Tests
+
+Test error states and error boundaries:
+
+```typescript
+it('should display error message when API call fails', async () => {
+  mockService.getData.mockRejectedValue(new Error('API Error'));
+
+  render(<MyComponent />);
+
+  expect(await screen.findByText(/error/i)).toBeInTheDocument();
+});
+```
+
+### 3. Asynchronous Behavior Tests
+
+Test loading states and async operations:
+
+```typescript
+it('should show loading state while fetching data', async () => {
+  render(<MyComponent />);
+
+  expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  expect(await screen.findByText(/data loaded/i)).toBeInTheDocument();
+});
+```
+
+### 4. Accessibility Tests
+
+Test keyboard navigation and ARIA attributes:
+
+```typescript
+it('should be keyboard navigable', async () => {
+  const user = userEvent.setup();
+  render(<MyComponent />);
+
+  await user.tab();
+  expect(screen.getByRole('button')).toHaveFocus();
+});
+```
+
+## Common Testing Patterns
+
+### Testing Context Providers
+
+```typescript
+const wrapper = ({ children }) => (
+  <AuthProvider>{children}</AuthProvider>
+);
+
+render(<MyComponent />, { wrapper });
+```
+
+### Testing Custom Hooks
+
+```typescript
+const { result } = renderHook(() => useMyHook(), { wrapper });
+expect(result.current.value).toBe(expectedValue);
+```
+
+### Testing Navigation
+
+```typescript
+const mockNavigate = vi.fn();
+vi.mock('react-router', () => ({
+  useNavigate: () => mockNavigate,
+}));
+```
+
+## Quick Test Generation Prompt
+
+When asking Copilot to generate tests, use this concise prompt:
+
+```
+Generate high-value tests for [COMPONENT/FILE] following our testing philosophy:
+- Focus on user behavior and business logic only
+- Use React Testing Library with userEvent
+- Test error handling, async behavior, and edge cases
+- Mock external dependencies appropriately
+- Keep it lean (~10-15 tests)
+- Use 'it should...' format
+```
+
+## Essential Commands
+
+```bash
+npm test              # Run tests once
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Generate coverage reports
+```
+
+## Key Testing Principles
+
+1. **Test behavior, not implementation** - Focus on what the user sees and does
+2. **One integration path is enough** - Prove validation works; don't test every rule
+3. **Meaningful coverage over 100%** - High-value tests matter more than coverage percentage
+4. **Readable tests are maintainable** - Clear test names and assertions
+5. **Isolation prevents flaky tests** - Each test should be independent

@@ -6,6 +6,11 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Team } from './Team';
 
+// Mock Sentry
+vi.mock('@sentry/react', () => ({
+  captureException: vi.fn(),
+}));
+
 // Mock ResizeObserver for Radix UI components
 beforeAll(() => {
   global.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -275,8 +280,7 @@ describe('Error Handling', () => {
   });
 
   it('should display error message when team fetch fails', async () => {
-    // Mock console.error to avoid log pollution in test output
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { captureException } = await import('@sentry/react');
 
     // Mock the service to reject with an error
     vi.mocked(getTeamById).mockRejectedValue(new Error('Network error'));
@@ -295,10 +299,8 @@ describe('Error Handling', () => {
     expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
     expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
 
-    // Verify console.error was called
-    expect(consoleError).toHaveBeenCalledWith('Failed to load team:', expect.any(Error));
-
-    consoleError.mockRestore();
+    // Components no longer capture exceptions - API client handles it
+    expect(captureException).not.toHaveBeenCalled();
   });
 
   it('should display team not found message when team is not found', async () => {
