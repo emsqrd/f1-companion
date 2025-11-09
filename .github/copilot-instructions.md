@@ -90,6 +90,12 @@ const { user, signIn, signOut, loading } = useAuth();
 
 ## Environment & Configuration
 
+### Required Environment Variables
+
+```bash
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_F1_FANTASY_API=your_api_base_url
 ## Styling Guidelines
 
 ### Tailwind + shadcn/ui
