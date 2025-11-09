@@ -75,7 +75,7 @@ framework internals, or language features. Keep it lean (~10-15 tests).
   
   const ProtectedLeagueList = withProtection(LeagueList);
   <Route path="/leagues" element={<ProtectedLeagueList />} />
-  ```T extends { id: number }>`
+  ```
 - **Conditional Rendering**: Use `renderCardContent()` helper functions for complex conditional component logic
 
 ### State Management Patterns
