@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFormFeedback } from '@/hooks/useFormFeedback';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
+import * as Sentry from '@sentry/react';
 import {
   type UserProfileFormData,
   userProfileFormSchema,
@@ -58,7 +59,11 @@ export function Account() {
 
         clearFeedback();
       } catch (err) {
-        console.error('Failed to load user profile:', err);
+        Sentry.captureException(err, {
+          contexts: {
+            user: { id: user?.id },
+          },
+        });
         showError('Failed to load user profile');
       } finally {
         setIsLoading(false);

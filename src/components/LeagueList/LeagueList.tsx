@@ -1,5 +1,6 @@
 import type { League } from '@/contracts/League';
 import { getMyLeagues } from '@/services/leagueService';
+import * as Sentry from '@sentry/react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -20,7 +21,7 @@ export function LeagueList() {
         const data = await getMyLeagues();
         setLeagues(data);
       } catch (err) {
-        console.error('Failed to load leagues: ', err);
+        Sentry.captureException(err);
         setError('Failed to load leagues');
       } finally {
         setIsLoading(false);

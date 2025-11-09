@@ -1,6 +1,7 @@
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm.tsx';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm.tsx';
 import { Toaster } from '@/components/ui/sonner';
+import * as Sentry from '@sentry/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
@@ -14,6 +15,26 @@ import { Team } from './components/Team/Team.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import './index.css';
 import { withProtection } from './utils/routeHelpers.tsx';
+
+// Initialize Sentry for error tracking and performance monitoring
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+  // Performance Monitoring
+  tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production, 100% in dev
+  // Session Replay
+  replaysSessionSampleRate: 0.1, // 10% of all sessions
+  replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+  environment: import.meta.env.MODE,
+  // Only enable in production or when DSN is configured
+  enabled: !!import.meta.env.VITE_SENTRY_DSN,
+});
 
 const ProtectedLeagueList = withProtection(LeagueList);
 const ProtectedLeague = withProtection(League);

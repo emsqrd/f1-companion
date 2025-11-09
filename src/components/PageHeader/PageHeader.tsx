@@ -1,6 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
+import * as Sentry from '@sentry/react';
 import { CircleUser, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
@@ -56,7 +57,11 @@ export function PageHeader() {
         const profile = await userProfileService.getCurrentProfile();
         setAvatarUrl(profile?.avatarUrl || '');
       } catch (error) {
-        console.error('Failed to load avatar', error);
+        Sentry.captureException(error, {
+          contexts: {
+            user: { id: user?.id },
+          },
+        });
         setAvatarUrl('');
       } finally {
         setIsLoading(false);

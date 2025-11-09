@@ -1,5 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
+import * as Sentry from '@sentry/react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
@@ -24,7 +25,11 @@ export function Team() {
         setTeam(data);
         setError(null);
       } catch (err) {
-        console.error('Failed to load team:', err);
+        Sentry.captureException(err, {
+          contexts: {
+            team: { id: params.teamId },
+          },
+        });
         setError('Failed to load team. Please try again later.');
       } finally {
         setIsLoading(false);

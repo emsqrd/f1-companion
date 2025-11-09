@@ -1,5 +1,6 @@
 import type { League } from '@/contracts/League';
 import { getLeagueById } from '@/services/leagueService';
+import * as Sentry from '@sentry/react';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
@@ -21,7 +22,11 @@ export function League() {
         setLeague(data);
         setError(null);
       } catch (error) {
-        console.error('Failed to load league', error);
+        Sentry.captureException(error, {
+          contexts: {
+            league: { id: params.leagueId },
+          },
+        });
         setError('Failed to load league');
       } finally {
         setIsLoading(false);

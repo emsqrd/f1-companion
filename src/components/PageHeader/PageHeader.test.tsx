@@ -16,6 +16,9 @@ import { PageHeader } from './PageHeader';
 vi.mock('@/hooks/useAuth');
 vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
+vi.mock('@sentry/react', () => ({
+  captureException: vi.fn(),
+}));
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
@@ -329,15 +332,20 @@ describe('PageHeader', () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Failed to fetch'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { captureException } = await import('@sentry/react');
 
       renderWithRouter();
 
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith('Failed to load avatar', expect.any(Error));
+        expect(captureException).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            contexts: expect.objectContaining({
+              user: expect.any(Object),
+            }),
+          }),
+        );
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('should clear avatar state when user logs out', async () => {
