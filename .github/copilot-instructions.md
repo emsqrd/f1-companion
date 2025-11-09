@@ -181,9 +181,6 @@ formatMillions(value) // For currency display
 - Use `screen.getByRole()` and `data-testid` for element queries
 - Tests must use the `it('should...')` convention consistently
 - Prefer `user.type()` from `@testing-library/user-event` over `fireEvent` for realistic user interactions
-- Use `screen.getByRole()` and `data-testid` for element queries
-- Tests should use the `it(should...)` convention
-- Prefer `user.type()` over `fireEvent` for form inputs
 
 ### File Naming
 
