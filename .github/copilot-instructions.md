@@ -137,8 +137,6 @@ formatMillions(value) // For currency display
 - API client handles base URL configuration from environment variables
 - Consistent async/await pattern with typed return values
 - Services return typed responses based on contracts in `src/contracts/`
-- Services return typed responses based on contracts in `src/contracts/`
-
 ### Common Data Patterns
 
 - **Teams**: `{ id, name, ownerName, rank, totalPoints }`
