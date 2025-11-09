@@ -6,10 +6,19 @@ This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supa
 
 ### Key Architectural Patterns
 
-- **Authentication Flow**: Uses Supabase auth with `AuthProvider` context wrapping the entire app in `main.tsx`. All protected routes use `ProtectedRoute` component. Registration includes automatic profile creation via `userProfileService`
-- **Routing Structure**: React Router v7 with nested routes in `main.tsx`. Layout component wraps all routes. Landing page is public, dashboard/team pages require auth
-- **Service Layer**: API calls abstracted into service modules (`teamService.ts`, `driverService.ts`, etc.) with consistent error handling. Currently uses mock data for development
+- **Authentication Flow**: Uses Supabase auth with `AuthProvider` context wrapping the entire app in `main.tsx`. Protected routes use `withProtection()` HOC wrapper from `routeHelpers.tsx`. Registration includes automatic profile creation via `userProfileService`
+- **Routing Structure**: React Router v7 with `BrowserRouter` and nested routes in `main.tsx`. Uses HOC wrappers (`withProtection()`) applied to components before route registration. Layout component wraps all routes. Landing page is public, dashboard/team pages require auth
+- **Service Layer**: API calls abstracted into service modules (`teamService.ts`, `driverService.ts`, etc.) using centralized `apiClient` utility from `@/lib/api` with consistent error handling
 - **Component Composition**: Uses discriminated union props pattern (see `RoleCard.tsx`) for flexible component variants. Separate content components for different states
+
+### Key Technologies
+
+- **React 19** with TypeScript - latest React features
+- **React Router v7** - modern routing with HOC patterns
+- **Supabase** - authentication and backend services
+- **Tailwind CSS v4** - styling with Vite plugin (not PostCSS)
+- **Vitest** - test runner with React Testing Library
+- **Zod + React Hook Form** - form validation and management
 
 ## Development Workflow
 
@@ -30,7 +39,8 @@ npm run build        # Type check + build for production
 - **Mock Strategy**: Uses `vi.fn()` and `vi.mock()` for external dependencies. Component tests mock child components to isolate behavior
 - **Test Data**: Use `data-testid` attributes for reliable element selection. Prefer `screen.getByRole()` for semantic queries
 - **Coverage**: Excludes `src/components/ui` (shadcn/ui), `src/contracts`, `src/demos`, and config files in `vite.config.ts`
-- **Setup**: Global test setup in `src/setupTests.ts` includes `@testing-library/jest-dom` and automatic cleanup
+- **Setup**: Global test setup in `src/setupTests.ts` includes `@testing-library/jest-dom` and automatic cleanup. Global mocks include `ResizeObserver` for Radix UI components
+- **Convention**: Tests should consistently use `it('should...')` format
 
 **Example Test Generation Prompt:**
 
@@ -47,12 +57,25 @@ framework internals, or language features. Keep it lean (~10-15 tests).
 - Located in `src/components/ui/` - these are **never modified directly**
 - Use `class-variance-authority` for variant styling (see `button.tsx`)
 - Import via `@/components/ui/[component]`
-
 ### Business Components
 
 - **Discriminated Unions**: Use TypeScript discriminated unions for component variants (see `RoleCard`). Props pattern: `variant: 'empty' | 'filled'` with conditional props
 - **Composition**: Separate content components (`AddRoleCardContent`, `InfoRoleCardContent`) for different states
 - **Custom Hooks**: Business logic in hooks like `useSlots.ts` for slot management. Generic type constraint: `<T extends { id: number }>`
+- **Conditional Rendering**: Use `renderCardContent()` helper functions for complex conditional component logic
+
+### Higher-Order Components (HOCs)
+
+- **Route Protection**: Use `withProtection()` HOC from `@/utils/routeHelpers` to wrap components requiring authentication
+- Pattern: `const ProtectedComponent = withProtection(Component)` then use in route definitions
+- This wraps the component with `ProtectedRoute` logic while keeping route definitions clean
+- Example:
+  ```typescript
+  import { withProtection } from '@/utils/routeHelpers';
+  
+  const ProtectedLeagueList = withProtection(LeagueList);
+  <Route path="/leagues" element={<ProtectedLeagueList />} />
+  ```T extends { id: number }>`
 - **Conditional Rendering**: Use `renderCardContent()` helper functions for complex conditional component logic
 
 ### State Management Patterns
@@ -67,14 +90,15 @@ const { user, signIn, signOut, loading } = useAuth();
 
 ## Environment & Configuration
 
-### Required Environment Variables
+## Styling Guidelines
 
-```bash
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_F1_FANTASY_API=your_api_base_url
-```
+### Tailwind + shadcn/ui
 
+- **Tailwind CSS v4** with `@tailwindcss/vite` plugin (not PostCSS-based)
+- Use `cn()` utility from `@/lib/utils` for conditional classes
+- Custom variants defined with `cva()` (class-variance-authority)
+- Mobile-first responsive design with breakpoint utilities
+- Dark mode support via `next-themes` package
 ### Path Aliases
 
 - `@/` maps to `src/` directory
@@ -100,11 +124,13 @@ formatMillions(value) // For currency display
 ```
 
 ## Data Flow & Services
-
 ### Service Architecture
 
 - Services handle all external API calls with consistent error handling
-- Use environment variables for API base URLs
+- Services use centralized `apiClient` utility from `@/lib/api` for all HTTP requests
+- API client handles base URL configuration from environment variables
+- Consistent async/await pattern with typed return values
+- Services return typed responses based on contracts in `src/contracts/`
 - Services return typed responses based on contracts in `src/contracts/`
 
 ### Common Data Patterns
@@ -142,13 +168,13 @@ formatMillions(value) // For currency display
 
 - Use `@testing-library/user-event` for realistic user interactions
 - Test one integration path through validation to prove it works, not every rule
-- Focus on "what could break my business logic" not "what could break React/libraries"
-- Keep tests lean - 10-15 focused tests is better than 30 mixed-value tests
-
 ### Component Testing
 
 - Test user interactions, not implementation details
 - Mock external dependencies (services, contexts)
+- Use `screen.getByRole()` and `data-testid` for element queries
+- Tests must use the `it('should...')` convention consistently
+- Prefer `user.type()` from `@testing-library/user-event` over `fireEvent` for realistic user interactions
 - Use `screen.getByRole()` and `data-testid` for element queries
 - Tests should use the `it(should...)` convention
 - Prefer `user.type()` over `fireEvent` for form inputs
