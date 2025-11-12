@@ -26,14 +26,25 @@ Sentry.init({
       blockAllMedia: false,
     }),
   ],
+
   // Performance Monitoring
-  tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in production, 100% in dev
+  tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+    ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+    : 0.1, // Default: 10% (override with VITE_SENTRY_TRACES_SAMPLE_RATE env var)
+
+  // Set tracePropagationTargets to control distributed tracing between frontend and backend
+  tracePropagationTargets: ['localhost', import.meta.env.VITE_F1_FANTASY_API].filter(Boolean),
+
   // Session Replay
-  replaysSessionSampleRate: 0.1, // 10% of all sessions
-  replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+  replaysSessionSampleRate: import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE
+    ? parseFloat(import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE)
+    : 0.1,
+
   environment: import.meta.env.MODE,
+
   // Only enable in production or when DSN is configured
   enabled: !!import.meta.env.VITE_SENTRY_DSN,
+
   enableLogs: true,
 });
 
