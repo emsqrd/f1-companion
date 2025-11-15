@@ -29,16 +29,16 @@ export function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team) => (
+          {teams.map((team, index) => (
             <TableRow key={team.id}>
-              <TableCell className="text-center align-top text-lg">{team.rank}</TableCell>
+              <TableCell className="text-center align-top text-lg">{index + 1}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
                   <div className="text-lg">{team.name}</div>
                   <div className="text-muted-foreground">{team.ownerName}</div>
                 </div>
               </TableCell>
-              <TableCell className="text-center align-top text-lg">{team.totalPoints}</TableCell>
+              <TableCell className="text-center align-top text-lg">-</TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -44,7 +44,7 @@ export function SignUpForm() {
 
     try {
       await signUp(email, password, { displayName });
-      navigate('/dashboard', { replace: true });
+      navigate('/create-team', { replace: true });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Sign up failed');
     } finally {

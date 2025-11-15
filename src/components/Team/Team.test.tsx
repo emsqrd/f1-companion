@@ -85,8 +85,6 @@ describe('Loading State', () => {
       id: 1,
       name: 'Test Team',
       ownerName: 'Test Owner',
-      rank: 1,
-      totalPoints: 100,
     });
 
     // Wait for loading to complete and content to render

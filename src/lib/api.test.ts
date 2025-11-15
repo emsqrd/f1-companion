@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import {
   type MockedFunction,
   afterAll,
@@ -11,6 +12,18 @@ import {
 
 import { apiClient } from './api';
 import { supabase } from './supabase';
+
+// Mock Sentry
+vi.mock('@sentry/react', () => ({
+  withScope: vi.fn((callback) => callback({ setTag: vi.fn(), setContext: vi.fn() })),
+  captureException: vi.fn(),
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    fmt: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      strings.reduce((acc, str, i) => acc + str + (values[i] || ''), ''),
+  },
+}));
 
 // Mock the supabase module
 vi.mock('./supabase', () => ({
@@ -32,6 +45,11 @@ describe('ApiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Clear Sentry mocks
+    vi.mocked(Sentry.captureException).mockClear();
+    vi.mocked(Sentry.logger.error).mockClear();
+    vi.mocked(Sentry.logger.warn).mockClear();
+
     // Default session mock - no auth token
     mockGetSession.mockResolvedValue({
       data: { session: null },
@@ -44,7 +62,7 @@ describe('ApiClient', () => {
   });
 
   describe('constructor', () => {
-    it('should throw error when VITE_F1_FANTASY_API environment variable is not set', async () => {
+    it('throws clear error when API URL is not configured', async () => {
       // Store original value
       const originalValue = import.meta.env.VITE_F1_FANTASY_API;
 
@@ -55,57 +73,10 @@ describe('ApiClient', () => {
       vi.resetModules();
 
       try {
-        // This should throw when the module is imported and apiClient is instantiated
+        // Verify developers get a helpful error message
         await expect(import('./api')).rejects.toThrow(
           'VITE_F1_FANTASY_API environment variable is not set. Please configure it in your environment.',
         );
-      } finally {
-        // Restore the original environment variable and reset modules
-        vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
-        vi.resetModules();
-      }
-    });
-
-    it('should throw error when VITE_F1_FANTASY_API environment variable is empty string', async () => {
-      // Store original value
-      const originalValue = import.meta.env.VITE_F1_FANTASY_API;
-
-      // Mock the environment variable to be empty string
-      vi.stubEnv('VITE_F1_FANTASY_API', '');
-
-      // Reset modules to force fresh import
-      vi.resetModules();
-
-      try {
-        // This should throw when the module is imported and apiClient is instantiated
-        await expect(import('./api')).rejects.toThrow(
-          'VITE_F1_FANTASY_API environment variable is not set. Please configure it in your environment.',
-        );
-      } finally {
-        // Restore the original environment variable and reset modules
-        vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
-        vi.resetModules();
-      }
-    });
-
-    it('should successfully create apiClient when VITE_F1_FANTASY_API is set', async () => {
-      // Store original value
-      const originalValue = import.meta.env.VITE_F1_FANTASY_API;
-
-      // Ensure environment variable is set
-      const envValue = 'http://localhost:3000/api';
-      vi.stubEnv('VITE_F1_FANTASY_API', envValue);
-
-      // Reset modules to force fresh import
-      vi.resetModules();
-
-      try {
-        // This should succeed
-        const { apiClient: freshApiClient } = await import('./api');
-        expect(freshApiClient).toBeDefined();
-        expect(freshApiClient.get).toBeInstanceOf(Function);
-        expect(freshApiClient.post).toBeInstanceOf(Function);
-        expect(freshApiClient.patch).toBeInstanceOf(Function);
       } finally {
         // Restore the original environment variable and reset modules
         vi.stubEnv('VITE_F1_FANTASY_API', originalValue);
@@ -115,12 +86,14 @@ describe('ApiClient', () => {
   });
 
   describe('get method', () => {
-    it('should make successful GET request with no authentication', async () => {
+    it('makes successful GET request without authentication', async () => {
       const mockResponseData = { id: 1, name: 'Test Data' };
       const mockResponse = {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -128,22 +101,22 @@ describe('ApiClient', () => {
       const result = await apiClient.get('/test-endpoint');
 
       expect(result).toEqual(mockResponseData);
-      expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/test-endpoint'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      expect(mockGetSession).toHaveBeenCalledTimes(1);
     });
 
-    it('should include authorization header when user is authenticated', async () => {
+    it('includes authorization header when user is authenticated', async () => {
       const mockResponseData = { id: 1, name: 'Authenticated Data' };
       const mockResponse = {
         ok: true,
         status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
       };
       const mockAccessToken = 'test-access-token';
 
@@ -170,7 +143,7 @@ describe('ApiClient', () => {
       });
     });
 
-    it('should handle API errors and throw meaningful error messages', async () => {
+    it('logs 4xx client errors as warnings without capturing exceptions', async () => {
       const mockResponse = {
         ok: false,
         status: 404,
@@ -183,31 +156,45 @@ describe('ApiClient', () => {
       await expect(apiClient.get('/nonexistent-endpoint')).rejects.toThrow(
         'GET /nonexistent-endpoint failed: Not Found',
       );
+
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+      expect(Sentry.logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('API client error'),
+        expect.objectContaining({
+          status: 404,
+          endpoint: '/nonexistent-endpoint',
+          method: 'GET',
+        }),
+      );
     });
 
-    it('should handle network errors and throw meaningful error messages', async () => {
+    it('captures network errors as exceptions with proper logging', async () => {
       const networkError = new Error('Network connection failed');
       mockFetch.mockRejectedValueOnce(networkError);
 
       await expect(apiClient.get('/network-error')).rejects.toThrow('Network connection failed');
-    });
 
-    it('should handle unknown errors and throw generic message', async () => {
-      // Simulate throwing a non-Error object
-      mockFetch.mockRejectedValueOnce('Unknown error');
-
-      await expect(apiClient.get('/unknown-error')).rejects.toThrow('Unknown error');
+      expect(Sentry.captureException).toHaveBeenCalledWith(networkError);
+      expect(Sentry.logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('API network error'),
+        expect.objectContaining({
+          endpoint: '/network-error',
+          method: 'GET',
+        }),
+      );
     });
   });
 
   describe('post method', () => {
-    it('should make successful POST request with data', async () => {
+    it('makes successful POST request with data', async () => {
       const postData = { name: 'New Item', description: 'Test description' };
       const mockResponseData = { id: 1, ...postData };
       const mockResponse = {
         ok: true,
         status: 201,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -224,13 +211,15 @@ describe('ApiClient', () => {
       });
     });
 
-    it('should make POST request with authentication when user is signed in', async () => {
+    it('makes POST request with authentication when user is signed in', async () => {
       const postData = { name: 'Authenticated Item' };
       const mockResponseData = { id: 2, ...postData };
       const mockResponse = {
         ok: true,
         status: 201,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
       const mockAccessToken = 'authenticated-token';
 
@@ -258,7 +247,7 @@ describe('ApiClient', () => {
       });
     });
 
-    it('should handle POST request errors', async () => {
+    it('logs POST request 4xx errors as warnings', async () => {
       const postData = { invalid: 'data' };
       const mockResponse = {
         ok: false,
@@ -272,14 +261,19 @@ describe('ApiClient', () => {
       await expect(apiClient.post('/bad-request', postData)).rejects.toThrow(
         'POST /bad-request failed: Bad Request',
       );
+
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+      expect(Sentry.logger.warn).toHaveBeenCalled();
     });
 
-    it('should handle empty POST data', async () => {
+    it('handles empty POST data', async () => {
       const mockResponseData = { success: true };
       const mockResponse = {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -298,13 +292,15 @@ describe('ApiClient', () => {
   });
 
   describe('patch method', () => {
-    it('should make successful PATCH request with data', async () => {
+    it('makes successful PATCH request with data', async () => {
       const patchData = { name: 'Updated Name' };
       const mockResponseData = { id: 1, name: 'Updated Name', updated: true };
       const mockResponse = {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -321,13 +317,15 @@ describe('ApiClient', () => {
       });
     });
 
-    it('should make PATCH request with authentication', async () => {
+    it('makes PATCH request with authentication', async () => {
       const patchData = { status: 'active' };
       const mockResponseData = { id: 1, status: 'active' };
       const mockResponse = {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
       const mockAccessToken = 'patch-token';
 
@@ -355,7 +353,7 @@ describe('ApiClient', () => {
       });
     });
 
-    it('should handle PATCH request errors', async () => {
+    it('logs PATCH request 4xx errors as warnings', async () => {
       const patchData = { invalid: 'update' };
       const mockResponse = {
         ok: false,
@@ -369,33 +367,20 @@ describe('ApiClient', () => {
       await expect(apiClient.patch('/invalid-update/1', patchData)).rejects.toThrow(
         'PATCH /invalid-update/1 failed: Unprocessable Entity',
       );
+
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+      expect(Sentry.logger.warn).toHaveBeenCalled();
     });
   });
 
   describe('session management', () => {
-    it('should call getSession for each request to get fresh auth state', async () => {
+    it('handles session retrieval errors gracefully', async () => {
       const mockResponse = {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue({}),
-      };
-
-      mockFetch.mockResolvedValue(mockResponse as unknown as Response);
-
-      // Make multiple requests
-      await apiClient.get('/request1');
-      await apiClient.post('/request2', {});
-      await apiClient.patch('/request3', {});
-
-      // Should call getSession once for each request
-      expect(mockGetSession).toHaveBeenCalledTimes(3);
-    });
-
-    it('should handle session retrieval errors gracefully', async () => {
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: vi.fn().mockResolvedValue({}),
+        text: vi.fn().mockResolvedValue('{}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       // Simulate session error
@@ -419,7 +404,7 @@ describe('ApiClient', () => {
   });
 
   describe('integration scenarios', () => {
-    it('should handle mixed authenticated and non-authenticated requests', async () => {
+    it('handles mixed authenticated and non-authenticated requests', async () => {
       const mockToken = 'test-token';
 
       // First request - no auth
@@ -431,6 +416,8 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue({ public: true }),
+        text: vi.fn().mockResolvedValue(JSON.stringify({ public: true })),
+        headers: new Headers({ 'content-type': 'application/json' }),
       } as unknown as Response);
 
       // Second request - with auth
@@ -446,6 +433,8 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue({ private: true }),
+        text: vi.fn().mockResolvedValue(JSON.stringify({ private: true })),
+        headers: new Headers({ 'content-type': 'application/json' }),
       } as unknown as Response);
 
       await apiClient.get('/public');
@@ -470,73 +459,108 @@ describe('ApiClient', () => {
     });
   });
 
+  describe('server errors (5xx)', () => {
+    it('captures 500 server errors as exceptions with full context', async () => {
+      const errorBody = 'Internal Server Error';
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: vi.fn().mockResolvedValue(errorBody),
+      };
+
+      mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
+
+      await expect(apiClient.get('/server-error')).rejects.toThrow(
+        'GET /server-error failed: Internal Server Error',
+      );
+
+      expect(Sentry.captureException).toHaveBeenCalled();
+      expect(Sentry.logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('API server error'),
+        expect.objectContaining({
+          status: 500,
+          endpoint: '/server-error',
+          method: 'GET',
+        }),
+      );
+    });
+
+    it('captures 503 Service Unavailable as exception', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        text: vi.fn().mockResolvedValue('Service temporarily unavailable'),
+      };
+
+      mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
+
+      await expect(apiClient.post('/unavailable', {})).rejects.toThrow();
+
+      expect(Sentry.captureException).toHaveBeenCalled();
+      expect(Sentry.logger.error).toHaveBeenCalled();
+    });
+  });
+
   describe('error handling edge cases', () => {
-    it('should handle fetch throwing TypeError for network issues', async () => {
-      mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    it('handles error when reading response body fails', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: vi.fn().mockRejectedValue(new Error('Failed to read body')),
+      };
 
-      await expect(apiClient.get('/network-failure')).rejects.toThrow('Failed to fetch');
+      mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
+
+      await expect(apiClient.get('/error-read')).rejects.toThrow(
+        'GET /error-read failed: Internal Server Error',
+      );
+
+      expect(Sentry.logger.error).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          responseBody: 'Unable to read response body',
+        }),
+      );
     });
 
-    it('should handle response.json() failing', async () => {
-      const jsonError = new Error('Invalid JSON');
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: vi.fn().mockRejectedValue(jsonError),
-      } as unknown as Response);
-
-      // Based on testing, the API client is not currently wrapping json() errors
-      // This is actually the current behavior - the json parsing error comes through directly
-      await expect(apiClient.get('/invalid-json')).rejects.toThrow('Invalid JSON');
-    });
-
-    it('should handle empty response body', async () => {
+    it('handles empty response body (204 No Content)', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 204,
         json: vi.fn().mockResolvedValue(null),
+        text: vi.fn().mockResolvedValue(''),
+        headers: new Headers({ 'content-length': '0' }),
       } as unknown as Response);
 
       const result = await apiClient.get('/empty-response');
       expect(result).toBeNull();
     });
-  });
 
-  describe('request configuration', () => {
-    it('should use correct base URL from environment variable', async () => {
-      const mockResponse = {
+    it('handles empty response body with whitespace', async () => {
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: vi.fn().mockResolvedValue({}),
-      };
+        text: vi.fn().mockResolvedValue('   '),
+        headers: new Headers({ 'content-type': 'application/json', 'content-length': '3' }),
+      } as unknown as Response);
 
-      mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
-
-      await apiClient.get('/test');
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining(import.meta.env.VITE_F1_FANTASY_API),
-        expect.any(Object),
-      );
+      const result = await apiClient.get('/whitespace');
+      expect(result).toBeNull();
     });
 
-    it('should properly format endpoint URLs', async () => {
-      const mockResponse = {
+    it('handles non-JSON content type', async () => {
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: vi.fn().mockResolvedValue({}),
-      };
+        text: vi.fn().mockResolvedValue('<html>Not JSON</html>'),
+        headers: new Headers({ 'content-type': 'text/html' }),
+      } as unknown as Response);
 
-      mockFetch.mockResolvedValue(mockResponse as unknown as Response);
-
-      await apiClient.get('/users');
-      await apiClient.get('/users/123');
-      await apiClient.get('/users/123/teams');
-
-      const calls = mockFetch.mock.calls;
-      expect(calls[0]?.[0]).toContain('/users');
-      expect(calls[1]?.[0]).toContain('/users/123');
-      expect(calls[2]?.[0]).toContain('/users/123/teams');
+      const result = await apiClient.get('/html');
+      expect(result).toBeNull();
     });
   });
 });

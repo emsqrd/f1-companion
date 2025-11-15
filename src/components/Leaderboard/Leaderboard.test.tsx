@@ -9,24 +9,18 @@ import { Leaderboard } from './Leaderboard';
 const mockTeams: Team[] = [
   {
     id: 1,
-    rank: 1,
     name: 'Team 1',
     ownerName: 'Owner 1',
-    totalPoints: 100,
   },
   {
     id: 2,
-    rank: 2,
     name: 'Team 2',
     ownerName: 'Owner 2',
-    totalPoints: 200,
   },
   {
     id: 3,
-    rank: 3,
     name: 'Team 3',
     ownerName: 'Owner 3',
-    totalPoints: 300,
   },
 ];
 
@@ -76,10 +70,8 @@ describe('Leaderboard', () => {
 
       // Verify all teams are present with complete information
       for (const team of mockTeams) {
-        expect(await screen.findByText(team.rank)).toBeInTheDocument();
         expect(await screen.findByText(team.name)).toBeInTheDocument();
         expect(await screen.findByText(team.ownerName)).toBeInTheDocument();
-        expect(await screen.findByText(team.totalPoints.toString())).toBeInTheDocument();
       }
     });
 
@@ -103,9 +95,9 @@ describe('Leaderboard', () => {
 
     it('should display teams even when some data is missing', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([
-        { id: 1, rank: 1, name: 'Complete Team', ownerName: 'Complete Owner', totalPoints: 100 },
-        { id: 2, rank: 2, name: '', ownerName: 'Owner Only', totalPoints: 200 }, // Missing team name
-        { id: 3, rank: 3, name: 'Team Only', ownerName: '', totalPoints: 300 }, // Missing owner
+        { id: 1, name: 'Complete Team', ownerName: 'Complete Owner' },
+        { id: 2, name: '', ownerName: 'Owner Only' }, // Missing team name
+        { id: 3, name: 'Team Only', ownerName: '' }, // Missing owner
       ]);
 
       render(
@@ -129,10 +121,8 @@ describe('Leaderboard', () => {
     it('should handle displaying many teams', async () => {
       const manyTeams = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
-        rank: i + 1,
         name: `Team ${i + 1}`,
         ownerName: `Owner ${i + 1}`,
-        totalPoints: Number(`${i + 10}`),
       }));
 
       vi.mocked(getTeams).mockResolvedValueOnce(manyTeams);
