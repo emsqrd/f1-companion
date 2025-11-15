@@ -17,24 +17,18 @@ const mockApiClient = vi.mocked(apiClient);
 const mockTeams: Team[] = [
   {
     id: 1,
-    rank: 1,
     name: 'Team 1',
     ownerName: 'Owner 1',
-    totalPoints: 100,
   },
   {
     id: 2,
-    rank: 2,
     name: 'Team 2',
     ownerName: 'Owner 2',
-    totalPoints: 200,
   },
   {
     id: 3,
-    rank: 3,
     name: 'Team 3',
     ownerName: 'Owner 3',
-    totalPoints: 300,
   },
 ];
 
@@ -75,10 +69,8 @@ describe('teamService', () => {
       result?.forEach((team: Team) => {
         expect(team).toMatchObject({
           id: expect.any(Number),
-          rank: expect.any(Number),
           name: expect.any(String),
           ownerName: expect.any(String),
-          totalPoints: expect.any(Number),
         });
       });
     });
@@ -119,10 +111,8 @@ describe('teamService', () => {
       expect(team).toBeDefined();
       expect(team).toMatchObject({
         id: expect.any(Number),
-        rank: expect.any(Number),
         name: expect.any(String),
         ownerName: expect.any(String),
-        totalPoints: expect.any(Number),
       });
       expect(mockApiClient.get).toHaveBeenCalledTimes(1);
       expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('/teams/2'));

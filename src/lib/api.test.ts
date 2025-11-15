@@ -121,6 +121,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -143,7 +145,9 @@ describe('ApiClient', () => {
       const mockResponse = {
         ok: true,
         status: 200,
+        headers: new Headers({ 'content-type': 'application/json' }),
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
       };
       const mockAccessToken = 'test-access-token';
 
@@ -208,6 +212,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 201,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -231,6 +237,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 201,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
       const mockAccessToken = 'authenticated-token';
 
@@ -280,6 +288,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -305,6 +315,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -328,6 +340,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue(mockResponseData),
+        text: vi.fn().mockResolvedValue(JSON.stringify(mockResponseData)),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
       const mockAccessToken = 'patch-token';
 
@@ -378,6 +392,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue({}),
+        text: vi.fn().mockResolvedValue('{}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValue(mockResponse as unknown as Response);
@@ -396,6 +412,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue({}),
+        text: vi.fn().mockResolvedValue('{}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       // Simulate session error
@@ -431,6 +449,8 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue({ public: true }),
+        text: vi.fn().mockResolvedValue(JSON.stringify({ public: true })),
+        headers: new Headers({ 'content-type': 'application/json' }),
       } as unknown as Response);
 
       // Second request - with auth
@@ -446,6 +466,8 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue({ private: true }),
+        text: vi.fn().mockResolvedValue(JSON.stringify({ private: true })),
+        headers: new Headers({ 'content-type': 'application/json' }),
       } as unknown as Response);
 
       await apiClient.get('/public');
@@ -483,11 +505,13 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockRejectedValue(jsonError),
+        text: vi.fn().mockResolvedValue('{invalid json}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       } as unknown as Response);
 
       // Based on testing, the API client is not currently wrapping json() errors
       // This is actually the current behavior - the json parsing error comes through directly
-      await expect(apiClient.get('/invalid-json')).rejects.toThrow('Invalid JSON');
+      await expect(apiClient.get('/invalid-json')).rejects.toThrow();
     });
 
     it('should handle empty response body', async () => {
@@ -495,6 +519,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 204,
         json: vi.fn().mockResolvedValue(null),
+        text: vi.fn().mockResolvedValue(''),
+        headers: new Headers({ 'content-length': '0' }),
       } as unknown as Response);
 
       const result = await apiClient.get('/empty-response');
@@ -508,6 +534,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue({}),
+        text: vi.fn().mockResolvedValue('{}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValueOnce(mockResponse as unknown as Response);
@@ -525,6 +553,8 @@ describe('ApiClient', () => {
         ok: true,
         status: 200,
         json: vi.fn().mockResolvedValue({}),
+        text: vi.fn().mockResolvedValue('{}'),
+        headers: new Headers({ 'content-type': 'application/json' }),
       };
 
       mockFetch.mockResolvedValue(mockResponse as unknown as Response);

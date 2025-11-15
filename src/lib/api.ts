@@ -95,7 +95,25 @@ class ApiClient {
         throw error;
       }
 
-      return response.json();
+      // Handle empty responses (204 No Content or empty body)
+      const contentLength = response.headers.get('content-length');
+      const contentType = response.headers.get('content-type');
+
+      if (
+        response.status === 204 ||
+        contentLength === '0' ||
+        !contentType?.includes('application/json')
+      ) {
+        return null as T;
+      }
+
+      // Check if response body is empty before parsing JSON
+      const text = await response.text();
+      if (!text || text.trim().length === 0) {
+        return null as T;
+      }
+
+      return JSON.parse(text) as T;
     } catch (error) {
       // Capture network errors and other exceptions
       if (error instanceof Error && !('status' in error)) {
