@@ -64,7 +64,7 @@ export function CreateTeam() {
                 required
                 error={errors.teamName?.message}
                 register={register('teamName')}
-                placeholder="Enter you team name"
+                placeholder="Enter your team name"
                 helpText="You can change this later"
               />
 

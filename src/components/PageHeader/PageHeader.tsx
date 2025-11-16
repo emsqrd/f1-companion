@@ -37,6 +37,10 @@ export function PageHeader() {
     navigate('/leagues');
   };
 
+  const handleCreateTeam = () => {
+    navigate('/create-team');
+  };
+
   const handleSignOut = () => {
     signOut();
     navigate('/');
@@ -133,7 +137,7 @@ export function PageHeader() {
                         {hasTeam ? (
                           <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem onClick={() => navigate('/create-team')}>
+                          <DropdownMenuItem onClick={handleCreateTeam}>
                             Create Team
                           </DropdownMenuItem>
                         )}

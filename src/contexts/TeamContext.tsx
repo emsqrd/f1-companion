@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getMyTeam } from '@/services/teamService';
 import { useMemo } from 'react';
 
-import { TeamContext } from './TeamContext';
+import { TeamContext } from './TeamContext.ts';
 
 export function TeamProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();

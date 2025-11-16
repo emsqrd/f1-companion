@@ -83,6 +83,23 @@ describe('TeamRequiredGuard', () => {
 
   describe('User without Team', () => {
     it('redirects to create-team when user has no team', async () => {
+      // Start with loading state, then transition to no team
+      mockUseTeam.mockReturnValueOnce({
+        hasTeam: false,
+        isCheckingTeam: true,
+        error: null,
+        team: null,
+        setTeam: vi.fn(),
+        refetchTeam: vi.fn(),
+        clearError: vi.fn(),
+      });
+
+      const { rerender } = renderWithRouter();
+
+      // Show loading initially
+      expect(screen.getByRole('status')).toBeInTheDocument();
+
+      // Transition to loaded state with no team
       mockUseTeam.mockReturnValue({
         hasTeam: false,
         isCheckingTeam: false,
@@ -93,7 +110,16 @@ describe('TeamRequiredGuard', () => {
         clearError: vi.fn(),
       });
 
-      renderWithRouter();
+      rerender(
+        <MemoryRouter initialEntries={['/protected']}>
+          <Routes>
+            <Route path="/protected" element={<TeamRequiredGuard />}>
+              <Route index element={<ProtectedPage />} />
+            </Route>
+            <Route path="/create-team" element={<CreateTeamPage />} />
+          </Routes>
+        </MemoryRouter>,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Create Team Page')).toBeInTheDocument();

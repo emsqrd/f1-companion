@@ -1,24 +1,33 @@
 import { useTeam } from '@/hooks/useTeam';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router';
 
 export function TeamRequiredGuard() {
-  const { hasTeam, isCheckingTeam, error, refetchTeam } = useTeam();
+  const { hasTeam, isCheckingTeam, error, refetchTeam, team } = useTeam();
   const navigate = useNavigate();
+  const hasSeenLoadingState = useRef(false);
 
+  // Redirect to team creation if user has no team
+  // CRITICAL: Must wait for data to actually load before making decisions
+  // Track if we've ever seen the loading state to ensure data fetch has been attempted
   useEffect(() => {
-    // Only redirect if we're done checking AND confirmed there's no team
-    if (!isCheckingTeam && !hasTeam && !error) {
-      // Defer navigation to next tick to ensure React finishes all state updates
-      // This prevents race condition where guard checks state before context updates complete
-      const timeoutId = setTimeout(() => {
-        navigate('/create-team', { replace: true });
-      }, 0);
-      return () => clearTimeout(timeoutId);
+    // Track when loading state is active
+    if (isCheckingTeam) {
+      hasSeenLoadingState.current = true;
+      return;
     }
-  }, [hasTeam, isCheckingTeam, error, navigate]);
 
-  // show loading state while checking team
+    // Only redirect if:
+    // 1. We've seen the loading state (data fetch was attempted)
+    // 2. Loading is complete
+    // 3. No error occurred
+    // 4. Team is explicitly null (confirmed no team)
+    if (hasSeenLoadingState.current && !error && team === null) {
+      navigate('/create-team', { replace: true });
+    }
+  }, [team, isCheckingTeam, error, navigate]);
+
+  // Show loading state while checking team status
   if (isCheckingTeam) {
     return (
       <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
@@ -33,7 +42,7 @@ export function TeamRequiredGuard() {
     );
   }
 
-  // show error state with retry option
+  // Show error state with retry option
   if (error) {
     return (
       <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
@@ -52,11 +61,11 @@ export function TeamRequiredGuard() {
     );
   }
 
-  // if no team, return null while redirecting
+  // Return null while redirect is processing
   if (!hasTeam) {
     return null;
   }
 
-  // has team - render protected routes
+  // User has team - render protected routes
   return <Outlet />;
 }

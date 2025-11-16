@@ -10,17 +10,16 @@ export function NoTeamGuard() {
   const { hasTeam, isCheckingTeam } = useTeam();
   const navigate = useNavigate();
 
+  // Redirect to leagues if user already has a team
+  // useEffect ensures navigation happens after render completes, avoiding issues
+  // with React's render cycle and preventing navigation during state updates
   useEffect(() => {
-    // Redirect to leagues if user already has a team
     if (!isCheckingTeam && hasTeam) {
-      const timeoutId = setTimeout(() => {
-        navigate('/leagues', { replace: true });
-      }, 0);
-      return () => clearTimeout(timeoutId);
+      navigate('/leagues', { replace: true });
     }
   }, [hasTeam, isCheckingTeam, navigate]);
 
-  // Show loading state while checking team
+  // Show loading state while checking team status
   if (isCheckingTeam) {
     return (
       <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
@@ -35,11 +34,11 @@ export function NoTeamGuard() {
     );
   }
 
-  // If user has a team, return null while redirecting
+  // Return null while redirect is processing
   if (hasTeam) {
     return null;
   }
 
-  // No team - render protected routes
+  // User has no team - render protected routes
   return <Outlet />;
 }

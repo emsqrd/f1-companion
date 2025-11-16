@@ -1,4 +1,4 @@
-import { TeamContext } from '@/contexts/TeamContext';
+import { TeamContext } from '@/contexts/TeamContext.ts';
 import { useContext } from 'react';
 
 export function useTeam() {
