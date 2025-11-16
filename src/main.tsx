@@ -7,12 +7,16 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { Account } from './components/Account/Account.tsx';
+import { CreateTeam } from './components/CreateTeam/CreateTeam.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
 import { League } from './components/League/League.tsx';
 import { LeagueList } from './components/LeagueList/LeagueList.tsx';
+import { NoTeamGuard } from './components/NoTeamGuard/NoTeamGuard.tsx';
 import { Team } from './components/Team/Team.tsx';
+import { TeamRequiredGuard } from './components/TeamRequiredGuard/TeamRequiredGuard.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
+import { TeamProvider } from './contexts/TeamContext.tsx';
 import './index.css';
 import { withProtection } from './utils/routeHelpers.tsx';
 
@@ -52,27 +56,39 @@ const ProtectedLeagueList = withProtection(LeagueList);
 const ProtectedLeague = withProtection(League);
 const ProtectedTeam = withProtection(Team);
 const ProtectedAccount = withProtection(Account);
+const ProtectedCreateTeam = withProtection(CreateTeam);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Toaster position="top-center" />
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            {/* Public routes */}
-            <Route index element={<LandingPage />} />
-            <Route path="/sign-in" element={<SignInForm />} />
-            <Route path="/sign-up" element={<SignUpForm />} />
+      <TeamProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              {/* Public routes */}
+              <Route index element={<LandingPage />} />
+              <Route path="/sign-in" element={<SignInForm />} />
+              <Route path="/sign-up" element={<SignUpForm />} />
 
-            {/* Protected routes */}
-            <Route path="/leagues" element={<ProtectedLeagueList />} />
-            <Route path="/league/:leagueId" element={<ProtectedLeague />} />
-            <Route path="/team/:teamId" element={<ProtectedTeam />} />
-            <Route path="/account" element={<ProtectedAccount />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+              {/* Protected route - account (no team required) */}
+              <Route path="/account" element={<ProtectedAccount />} />
+
+              {/* Protected route - only accessible to authenticated users without a team */}
+              <Route element={<NoTeamGuard />}>
+                <Route path="/create-team" element={<ProtectedCreateTeam />} />
+              </Route>
+
+              {/* Protected routes - team required */}
+              <Route element={<TeamRequiredGuard />}>
+                <Route path="/leagues" element={<ProtectedLeagueList />} />
+                <Route path="/league/:leagueId" element={<ProtectedLeague />} />
+                <Route path="/team/:teamId" element={<ProtectedTeam />} />
+              </Route>
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </TeamProvider>
     </AuthProvider>
   </StrictMode>,
 );

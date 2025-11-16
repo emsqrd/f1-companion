@@ -1,8 +1,10 @@
 import type { AuthContextType } from '@/contexts/AuthContext';
-import type { UserProfile } from '@/contracts/UserProfile';
 // Import mocked modules
+import { TeamProvider } from '@/contexts/TeamContext.tsx';
+import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { avatarEvents } from '@/lib/avatarEvents';
+import * as teamService from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -16,8 +18,18 @@ import { PageHeader } from './PageHeader';
 vi.mock('@/hooks/useAuth');
 vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
+vi.mock('@/services/teamService', () => ({
+  getMyTeam: vi.fn().mockResolvedValue(null),
+}));
 vi.mock('@sentry/react', () => ({
   captureException: vi.fn(),
+  logger: {
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    fmt: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      strings.reduce((acc, str, i) => acc + str + (values[i] || ''), ''),
+  },
 }));
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
@@ -82,7 +94,9 @@ describe('PageHeader', () => {
   const renderWithRouter = (initialEntries = ['/']) => {
     return render(
       <MemoryRouter initialEntries={initialEntries}>
-        <PageHeader />
+        <TeamProvider>
+          <PageHeader />
+        </TeamProvider>
       </MemoryRouter>,
     );
   };
@@ -162,6 +176,11 @@ describe('PageHeader', () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
+      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+      });
 
       renderWithRouter();
 
@@ -234,6 +253,11 @@ describe('PageHeader', () => {
 
     it('should navigate to dashboard when Dashboard is clicked', async () => {
       const user = userEvent.setup();
+      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+      });
       renderWithRouter();
 
       const dropdownButtons = screen.getAllByRole('button');
@@ -365,7 +389,9 @@ describe('PageHeader', () => {
 
       rerender(
         <MemoryRouter initialEntries={['/']}>
-          <PageHeader />
+          <TeamProvider>
+            <PageHeader />
+          </TeamProvider>
         </MemoryRouter>,
       );
 

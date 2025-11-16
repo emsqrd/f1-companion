@@ -102,7 +102,7 @@ describe('SignUpForm', () => {
       expect(mockSignUp).toHaveBeenCalledWith('test@example.com', 'password123', {
         displayName: 'Test User',
       });
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/create-team', { replace: true });
     });
   });
 

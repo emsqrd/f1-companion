@@ -1,3 +1,4 @@
+import type { ApiError } from '@/utils/errors';
 import * as Sentry from '@sentry/react';
 
 import { supabase } from './supabase';
@@ -50,10 +51,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorBody = await response.text().catch(() => 'Unable to read response body');
-        const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
-          status: number;
-          responseBody?: string;
-        };
+        const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as ApiError;
         error.status = response.status;
         error.responseBody = errorBody;
 
@@ -95,7 +93,26 @@ class ApiClient {
         throw error;
       }
 
-      return response.json();
+      // Handle empty responses (204 No Content or empty body)
+      const contentLength = response.headers.get('content-length');
+      const contentType = response.headers.get('content-type');
+
+      if (
+        response.status === 204 ||
+        contentLength === '0' ||
+        !contentType?.includes('application/json')
+      ) {
+        return null as T;
+      }
+
+      // Use response.json() directly for efficient parsing
+      // This handles empty body errors gracefully
+      try {
+        return (await response.json()) as T;
+      } catch {
+        // If JSON parsing fails (empty body or invalid JSON), return null
+        return null as T;
+      }
     } catch (error) {
       // Capture network errors and other exceptions
       if (error instanceof Error && !('status' in error)) {

@@ -1,9 +1,11 @@
 import type { CreateLeagueRequest } from '@/contracts/CreateLeagueRequest';
 import type { League } from '@/contracts/League';
 import { apiClient } from '@/lib/api';
+import type { ApiError } from '@/utils/errors';
+import * as Sentry from '@sentry/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createLeague, getLeagueById, getLeagues } from './leagueService';
+import { createLeague, getLeagueById, getLeagues, getMyLeagues } from './leagueService';
 
 vi.mock('@/lib/api', () => ({
   apiClient: {
@@ -12,13 +14,24 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
+vi.mock('@sentry/react', () => ({
+  logger: {
+    info: vi.fn(),
+    fmt: (strings: TemplateStringsArray, ...values: unknown[]) =>
+      strings.reduce((acc, str, i) => acc + str + (values[i] || ''), ''),
+  },
+}));
+
+const mockApiClient = vi.mocked(apiClient);
+const mockSentryLogger = vi.mocked(Sentry.logger);
+
 describe('leagueService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('createLeague', () => {
-    it('should call apiClient.post with correct endpoint and data', async () => {
+    it('calls apiClient.post with correct endpoint and data', async () => {
       const mockLeagueRequest: CreateLeagueRequest = {
         name: 'Test League',
         description: 'A test league for testing',
@@ -32,15 +45,40 @@ describe('leagueService', () => {
         isPrivate: false,
       };
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockLeagueResponse);
+      mockApiClient.post.mockResolvedValue(mockLeagueResponse);
 
       const result = await createLeague(mockLeagueRequest);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
       expect(result).toEqual(mockLeagueResponse);
     });
 
-    it('should handle API errors during league creation', async () => {
+    it('logs league creation event with correct context', async () => {
+      const mockLeagueRequest: CreateLeagueRequest = {
+        name: 'Champions League',
+        description: 'Elite racing league',
+        isPrivate: true,
+      };
+      const mockLeagueResponse: League = {
+        id: 42,
+        name: 'Champions League',
+        description: 'Elite racing league',
+        ownerName: 'Race Master',
+        isPrivate: true,
+      };
+
+      mockApiClient.post.mockResolvedValue(mockLeagueResponse);
+
+      await createLeague(mockLeagueRequest);
+
+      expect(mockSentryLogger.info).toHaveBeenCalledWith('League created', {
+        leagueId: 42,
+        leagueName: 'Champions League',
+        isPrivate: true,
+      });
+    });
+
+    it('propagates API errors during league creation', async () => {
       const mockLeagueRequest: CreateLeagueRequest = {
         name: 'Test League',
         description: 'Another test league',
@@ -48,15 +86,15 @@ describe('leagueService', () => {
       };
       const mockError = new Error('Network error');
 
-      vi.mocked(apiClient.post).mockRejectedValue(mockError);
+      mockApiClient.post.mockRejectedValue(mockError);
 
       await expect(createLeague(mockLeagueRequest)).rejects.toThrow('Network error');
-      expect(apiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
     });
   });
 
   describe('getLeagues', () => {
-    it('should call apiClient.get with correct endpoint', async () => {
+    it('calls apiClient.get with correct endpoint', async () => {
       const mockLeagues: League[] = [
         {
           id: 1,
@@ -74,35 +112,74 @@ describe('leagueService', () => {
         },
       ];
 
-      vi.mocked(apiClient.get).mockResolvedValue(mockLeagues);
+      mockApiClient.get.mockResolvedValue(mockLeagues);
 
       const result = await getLeagues();
 
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
       expect(result).toEqual(mockLeagues);
     });
 
-    it('should return empty array when no leagues exist', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue([]);
+    it('returns empty array when no leagues exist', async () => {
+      mockApiClient.get.mockResolvedValue([]);
 
       const result = await getLeagues();
 
       expect(result).toEqual([]);
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
     });
 
-    it('should handle API errors during league retrieval', async () => {
+    it('propagates API errors during league retrieval', async () => {
       const mockError = new Error('Server error');
 
-      vi.mocked(apiClient.get).mockRejectedValue(mockError);
+      mockApiClient.get.mockRejectedValue(mockError);
 
       await expect(getLeagues()).rejects.toThrow('Server error');
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
+    });
+  });
+
+  describe('getMyLeagues', () => {
+    it('calls apiClient.get with correct endpoint', async () => {
+      const mockLeagues: League[] = [
+        {
+          id: 1,
+          name: 'My League',
+          description: 'My personal league',
+          ownerName: 'Current User',
+          isPrivate: false,
+        },
+      ];
+
+      mockApiClient.get.mockResolvedValue(mockLeagues);
+
+      const result = await getMyLeagues();
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
+      expect(result).toEqual(mockLeagues);
+    });
+
+    it('returns empty array when user has no leagues', async () => {
+      mockApiClient.get.mockResolvedValue([]);
+
+      const result = await getMyLeagues();
+
+      expect(result).toEqual([]);
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
+    });
+
+    it('propagates API errors during user leagues retrieval', async () => {
+      const mockError = new Error('Unauthorized');
+
+      mockApiClient.get.mockRejectedValue(mockError);
+
+      await expect(getMyLeagues()).rejects.toThrow('Unauthorized');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
     });
   });
 
   describe('getLeagueById', () => {
-    it('should call apiClient.get with correct endpoint and id', async () => {
+    it('calls apiClient.get with correct endpoint and id', async () => {
       const mockLeague: League = {
         id: 42,
         name: 'Specific League',
@@ -111,30 +188,39 @@ describe('leagueService', () => {
         isPrivate: false,
       };
 
-      vi.mocked(apiClient.get).mockResolvedValue(mockLeague);
+      mockApiClient.get.mockResolvedValue(mockLeague);
 
       const result = await getLeagueById(42);
 
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues/42');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/42');
       expect(result).toEqual(mockLeague);
     });
 
-    it('should return null when league is not found', async () => {
-      vi.mocked(apiClient.get).mockResolvedValue(null);
+    it('returns null when league is not found (404 error)', async () => {
+      const notFoundError: ApiError = Object.assign(new Error('Not found'), {
+        status: 404,
+      });
+
+      mockApiClient.get.mockRejectedValue(notFoundError);
 
       const result = await getLeagueById(999);
 
       expect(result).toBeNull();
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues/999');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/999');
     });
 
-    it('should handle API errors during single league retrieval', async () => {
-      const mockError = new Error('Not found');
+    it('propagates non-404 errors during league retrieval', async () => {
+      const serverError: ApiError = Object.assign(new Error('Server error'), {
+        status: 500,
+      });
 
-      vi.mocked(apiClient.get).mockRejectedValue(mockError);
+      mockApiClient.get.mockRejectedValue(serverError);
 
-      await expect(getLeagueById(1)).rejects.toThrow('Not found');
-      expect(apiClient.get).toHaveBeenCalledWith('/leagues/1');
+      await expect(getLeagueById(1)).rejects.toMatchObject({
+        message: 'Server error',
+        status: 500,
+      });
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/1');
     });
   });
 });

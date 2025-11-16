@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useTeam } from '@/hooks/useTeam';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
 import { CircleUser, Loader2, Trophy } from 'lucide-react';
@@ -16,6 +17,7 @@ import {
 
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
+  const { hasTeam } = useTeam();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,6 +35,10 @@ export function PageHeader() {
 
   const handleLeagues = () => {
     navigate('/leagues');
+  };
+
+  const handleCreateTeam = () => {
+    navigate('/create-team');
   };
 
   const handleSignOut = () => {
@@ -128,7 +134,13 @@ export function PageHeader() {
                     {user ? (
                       <>
                         <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
+                        {hasTeam ? (
+                          <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={handleCreateTeam}>
+                            Create Team
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
                       </>
                     ) : (

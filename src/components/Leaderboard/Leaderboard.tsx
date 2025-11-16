@@ -19,26 +19,24 @@ export function Leaderboard() {
   }, []);
 
   return (
-    <AppContainer maxWidth="md">
+    <AppContainer maxWidth="sm">
       <Table className="bg-card overflow-hidden rounded-lg">
         <TableHeader className="bg-secondary sticky top-0 font-bold">
           <TableRow>
             <TableHead className="text-center text-lg font-bold">Rank</TableHead>
             <TableHead className="min-w-48 text-lg font-bold">Team</TableHead>
-            <TableHead className="text-center text-lg font-bold">Points</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team) => (
+          {teams.map((team, index) => (
             <TableRow key={team.id}>
-              <TableCell className="text-center align-top text-lg">{team.rank}</TableCell>
+              <TableCell className="text-center align-top text-lg">{index + 1}</TableCell>
               <TableCell className="min-w-48 align-top">
                 <div className="flex flex-col">
                   <div className="text-lg">{team.name}</div>
                   <div className="text-muted-foreground">{team.ownerName}</div>
                 </div>
               </TableCell>
-              <TableCell className="text-center align-top text-lg">{team.totalPoints}</TableCell>
             </TableRow>
           ))}
         </TableBody>

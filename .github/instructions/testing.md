@@ -23,6 +23,17 @@
 - Static JSX rendering (headings, labels present)
 - Validation schema rules (test those in schema unit tests if needed)
 - Default values from config objects (unless computed/conditional)
+- Presentation details that rarely break
+
+**Exception:** Configuration validation that provides **developer feedback** is valuable. Test that critical environment variables throw clear, helpful error messages when missing. Focus on the **error message quality**, not the configuration mechanism itself.
+
+Examples:
+
+- ✅ **Test this:** "Does missing `VITE_API_URL` throw a clear error with actionable guidance?"
+- ❌ **Don't test:** "Does Vite correctly read `import.meta.env` values?"
+- ❌ **Don't test:** "Does the constructor successfully instantiate when config is valid?"
+
+Keep **one focused test** per critical configuration point that validates the error message helps developers debug misconfigurations.
 
 ## Testing Standards
 
@@ -35,7 +46,7 @@
 
 ### Test Structure
 
-- **Naming**: Use `it('should...')` format consistently
+- **Naming**: Use behavior-focused, imperative test names consistently. Avoid starting test names with 'should'. Prefer action-oriented phrasing such as 'renders...', 'displays...', 'returns...', 'submits...', 'shows an error when...', etc.
 - **File Naming**: `ComponentName.test.tsx` (co-located with components)
 - **Organization**: Use `describe` blocks for grouping related tests
 - **Pattern**: Follow AAA (Arrange, Act, Assert)
@@ -68,7 +79,7 @@
 Test how users interact with your component:
 
 ```typescript
-it('should handle form submission when user clicks submit button', async () => {
+it('handles form submission when user clicks submit button', async () => {
   const user = userEvent.setup();
   render(<MyComponent />);
 
@@ -84,7 +95,7 @@ it('should handle form submission when user clicks submit button', async () => {
 Test error states and error boundaries:
 
 ```typescript
-it('should display error message when API call fails', async () => {
+it('displays error message when API call fails', async () => {
   mockService.getData.mockRejectedValue(new Error('API Error'));
 
   render(<MyComponent />);
@@ -95,10 +106,10 @@ it('should display error message when API call fails', async () => {
 
 ### 3. Asynchronous Behavior Tests
 
-Test loading states and async operations:
+Test loading states and async operations using `findBy` queries for elements that appear asynchronously:
 
 ```typescript
-it('should show loading state while fetching data', async () => {
+it('shows loading state then loaded data', async () => {
   render(<MyComponent />);
 
   expect(screen.getByText(/loading/i)).toBeInTheDocument();
@@ -106,12 +117,14 @@ it('should show loading state while fetching data', async () => {
 });
 ```
 
+**Note:** Use `findBy` queries (which have built-in waiting) instead of wrapping `getBy` queries in `waitFor()`. Reserve `waitFor()` for more complex assertions that can't be expressed with `findBy` queries.
+
 ### 4. Accessibility Tests
 
 Test keyboard navigation and ARIA attributes:
 
 ```typescript
-it('should be keyboard navigable', async () => {
+it('allows keyboard navigation', async () => {
   const user = userEvent.setup();
   render(<MyComponent />);
 
@@ -150,17 +163,20 @@ vi.mock('react-router', () => ({
 
 ## Quick Test Generation Prompt
 
-When asking Copilot to generate tests, use this concise prompt:
+When asking Copilot to generate tests, you can use this prompt:
 
 ```
-Generate high-value tests for [COMPONENT/FILE] following our testing philosophy:
-- Focus on user behavior and business logic only
-- Use React Testing Library with userEvent
-- Test error handling, async behavior, and edge cases
-- Mock external dependencies appropriately
+Generate high-value tests for this file following our testing guidelines.
 - Keep it lean (~10-15 tests)
-- Use 'it should...' format
+- After writing tests, review for duplicate assertions or test cases
+- Run all tests to ensure they pass
+- Run the linter to ensure there are no linting errors
+- Run the build to ensure no type errors
+- Run code coverage and ensure that coverage is at an excellent level
+- Verify all tests provide high value per our testing philosophy
 ```
+
+The testing instructions in this document will be automatically included in Copilot's context.
 
 ## Essential Commands
 
