@@ -105,13 +105,14 @@ class ApiClient {
         return null as T;
       }
 
-      // Check if response body is empty before parsing JSON
-      const text = await response.text();
-      if (!text || text.trim().length === 0) {
+      // Use response.json() directly for efficient parsing
+      // This handles empty body errors gracefully
+      try {
+        return (await response.json()) as T;
+      } catch {
+        // If JSON parsing fails (empty body or invalid JSON), return null
         return null as T;
       }
-
-      return JSON.parse(text) as T;
     } catch (error) {
       // Capture network errors and other exceptions
       if (error instanceof Error && !('status' in error)) {

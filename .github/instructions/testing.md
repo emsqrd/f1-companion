@@ -79,7 +79,7 @@ Keep **one focused test** per critical configuration point that validates the er
 Test how users interact with your component:
 
 ```typescript
-it('should handle form submission when user clicks submit button', async () => {
+it('handles form submission when user clicks submit button', async () => {
   const user = userEvent.setup();
   render(<MyComponent />);
 
@@ -95,7 +95,7 @@ it('should handle form submission when user clicks submit button', async () => {
 Test error states and error boundaries:
 
 ```typescript
-it('should display error message when API call fails', async () => {
+it('displays error message when API call fails', async () => {
   mockService.getData.mockRejectedValue(new Error('API Error'));
 
   render(<MyComponent />);
@@ -124,7 +124,7 @@ it('shows loading state then loaded data', async () => {
 Test keyboard navigation and ARIA attributes:
 
 ```typescript
-it('should be keyboard navigable', async () => {
+it('allows keyboard navigation', async () => {
   const user = userEvent.setup();
   render(<MyComponent />);
 

@@ -49,50 +49,17 @@ export function useAsyncData<T>({
   const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = useCallback(async () => {
-    if (!enabled) {
-      setDataState(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await fetchFn();
-      Sentry.logger.debug(Sentry.logger.fmt`${name} fetched successfully`, { data: result });
-
-      setDataState(result);
-      setIsLoading(false);
-    } catch (err) {
-      const fetchError = err instanceof Error ? err : new Error(`Failed to fetch ${name}`);
-      Sentry.logger.error(Sentry.logger.fmt`${name} fetch error: ${fetchError.message}`);
-
-      setError(fetchError);
-      setIsLoading(false);
-
-      Sentry.captureException(fetchError, {
-        contexts: {
-          [name.toLowerCase()]: errorContext || {},
-        },
-      });
-    }
-  }, [fetchFn, enabled, name, errorContext]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadData = async () => {
+  const fetchData = useCallback(
+    async (shouldCheckMount: () => boolean = () => true) => {
       if (!enabled) {
-        if (isMounted) {
+        if (shouldCheckMount()) {
           setDataState(null);
           setIsLoading(false);
         }
         return;
       }
 
-      if (isMounted) {
+      if (shouldCheckMount()) {
         setIsLoading(true);
         setError(null);
       }
@@ -101,7 +68,7 @@ export function useAsyncData<T>({
         const result = await fetchFn();
         Sentry.logger.debug(Sentry.logger.fmt`${name} fetched successfully`, { data: result });
 
-        if (isMounted) {
+        if (shouldCheckMount()) {
           setDataState(result);
           setIsLoading(false);
         }
@@ -109,7 +76,7 @@ export function useAsyncData<T>({
         const fetchError = err instanceof Error ? err : new Error(`Failed to fetch ${name}`);
         Sentry.logger.error(Sentry.logger.fmt`${name} fetch error: ${fetchError.message}`);
 
-        if (isMounted) {
+        if (shouldCheckMount()) {
           setError(fetchError);
           setIsLoading(false);
         }
@@ -120,9 +87,14 @@ export function useAsyncData<T>({
           },
         });
       }
-    };
+    },
+    [fetchFn, enabled, name, errorContext],
+  );
 
-    loadData();
+  useEffect(() => {
+    let isMounted = true;
+
+    fetchData(() => isMounted);
 
     return () => {
       isMounted = false;
