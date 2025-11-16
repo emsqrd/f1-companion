@@ -19,13 +19,12 @@ export function Leaderboard() {
   }, []);
 
   return (
-    <AppContainer maxWidth="md">
+    <AppContainer maxWidth="sm">
       <Table className="bg-card overflow-hidden rounded-lg">
         <TableHeader className="bg-secondary sticky top-0 font-bold">
           <TableRow>
             <TableHead className="text-center text-lg font-bold">Rank</TableHead>
             <TableHead className="min-w-48 text-lg font-bold">Team</TableHead>
-            <TableHead className="text-center text-lg font-bold">Points</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -38,7 +37,6 @@ export function Leaderboard() {
                   <div className="text-muted-foreground">{team.ownerName}</div>
                 </div>
               </TableCell>
-              <TableCell className="text-center align-top text-lg">-</TableCell>
             </TableRow>
           ))}
         </TableBody>

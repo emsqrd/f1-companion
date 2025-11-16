@@ -127,7 +127,7 @@ describe('CreateTeam', () => {
   });
 
   it('displays error message when submission fails', async () => {
-    mockTeamService.createTeam.mockRejectedValue(new Error('Network error'));
+    mockTeamService.createTeam.mockRejectedValueOnce(new Error('Network error'));
 
     render(<CreateTeam />);
     const user = userEvent.setup();

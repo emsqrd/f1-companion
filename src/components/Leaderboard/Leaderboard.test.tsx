@@ -87,7 +87,6 @@ describe('Leaderboard', () => {
       // User should see table headers but no team data
       expect(await screen.findByText('Rank')).toBeInTheDocument();
       expect(await screen.findByText('Team')).toBeInTheDocument();
-      expect(await screen.findByText('Points')).toBeInTheDocument();
 
       // No team names should be visible
       expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
@@ -150,9 +149,9 @@ describe('Leaderboard', () => {
       const firstRow = rows[0];
       const lastRow = rows[19];
 
-      // Each row should have 3 cells
-      expect(within(firstRow).getAllByRole('cell')).toHaveLength(3);
-      expect(within(lastRow).getAllByRole('cell')).toHaveLength(3);
+      // Each row should have 2 cells
+      expect(within(firstRow).getAllByRole('cell')).toHaveLength(2);
+      expect(within(lastRow).getAllByRole('cell')).toHaveLength(2);
 
       // Test rank by position (first cell in row)
       expect(within(firstRow).getAllByRole('cell')[0]).toHaveTextContent('1');
