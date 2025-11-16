@@ -1,3 +1,4 @@
+import type { ApiError } from '@/utils/errors';
 import * as Sentry from '@sentry/react';
 
 import { supabase } from './supabase';
@@ -50,10 +51,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorBody = await response.text().catch(() => 'Unable to read response body');
-        const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as Error & {
-          status: number;
-          responseBody?: string;
-        };
+        const error = new Error(`${method} ${endpoint} failed: ${response.statusText}`) as ApiError;
         error.status = response.status;
         error.responseBody = errorBody;
 

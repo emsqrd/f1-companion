@@ -1,6 +1,7 @@
 import type { CreateLeagueRequest } from '@/contracts/CreateLeagueRequest';
 import type { League } from '@/contracts/League';
 import { apiClient } from '@/lib/api';
+import type { ApiError } from '@/utils/errors';
 import * as Sentry from '@sentry/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -196,7 +197,7 @@ describe('leagueService', () => {
     });
 
     it('returns null when league is not found (404 error)', async () => {
-      const notFoundError = Object.assign(new Error('Not found'), {
+      const notFoundError: ApiError = Object.assign(new Error('Not found'), {
         status: 404,
       });
 
@@ -209,7 +210,7 @@ describe('leagueService', () => {
     });
 
     it('propagates non-404 errors during league retrieval', async () => {
-      const serverError = Object.assign(new Error('Server error'), {
+      const serverError: ApiError = Object.assign(new Error('Server error'), {
         status: 500,
       });
 

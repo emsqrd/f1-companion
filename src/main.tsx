@@ -56,6 +56,7 @@ const ProtectedLeagueList = withProtection(LeagueList);
 const ProtectedLeague = withProtection(League);
 const ProtectedTeam = withProtection(Team);
 const ProtectedAccount = withProtection(Account);
+const ProtectedCreateTeam = withProtection(CreateTeam);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -73,9 +74,9 @@ createRoot(document.getElementById('root')!).render(
               {/* Protected route - account (no team required) */}
               <Route path="/account" element={<ProtectedAccount />} />
 
-              {/* Protected route - only accessible without a team */}
+              {/* Protected route - only accessible to authenticated users without a team */}
               <Route element={<NoTeamGuard />}>
-                <Route path="/create-team" element={<CreateTeam />} />
+                <Route path="/create-team" element={<ProtectedCreateTeam />} />
               </Route>
 
               {/* Protected routes - team required */}

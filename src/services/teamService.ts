@@ -1,6 +1,7 @@
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
+import { isApiError } from '@/utils/errors';
 import * as Sentry from '@sentry/react';
 
 export async function createTeam(data: CreateTeamRequest): Promise<Team> {
@@ -19,7 +20,7 @@ export async function getMyTeam(): Promise<Team | null> {
   try {
     return await apiClient.get<Team>('/me/team');
   } catch (error) {
-    if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+    if (isApiError(error) && error.status === 404) {
       return null;
     }
 

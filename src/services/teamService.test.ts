@@ -1,6 +1,7 @@
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
+import type { ApiError } from '@/utils/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createTeam, getMyTeam, getTeamById, getTeams } from './teamService';
@@ -67,7 +68,7 @@ describe('teamService', () => {
     });
 
     it('returns null when user has no team (404 response)', async () => {
-      const notFoundError = Object.assign(new Error('Not found'), {
+      const notFoundError: ApiError = Object.assign(new Error('Not found'), {
         status: 404,
       });
 
@@ -79,7 +80,7 @@ describe('teamService', () => {
     });
 
     it('propagates non-404 errors', async () => {
-      const serverError = Object.assign(new Error('Server error'), {
+      const serverError: ApiError = Object.assign(new Error('Server error'), {
         status: 500,
       });
 
