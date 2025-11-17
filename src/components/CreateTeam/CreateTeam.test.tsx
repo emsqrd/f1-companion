@@ -21,13 +21,6 @@ vi.mock('react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const mockSetTeam = vi.fn();
-vi.mock('@/hooks/useTeam', () => ({
-  useTeam: () => ({
-    setTeam: mockSetTeam,
-  }),
-}));
-
 const mockTeamService = vi.mocked(teamService);
 const mockToast = vi.mocked(toast);
 
@@ -44,7 +37,7 @@ describe('CreateTeam', () => {
     mockTeamService.createTeam.mockResolvedValue(mockTeam);
   });
 
-  it('creates team and navigates to leagues on successful submission', async () => {
+  it('creates team and navigates to team page on successful submission', async () => {
     render(<CreateTeam />);
     const user = userEvent.setup();
 
@@ -55,10 +48,10 @@ describe('CreateTeam', () => {
       expect(mockTeamService.createTeam).toHaveBeenCalledWith({
         name: 'My Racing Team',
       });
-      expect(mockSetTeam).toHaveBeenCalledWith(mockTeam);
-      expect(mockToast.success).toHaveBeenCalledWith('Team created successfully');
-      expect(mockNavigate).toHaveBeenCalledWith('/leagues');
     });
+
+    expect(mockToast.success).toHaveBeenCalledWith('Team created successfully');
+    expect(mockNavigate).toHaveBeenCalledWith('/team/1');
   });
 
   it('trims whitespace from team name before submission', async () => {
@@ -139,7 +132,6 @@ describe('CreateTeam', () => {
       expect(mockToast.error).toHaveBeenCalledWith('Network error');
     });
 
-    expect(mockSetTeam).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

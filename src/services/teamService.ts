@@ -33,5 +33,13 @@ export async function getTeams(): Promise<Team[]> {
 }
 
 export async function getTeamById(id: number): Promise<Team | null> {
-  return await apiClient.get(`/teams/${id}`);
+  try {
+    return await apiClient.get<Team>(`/teams/${id}`);
+  } catch (error) {
+    if (isApiError(error) && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
 }

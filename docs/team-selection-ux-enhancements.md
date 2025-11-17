@@ -34,6 +34,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 **Pattern:** Card-based slots → Click "Add" → Side drawer → Scrollable list → Auto-close on select
 
 **Why This Works:**
+
 - **Mobile-First:** Follows iOS bottom sheet and Android modal patterns
 - **Context Preservation:** Overlay allows users to see what they're replacing
 - **Accessibility:** Radix UI provides ARIA roles, focus management, keyboard navigation
@@ -41,6 +42,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 - **Efficient Interaction:** 2-click workflow (Add → Select) is optimal
 
 **Technical Foundation:**
+
 - Built on `@radix-ui/react-dialog` (via Sheet component)
 - 320px width on desktop (`w-80`), 75% width on mobile
 - Keyboard accessible (Escape, Tab, Arrow keys)
@@ -59,6 +61,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 **Solution:** Add search input to Sheet header with instant filtering.
 
 **User Benefit:**
+
 - Reduces cognitive load for finding specific drivers/constructors
 - Speeds up selection workflow
 - Improves mobile usability (less scrolling)
@@ -74,6 +77,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 **Solution:** Add sort dropdown with options: Name (default), Price (high→low), Points (high→low).
 
 **User Benefit:**
+
 - Enables strategic decision-making (budget optimization, point maximization)
 - Reduces time spent comparing options
 - Aligns with fantasy sports strategy patterns
@@ -89,6 +93,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 **Solution:** Add persistent budget indicator in Sheet footer showing: "Selected: $150M / $200M" with visual progress.
 
 **User Benefit:**
+
 - Reduces cognitive load (no mental math required)
 - Prevents invalid selections (budget exceeded)
 - Provides immediate feedback on team composition
@@ -104,6 +109,7 @@ This document outlines enhancements to the F1 Fantasy team selection interface, 
 **Concept:** Side-by-side comparison of 2-3 drivers before selecting.
 
 **Why Deferred:**
+
 - Adds UI complexity that may not be needed (current pattern is sufficient)
 - Mobile implementation is challenging (screen space constraints)
 - Can be addressed with better sorting instead
@@ -146,7 +152,7 @@ interface DriverPickerProps {
   onSelectionsChange?: (slots: (Driver | null)[]) => void; // For dirty tracking (future)
 }
 
-export function DriverPicker({ 
+export function DriverPicker({
   slotsCount = 4,
   initialSlots,
   readOnly = false,
@@ -154,7 +160,7 @@ export function DriverPicker({
 }: DriverPickerProps) {
   const initialDriverPool = getAllDrivers();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  
+
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'points'>('name');
@@ -201,9 +207,7 @@ export function DriverPicker({
           return b.points - a.points; // Descending (highest first)
         case 'name':
         default:
-          return `${a.firstName} ${a.lastName}`.localeCompare(
-            `${b.firstName} ${b.lastName}`
-          );
+          return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
       }
     });
 
@@ -242,8 +246,8 @@ export function DriverPicker({
       </div>
 
       {!readOnly && (
-        <Sheet 
-          open={activeSlot !== null} 
+        <Sheet
+          open={activeSlot !== null}
           onOpenChange={(open) => {
             if (!open) {
               setActiveSlot(null);
@@ -255,8 +259,8 @@ export function DriverPicker({
             {/* Invisible trigger, opened imperatively via setActiveSlot */}
             <div />
           </SheetTrigger>
-          
-          <SheetContent className="flex h-full w-80 sm:w-96 flex-col">
+
+          <SheetContent className="flex h-full w-80 flex-col sm:w-96">
             <SheetHeader className="space-y-3">
               <div>
                 <SheetTitle>Select Driver</SheetTitle>
@@ -275,10 +279,7 @@ export function DriverPicker({
               />
 
               {/* Sort Select */}
-              <Select 
-                value={sortBy} 
-                onValueChange={(value) => setSortBy(value as typeof sortBy)}
-              >
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
                 <SelectTrigger aria-label="Sort drivers by">
                   <SelectValue />
                 </SelectTrigger>
@@ -290,7 +291,7 @@ export function DriverPicker({
               </Select>
             </SheetHeader>
 
-            <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
+            <ScrollArea className="h-full min-h-0 flex-1 pl-4 pr-4">
               {filteredAndSortedPool.length > 0 ? (
                 <ul className="space-y-2">
                   {filteredAndSortedPool.map((driver) => (
@@ -312,7 +313,8 @@ export function DriverPicker({
 
             <SheetFooter className="border-t pt-4">
               <p className="text-muted-foreground text-xs">
-                {filteredAndSortedPool.length} driver{filteredAndSortedPool.length !== 1 ? 's' : ''} available
+                {filteredAndSortedPool.length} driver{filteredAndSortedPool.length !== 1 ? 's' : ''}{' '}
+                available
               </p>
             </SheetFooter>
           </SheetContent>
@@ -357,7 +359,7 @@ interface ConstructorPickerProps {
   onSelectionsChange?: (slots: (Constructor | null)[]) => void; // For dirty tracking (future)
 }
 
-export function ConstructorPicker({ 
+export function ConstructorPicker({
   slotsCount = 4,
   initialSlots,
   readOnly = false,
@@ -365,7 +367,7 @@ export function ConstructorPicker({
 }: ConstructorPickerProps) {
   const initialConstructorsPool = getAllConstructors();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  
+
   // Search and sort state
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'points'>('name');
@@ -451,8 +453,8 @@ export function ConstructorPicker({
       </div>
 
       {!readOnly && (
-        <Sheet 
-          open={activeSlot !== null} 
+        <Sheet
+          open={activeSlot !== null}
           onOpenChange={(open) => {
             if (!open) {
               setActiveSlot(null);
@@ -463,8 +465,8 @@ export function ConstructorPicker({
           <SheetTrigger asChild>
             <div />
           </SheetTrigger>
-          
-          <SheetContent className="flex h-full w-80 sm:w-96 flex-col">
+
+          <SheetContent className="flex h-full w-80 flex-col sm:w-96">
             <SheetHeader className="space-y-3">
               <div>
                 <SheetTitle>Select Constructor</SheetTitle>
@@ -483,10 +485,7 @@ export function ConstructorPicker({
               />
 
               {/* Sort Select */}
-              <Select 
-                value={sortBy} 
-                onValueChange={(value) => setSortBy(value as typeof sortBy)}
-              >
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
                 <SelectTrigger aria-label="Sort constructors by">
                   <SelectValue />
                 </SelectTrigger>
@@ -498,7 +497,7 @@ export function ConstructorPicker({
               </Select>
             </SheetHeader>
 
-            <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
+            <ScrollArea className="h-full min-h-0 flex-1 pl-4 pr-4">
               {filteredAndSortedPool.length > 0 ? (
                 <ul className="space-y-2">
                   {filteredAndSortedPool.map((constructor) => (
@@ -520,7 +519,8 @@ export function ConstructorPicker({
 
             <SheetFooter className="border-t pt-4">
               <p className="text-muted-foreground text-xs">
-                {filteredAndSortedPool.length} constructor{filteredAndSortedPool.length !== 1 ? 's' : ''} available
+                {filteredAndSortedPool.length} constructor
+                {filteredAndSortedPool.length !== 1 ? 's' : ''} available
               </p>
             </SheetFooter>
           </SheetContent>
@@ -556,19 +556,22 @@ function formatPrice(price: number): string {
 
 export function DriverListItem({ driver, onSelect }: DriverListItemProps) {
   return (
-    <li key={driver.id} className="flex items-center justify-between rounded-md p-3 hover:bg-accent transition-colors">
+    <li
+      key={driver.id}
+      className="hover:bg-accent flex items-center justify-between rounded-md p-3 transition-colors"
+    >
       <div className="flex flex-col gap-1">
         <span className="font-medium">
           {driver.firstName} {driver.lastName}
         </span>
-        <div className="flex gap-3 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex gap-3 text-xs">
           <span>{formatPrice(driver.price)}</span>
           <span>•</span>
           <span>{driver.points} pts</span>
         </div>
       </div>
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         size="icon"
         aria-label={`Add ${driver.firstName} ${driver.lastName}`}
         onClick={onSelect}
@@ -599,21 +602,16 @@ function formatPrice(price: number): string {
 
 export function ConstructorListItem({ constructor, onSelect }: ConstructorListItemProps) {
   return (
-    <li className="flex items-center justify-between rounded-md p-3 hover:bg-accent transition-colors">
+    <li className="hover:bg-accent flex items-center justify-between rounded-md p-3 transition-colors">
       <div className="flex flex-col gap-1">
         <span className="font-medium">{constructor.name}</span>
-        <div className="flex gap-3 text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex gap-3 text-xs">
           <span>{formatPrice(constructor.price)}</span>
           <span>•</span>
           <span>{constructor.points} pts</span>
         </div>
       </div>
-      <Button 
-        variant="ghost" 
-        size="icon"
-        aria-label={`Add ${constructor.name}`}
-        onClick={onSelect}
-      >
+      <Button variant="ghost" size="icon" aria-label={`Add ${constructor.name}`} onClick={onSelect}>
         <CirclePlus className="h-5 w-5" />
       </Button>
     </li>
@@ -759,7 +757,7 @@ describe('DriverPicker - Sort Functionality', () => {
     // Verify first item is highest priced driver
     const listItems = screen.getAllByTestId('driver-list-item');
     const firstItem = listItems[0];
-    
+
     // McLaren drivers (Piastri/Norris) should be first (highest price ~$30-31M)
     expect(firstItem).toHaveTextContent(/Piastri|Norris/);
   });
@@ -783,7 +781,7 @@ describe('DriverPicker - Sort Functionality', () => {
     // Verify first item is highest scoring driver
     const listItems = screen.getAllByTestId('driver-list-item');
     const firstItem = listItems[0];
-    
+
     // Norris has highest points (138) from mock data
     expect(firstItem).toHaveTextContent('Norris');
   });
@@ -803,7 +801,7 @@ describe('DriverPicker - Sort Functionality', () => {
 
     const listItems = screen.getAllByTestId('driver-list-item');
     const firstItem = listItems[0];
-    
+
     // First alphabetically should be "Alexander Albon"
     expect(firstItem).toHaveTextContent('Alexander Albon');
   });
@@ -962,6 +960,7 @@ describe('Team - User Workflow Integration', () => {
 ### 5.1 Decision: Local State for Search/Sort vs Context
 
 **Options Considered:**
+
 1. **Local component state** (useState) - selected ✅
 2. Global context (SearchContext)
 3. URL query parameters
@@ -969,6 +968,7 @@ describe('Team - User Workflow Integration', () => {
 **Decision:** Use local component state
 
 **Rationale:**
+
 - Search/sort state is ephemeral and UI-specific
 - No need to persist across navigation
 - Simpler implementation (no context boilerplate)
@@ -982,6 +982,7 @@ describe('Team - User Workflow Integration', () => {
 ### 5.2 Decision: Reset Search on Sheet Close
 
 **Options Considered:**
+
 1. **Reset search when sheet closes** - selected ✅
 2. Persist search query
 3. Let user decide via preference
@@ -989,6 +990,7 @@ describe('Team - User Workflow Integration', () => {
 **Decision:** Reset search on close and after selection
 
 **Rationale:**
+
 - Clean slate for next interaction (users expect fresh start)
 - Reduces cognitive load (no "why is this filtered?" confusion)
 - Matches industry patterns (Amazon, Google Shopping)
@@ -1001,6 +1003,7 @@ describe('Team - User Workflow Integration', () => {
 ### 5.3 Decision: useMemo vs useEffect for Filtering
 
 **Options Considered:**
+
 1. **useMemo for derived state** - selected ✅
 2. useEffect with separate state
 3. Inline filtering in render
@@ -1008,6 +1011,7 @@ describe('Team - User Workflow Integration', () => {
 **Decision:** Use useMemo for filtered/sorted pool
 
 **Rationale:**
+
 - Filtering/sorting is **derived state** (computed from pool, search, sort)
 - useMemo prevents unnecessary recalculations
 - More declarative than useEffect
@@ -1015,6 +1019,7 @@ describe('Team - User Workflow Integration', () => {
 - Better performance characteristics
 
 **Code Pattern:**
+
 ```tsx
 const filteredAndSortedPool = useMemo(() => {
   // Filter logic
@@ -1030,6 +1035,7 @@ const filteredAndSortedPool = useMemo(() => {
 ### 5.4 Decision: Sort Order (Descending for Price/Points)
 
 **Options Considered:**
+
 1. **Descending (highest first)** - selected ✅
 2. Ascending (lowest first)
 3. Toggle ascending/descending
@@ -1037,6 +1043,7 @@ const filteredAndSortedPool = useMemo(() => {
 **Decision:** Descending for price and points, ascending for name
 
 **Rationale:**
+
 - Fantasy sports context: Users typically want "best value" or "highest scoring"
 - Cognitive efficiency: Top of list = best option
 - Matches fantasy sports conventions (ESPN, Yahoo, Sleeper)
@@ -1049,6 +1056,7 @@ const filteredAndSortedPool = useMemo(() => {
 ### 5.5 Decision: Search Implementation (Client-Side)
 
 **Options Considered:**
+
 1. **Client-side filtering** - selected ✅
 2. Server-side search API
 3. Hybrid (client-side with server fallback)
@@ -1056,13 +1064,15 @@ const filteredAndSortedPool = useMemo(() => {
 **Decision:** Client-side filtering with JavaScript `.filter()`
 
 **Rationale:**
+
 - Pool size is small (20 drivers, 20 constructors)
 - Data already loaded (no additional API calls)
 - Instant feedback (no network latency)
 - Simpler implementation
 - Works offline
 
-**When to Revisit:** 
+**When to Revisit:**
+
 - Pool grows beyond 100 items
 - Need full-text search with fuzzy matching
 - Need to search across additional fields (team, nationality)
@@ -1072,6 +1082,7 @@ const filteredAndSortedPool = useMemo(() => {
 ### 5.6 Decision: Empty State Messaging
 
 **Options Considered:**
+
 1. **Show message with search query** - selected ✅
 2. Generic "No results" message
 3. Suggested alternatives
@@ -1079,13 +1090,13 @@ const filteredAndSortedPool = useMemo(() => {
 **Decision:** Display search query in empty state message
 
 **Code:**
+
 ```tsx
-<p className="text-muted-foreground text-sm">
-  No drivers found matching &quot;{searchQuery}&quot;
-</p>
+<p className="text-muted-foreground text-sm">No drivers found matching &quot;{searchQuery}&quot;</p>
 ```
 
 **Rationale:**
+
 - Provides context for why list is empty
 - Helps users debug typos
 - Clear call-to-action (modify search)
@@ -1100,6 +1111,7 @@ const filteredAndSortedPool = useMemo(() => {
 **Current:** 320px (`w-80`) → **Enhanced:** 384px (`sm:w-96`)
 
 **Rationale:**
+
 - More comfortable reading on desktop
 - Room for price/points inline in list items
 - Still preserves context (overlay visible)
@@ -1217,21 +1229,20 @@ const filteredAndSortedPool = useMemo(() => {
 
 ```tsx
 // Add to SheetFooter
-<SheetFooter className="border-t pt-4 space-y-2">
+<SheetFooter className="space-y-2 border-t pt-4">
   <div className="flex justify-between text-sm">
     <span className="text-muted-foreground">Selected Budget:</span>
-    <span className="font-medium">
-      ${selectedBudget.toFixed(1)}M / $200M
-    </span>
+    <span className="font-medium">${selectedBudget.toFixed(1)}M / $200M</span>
   </div>
   <Progress value={(selectedBudget / 200) * 100} className="h-2" />
-  <p className="text-xs text-muted-foreground">
+  <p className="text-muted-foreground text-xs">
     {filteredAndSortedPool.length} driver{filteredAndSortedPool.length !== 1 ? 's' : ''} available
   </p>
 </SheetFooter>
 ```
 
 **Dependencies:**
+
 - Requires budget calculation in parent component
 - Pass `selectedBudget` and `totalBudget` as props to picker
 
@@ -1271,6 +1282,7 @@ const filteredAndSortedPool = useMemo(() => {
 **Goal:** Power users can navigate with keyboard
 
 **Shortcuts:**
+
 - `/ ` - Focus search input
 - `↑↓` - Navigate list
 - `Enter` - Select highlighted item
@@ -1290,16 +1302,18 @@ const filteredAndSortedPool = useMemo(() => {
 
 ```tsx
 // Add "Recent" section above pool list
-{recentSelections.length > 0 && (
-  <div className="mb-4">
-    <h3 className="text-sm font-medium mb-2">Recently Selected</h3>
-    <ul className="space-y-2">
-      {recentSelections.map(driver => (
-        <DriverListItem key={driver.id} driver={driver} onSelect={() => handleSelect(driver)} />
-      ))}
-    </ul>
-  </div>
-)}
+{
+  recentSelections.length > 0 && (
+    <div className="mb-4">
+      <h3 className="mb-2 text-sm font-medium">Recently Selected</h3>
+      <ul className="space-y-2">
+        {recentSelections.map((driver) => (
+          <DriverListItem key={driver.id} driver={driver} onSelect={() => handleSelect(driver)} />
+        ))}
+      </ul>
+    </div>
+  );
+}
 ```
 
 **Storage:** localStorage with max 5 recent items
@@ -1355,21 +1369,25 @@ const filteredAndSortedPool = useMemo(() => {
 ## 9. References & Resources
 
 ### React 19 Best Practices
+
 - **Derived State:** Use `useMemo` for computed values from props/state
 - **Component State:** Prefer local state over context for UI-specific state
 - **Accessibility:** Always include ARIA labels for interactive elements
 
 ### Radix UI Documentation
+
 - **Dialog/Sheet:** https://www.radix-ui.com/docs/primitives/components/dialog
 - **Select:** https://www.radix-ui.com/docs/primitives/components/select
 - **Accessibility:** Built-in focus management, keyboard navigation, screen reader support
 
 ### Testing Best Practices
+
 - **React Testing Library:** Test user behavior, not implementation details
 - **Vitest:** Modern, fast test runner for Vite projects
 - **User Events:** Use `@testing-library/user-event` for realistic interactions
 
 ### Industry Patterns
+
 - **Fantasy Sports:** Sleeper, ESPN Fantasy, Yahoo Fantasy
 - **Mobile Patterns:** iOS bottom sheets, Android modals
 - **Accessibility:** WCAG 2.1 AA compliance via Radix UI
@@ -1381,12 +1399,14 @@ const filteredAndSortedPool = useMemo(() => {
 This plan enhances the existing card + drawer pattern with search and sort capabilities while maintaining the solid UX foundation. The implementation is straightforward, testable, and follows React 19 and accessibility best practices.
 
 **Key Takeaways:**
+
 1. ✅ **Keep current pattern** - it's industry-standard and well-implemented
 2. ✅ **Add search/sort** - significant UX improvement with minimal complexity
 3. ✅ **Defer advanced features** - YAGNI principle (You Aren't Gonna Need It)
 4. ✅ **Prioritize accessibility** - ARIA labels, keyboard navigation, screen readers
 
 **Next Steps:**
+
 1. Review and approve this plan
 2. Implement Phase 1 (search + sort)
 3. Test with real users

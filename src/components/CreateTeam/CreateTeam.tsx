@@ -1,7 +1,7 @@
-import { useTeam } from '@/hooks/useTeam';
 import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function CreateTeam() {
   const navigate = useNavigate();
-  const { setTeam } = useTeam();
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -35,11 +35,11 @@ export function CreateTeam() {
 
       toast.success('Team created successfully');
 
-      // Update TeamContext
-      setTeam(createdTeam);
-
-      // Navigate to leagues
-      navigate('/leagues');
+      // Navigate using startTransition for non-blocking UI updates
+      // Don't manually update context - let TeamProvider refetch automatically
+      startTransition(() => {
+        navigate(`/team/${createdTeam.id}`);
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create team';
       toast.error(message);
@@ -69,8 +69,12 @@ export function CreateTeam() {
               />
 
               <div className="flex justify-end pt-2">
-                <Button disabled={isSubmitting || !isDirty} className="min-w-32" type="submit">
-                  {isSubmitting ? 'Creating...' : 'Create Team'}
+                <Button
+                  disabled={isSubmitting || !isDirty || isPending}
+                  className="min-w-32"
+                  type="submit"
+                >
+                  {isSubmitting ? 'Creating...' : isPending ? 'Redirecting...' : 'Create Team'}
                 </Button>
               </div>
             </form>

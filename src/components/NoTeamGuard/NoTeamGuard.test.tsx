@@ -21,9 +21,9 @@ function CreateTeamPage() {
   return <div>Create Team Page</div>;
 }
 
-// Mock leagues page (redirect target)
-function LeaguesPage() {
-  return <div>Leagues Page</div>;
+// Mock team page (redirect target)
+function TeamPage() {
+  return <div>Team Page</div>;
 }
 
 // Helper to render NoTeamGuard within routing context
@@ -34,7 +34,7 @@ function renderWithRouter(initialRoute = '/create-team') {
         <Route path="/create-team" element={<NoTeamGuard />}>
           <Route index element={<CreateTeamPage />} />
         </Route>
-        <Route path="/leagues" element={<LeaguesPage />} />
+        <Route path="/team/:teamId" element={<TeamPage />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -65,7 +65,7 @@ describe('NoTeamGuard', () => {
   });
 
   describe('User with Team', () => {
-    it('redirects to leagues when user already has a team', async () => {
+    it('redirects to team page when user already has a team', async () => {
       mockUseTeam.mockReturnValue({
         hasTeam: true,
         isCheckingTeam: false,
@@ -79,7 +79,7 @@ describe('NoTeamGuard', () => {
       renderWithRouter();
 
       await waitFor(() => {
-        expect(screen.getByText('Leagues Page')).toBeInTheDocument();
+        expect(screen.getByText('Team Page')).toBeInTheDocument();
       });
 
       expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('NoTeamGuard', () => {
       expect(screen.getByRole('status')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
       expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
-      expect(screen.queryByText('Leagues Page')).not.toBeInTheDocument();
+      expect(screen.queryByText('Team Page')).not.toBeInTheDocument();
     });
   });
 
@@ -115,7 +115,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -137,7 +137,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -161,7 +161,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -180,7 +180,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -202,7 +202,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -226,13 +226,13 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Leagues Page')).toBeInTheDocument();
+        expect(screen.getByText('Team Page')).toBeInTheDocument();
       });
     });
   });

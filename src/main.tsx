@@ -74,6 +74,9 @@ createRoot(document.getElementById('root')!).render(
               {/* Protected route - account (no team required) */}
               <Route path="/account" element={<ProtectedAccount />} />
 
+              {/* Protected route - view any team (no personal team required) */}
+              <Route path="/team/:teamId" element={<ProtectedTeam />} />
+
               {/* Protected route - only accessible to authenticated users without a team */}
               <Route element={<NoTeamGuard />}>
                 <Route path="/create-team" element={<ProtectedCreateTeam />} />
@@ -83,7 +86,6 @@ createRoot(document.getElementById('root')!).render(
               <Route element={<TeamRequiredGuard />}>
                 <Route path="/leagues" element={<ProtectedLeagueList />} />
                 <Route path="/league/:leagueId" element={<ProtectedLeague />} />
-                <Route path="/team/:teamId" element={<ProtectedTeam />} />
               </Route>
             </Route>
           </Routes>
