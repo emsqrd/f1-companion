@@ -74,10 +74,10 @@ createRoot(document.getElementById('root')!).render(
               {/* Protected route - account (no team required) */}
               <Route path="/account" element={<ProtectedAccount />} />
 
-              {/* Protected route - view any team (no personal team required) */}
+              {/* Protected route - view any team */}
               <Route path="/team/:teamId" element={<ProtectedTeam />} />
 
-              {/* Protected route - only accessible to authenticated users without a team */}
+              {/* Protected route - only accessible to users without a team */}
               <Route element={<NoTeamGuard />}>
                 <Route path="/create-team" element={<ProtectedCreateTeam />} />
               </Route>

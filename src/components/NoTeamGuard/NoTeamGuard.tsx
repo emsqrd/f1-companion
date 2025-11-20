@@ -7,17 +7,17 @@ import { Outlet, useNavigate } from 'react-router';
  * Use this to protect routes that should only be accessible to users without a team.
  */
 export function NoTeamGuard() {
-  const { team, hasTeam, isCheckingTeam } = useTeam();
+  const { myTeamId, hasTeam, isCheckingTeam } = useTeam();
   const navigate = useNavigate();
 
   // Redirect to user's team page if they already have a team
   // useEffect ensures navigation happens after render completes, avoiding issues
   // with React's render cycle and preventing navigation during state updates
   useEffect(() => {
-    if (!isCheckingTeam && hasTeam && team) {
-      navigate(`/team/${team.id}`, { replace: true });
+    if (!isCheckingTeam && hasTeam && myTeamId) {
+      navigate(`/team/${myTeamId}`, { replace: true });
     }
-  }, [team, hasTeam, isCheckingTeam, navigate]);
+  }, [myTeamId, hasTeam, isCheckingTeam, navigate]);
 
   // Show loading state while checking team status
   if (isCheckingTeam) {

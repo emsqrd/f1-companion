@@ -31,34 +31,19 @@ vi.mock('@sentry/react', () => ({
 
 // Test component that consumes the team context
 function TestComponent() {
-  const { team, hasTeam, isCheckingTeam, error, setTeam, refetchTeam, clearError } = useTeam();
+  const { myTeamId, hasTeam, isCheckingTeam, refreshMyTeam } = useTeam();
 
-  const handleSetTeam = () => {
-    setTeam({ id: 2, name: 'Updated Team', ownerName: 'New Owner' });
-  };
-
-  const handleRefetchTeam = async () => {
-    try {
-      await refetchTeam();
-    } catch {
-      // Errors are expected in some tests
-    }
+  const handleRefreshTeam = () => {
+    refreshMyTeam();
   };
 
   return (
     <div>
-      <div data-testid="team">{team ? team.name : 'null'}</div>
+      <div data-testid="team-id">{myTeamId ?? 'null'}</div>
       <div data-testid="has-team">{hasTeam.toString()}</div>
       <div data-testid="is-checking">{isCheckingTeam.toString()}</div>
-      <div data-testid="error">{error?.message ?? 'null'}</div>
-      <button onClick={handleSetTeam} data-testid="set-team-btn">
-        Set Team
-      </button>
-      <button onClick={handleRefetchTeam} data-testid="refetch-btn">
-        Refetch Team
-      </button>
-      <button onClick={clearError} data-testid="clear-error-btn">
-        Clear Error
+      <button onClick={handleRefreshTeam} data-testid="refresh-btn">
+        Refresh Team
       </button>
     </div>
   );
@@ -110,10 +95,9 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      expect(await screen.findByTestId('team')).toHaveTextContent('Test Team');
+      expect(await screen.findByTestId('team-id')).toHaveTextContent('1');
       expect(screen.getByTestId('has-team')).toHaveTextContent('true');
       expect(screen.getByTestId('is-checking')).toHaveTextContent('false');
-      expect(screen.getByTestId('error')).toHaveTextContent('null');
     });
 
     it('handles no team on mount when user has no team', async () => {
@@ -128,7 +112,7 @@ describe('TeamProvider', () => {
       // Wait for async operation to complete
       await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
 
-      expect(screen.getByTestId('team')).toHaveTextContent('null');
+      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
       expect(screen.getByTestId('has-team')).toHaveTextContent('false');
     });
 
@@ -148,72 +132,17 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait for async operation to complete
-      await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
+      // Wait a bit to ensure no calls are made
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(getMyTeam).not.toHaveBeenCalled();
-      expect(screen.getByTestId('team')).toHaveTextContent('null');
+      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
       expect(screen.getByTestId('has-team')).toHaveTextContent('false');
     });
   });
 
-  describe('Error Handling', () => {
-    it('captures and displays error when team fetch fails', async () => {
-      const fetchError = new Error('Failed to fetch team');
-      vi.mocked(getMyTeam).mockRejectedValue(fetchError);
-
-      render(
-        <TeamProvider>
-          <TestComponent />
-        </TeamProvider>,
-      );
-
-      expect(
-        await screen.findByText('Failed to fetch team', { selector: '[data-testid="error"]' }),
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('is-checking')).toHaveTextContent('false');
-      expect(screen.getByTestId('team')).toHaveTextContent('null');
-    });
-
-    it('clears error when setTeam is called', async () => {
-      const fetchError = new Error('Failed to fetch team');
-      vi.mocked(getMyTeam).mockRejectedValue(fetchError);
-
-      render(
-        <TeamProvider>
-          <TestComponent />
-        </TeamProvider>,
-      );
-
-      await screen.findByText('Failed to fetch team', { selector: '[data-testid="error"]' });
-
-      await userEvent.click(screen.getByTestId('set-team-btn'));
-
-      expect(screen.getByTestId('error')).toHaveTextContent('null');
-      expect(screen.getByTestId('team')).toHaveTextContent('Updated Team');
-    });
-
-    it('clears error when clearError is called', async () => {
-      const fetchError = new Error('Failed to fetch team');
-      vi.mocked(getMyTeam).mockRejectedValue(fetchError);
-
-      render(
-        <TeamProvider>
-          <TestComponent />
-        </TeamProvider>,
-      );
-
-      await screen.findByText('Failed to fetch team', { selector: '[data-testid="error"]' });
-
-      await userEvent.click(screen.getByTestId('clear-error-btn'));
-
-      expect(screen.getByTestId('error')).toHaveTextContent('null');
-      expect(screen.getByTestId('team')).toHaveTextContent('null');
-    });
-  });
-
   describe('Team Management', () => {
-    it('updates team when setTeam is called', async () => {
+    it('refreshes team when refreshMyTeam is called', async () => {
       vi.mocked(getMyTeam).mockResolvedValue(mockTeam);
 
       render(
@@ -222,39 +151,23 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      await screen.findByText('Test Team', { selector: '[data-testid="team"]' });
+      await screen.findByText('1', { selector: '[data-testid="team-id"]' });
 
-      await userEvent.click(screen.getByTestId('set-team-btn'));
-
-      expect(screen.getByTestId('team')).toHaveTextContent('Updated Team');
-      expect(screen.getByTestId('has-team')).toHaveTextContent('true');
-    });
-
-    it('refetches team when refetchTeam is called', async () => {
-      vi.mocked(getMyTeam).mockResolvedValue(mockTeam);
-
-      render(
-        <TeamProvider>
-          <TestComponent />
-        </TeamProvider>,
-      );
-
-      await screen.findByText('Test Team', { selector: '[data-testid="team"]' });
-
-      const updatedTeam = { id: 1, name: 'Refetched Team', ownerName: 'Test Owner' };
+      const updatedTeam = { id: 3, name: 'Refreshed Team', ownerName: 'Test Owner' };
       vi.mocked(getMyTeam).mockResolvedValue(updatedTeam);
 
-      await userEvent.click(screen.getByTestId('refetch-btn'));
+      await userEvent.click(screen.getByTestId('refresh-btn'));
 
       expect(
-        await screen.findByText('Refetched Team', { selector: '[data-testid="team"]' }),
+        await screen.findByText('3', { selector: '[data-testid="team-id"]' }),
       ).toBeInTheDocument();
 
       expect(getMyTeam).toHaveBeenCalledTimes(2);
     });
 
-    it('handles error during refetchTeam', async () => {
-      vi.mocked(getMyTeam).mockResolvedValue(mockTeam);
+    it('handles error during team fetch silently', async () => {
+      const fetchError = new Error('Failed to fetch team');
+      vi.mocked(getMyTeam).mockRejectedValue(fetchError);
 
       render(
         <TeamProvider>
@@ -262,17 +175,12 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      await screen.findByText('Test Team', { selector: '[data-testid="team"]' });
+      // Wait for async operation to complete
+      await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
 
-      const refetchError = new Error('Refetch failed');
-      vi.mocked(getMyTeam).mockRejectedValue(refetchError);
-
-      await userEvent.click(screen.getByTestId('refetch-btn'));
-
-      expect(
-        await screen.findByText('Refetch failed', { selector: '[data-testid="error"]' }),
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('is-checking')).toHaveTextContent('false');
+      // Error is handled silently, team ID is null
+      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
+      expect(screen.getByTestId('has-team')).toHaveTextContent('false');
     });
   });
 
@@ -294,8 +202,8 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait for async operation to complete
-      await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
+      // Wait a bit to ensure no calls are made
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(getMyTeam).not.toHaveBeenCalled();
 
@@ -318,7 +226,7 @@ describe('TeamProvider', () => {
       );
 
       expect(
-        await screen.findByText('Test Team', { selector: '[data-testid="team"]' }),
+        await screen.findByText('1', { selector: '[data-testid="team-id"]' }),
       ).toBeInTheDocument();
       expect(screen.getByTestId('has-team')).toHaveTextContent('true');
     });

@@ -48,13 +48,10 @@ describe('NoTeamGuard', () => {
   describe('User without Team', () => {
     it('renders protected content when user has no team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -67,13 +64,10 @@ describe('NoTeamGuard', () => {
   describe('User with Team', () => {
     it('redirects to team page when user already has a team', async () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -89,13 +83,10 @@ describe('NoTeamGuard', () => {
   describe('Loading State', () => {
     it('shows loading state and prevents navigation while checking team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -122,13 +113,10 @@ describe('NoTeamGuard', () => {
 
       // Start with loading state
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -146,13 +134,10 @@ describe('NoTeamGuard', () => {
 
       // Transition to loaded state (no team)
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -187,13 +172,10 @@ describe('NoTeamGuard', () => {
 
       // Start with loading state
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -211,13 +193,10 @@ describe('NoTeamGuard', () => {
 
       // Transition to loaded state (has team)
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(

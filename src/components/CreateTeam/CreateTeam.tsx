@@ -1,3 +1,4 @@
+import { useTeam } from '@/hooks/useTeam';
 import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function CreateTeam() {
   const navigate = useNavigate();
+  const { refreshMyTeam } = useTeam();
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -35,8 +37,10 @@ export function CreateTeam() {
 
       toast.success('Team created successfully');
 
+      // Refresh context to update myTeamId
+      refreshMyTeam();
+
       // Navigate using startTransition for non-blocking UI updates
-      // Don't manually update context - let TeamProvider refetch automatically
       startTransition(() => {
         navigate(`/team/${createdTeam.id}`);
       });

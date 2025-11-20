@@ -1,3 +1,4 @@
+import { TeamProvider } from '@/contexts/TeamContext.tsx';
 import type { Team } from '@/contracts/Team';
 import * as teamService from '@/services/teamService';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -9,6 +10,9 @@ import { CreateTeam } from './CreateTeam';
 
 // Mock dependencies
 vi.mock('@/services/teamService');
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: '123' } }),
+}));
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
@@ -30,15 +34,20 @@ const mockTeam: Team = {
   ownerName: 'Test Owner',
 };
 
+const renderWithTeamProvider = (component: React.ReactElement) => {
+  return render(<TeamProvider>{component}</TeamProvider>);
+};
+
 describe('CreateTeam', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTeamService.createTeam.mockReset();
     mockTeamService.createTeam.mockResolvedValue(mockTeam);
+    mockTeamService.getMyTeam.mockResolvedValue(null);
   });
 
   it('creates team and navigates to team page on successful submission', async () => {
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/team name/i), 'My Racing Team');
@@ -55,7 +64,7 @@ describe('CreateTeam', () => {
   });
 
   it('trims whitespace from team name before submission', async () => {
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/team name/i), '  Test Team  ');
@@ -69,7 +78,7 @@ describe('CreateTeam', () => {
   });
 
   it('displays validation error for empty team name', async () => {
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     const teamNameInput = screen.getByLabelText(/team name/i);
@@ -80,7 +89,7 @@ describe('CreateTeam', () => {
   });
 
   it('displays validation error for team name exceeding 50 characters', async () => {
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     const longName = 'A'.repeat(51);
@@ -95,7 +104,7 @@ describe('CreateTeam', () => {
   });
 
   it('disables submit button until form is modified', async () => {
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     const submitButton = screen.getByRole('button', { name: /create team/i });
@@ -110,7 +119,7 @@ describe('CreateTeam', () => {
       () => new Promise((resolve) => setTimeout(() => resolve(mockTeam), 100)),
     );
 
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
@@ -122,7 +131,7 @@ describe('CreateTeam', () => {
   it('displays error message when submission fails', async () => {
     mockTeamService.createTeam.mockRejectedValueOnce(new Error('Network error'));
 
-    render(<CreateTeam />);
+    renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');

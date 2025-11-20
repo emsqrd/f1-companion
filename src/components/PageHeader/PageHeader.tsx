@@ -17,7 +17,7 @@ import {
 
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
-  const { hasTeam } = useTeam();
+  const { hasTeam, myTeamId } = useTeam();
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,6 +35,10 @@ export function PageHeader() {
 
   const handleLeagues = () => {
     navigate('/leagues');
+  };
+
+  const handleMyTeam = () => {
+    navigate(`/team/${myTeamId}`);
   };
 
   const handleCreateTeam = () => {
@@ -134,8 +138,9 @@ export function PageHeader() {
                     {user ? (
                       <>
                         <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
                         {hasTeam ? (
-                          <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleMyTeam}>My Team</DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem onClick={handleCreateTeam}>
                             Create Team
