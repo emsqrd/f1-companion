@@ -11,8 +11,6 @@ describe('DriverListItem', () => {
     firstName: 'Carlos',
     lastName: 'Sainz',
     countryAbbreviation: 'ESP',
-    price: 100,
-    points: 100,
   };
   const mockOnSelect = vi.fn();
 

@@ -42,8 +42,6 @@ describe('constructorService', () => {
 
         expect(first.name).toBe(second.name);
         expect(first.countryAbbreviation).toBe(second.countryAbbreviation);
-        expect(first.price).toBe(second.price);
-        expect(first.points).toBe(second.points);
         expect(first.id).not.toBe(second.id);
       });
     });

@@ -24,8 +24,6 @@ describe('ConstructorCard', () => {
       id: 1,
       name: 'Ferrari',
       countryAbbreviation: 'ITA',
-      points: 100,
-      price: 400,
     };
     const onOpenSheet = vi.fn();
     const onRemove = vi.fn();
@@ -41,8 +39,6 @@ describe('ConstructorCard', () => {
       expect(mockRoleCard).toBeCalledWith({
         variant: 'filled',
         name: 'Ferrari',
-        points: 100,
-        price: 400,
         onRemove,
       });
     });

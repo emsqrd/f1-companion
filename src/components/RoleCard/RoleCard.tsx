@@ -14,8 +14,6 @@ export type RoleCardProps =
   | {
       variant: 'filled';
       name: string;
-      points: number;
-      price: number;
       onRemove: () => void;
     };
 
@@ -24,7 +22,7 @@ export function RoleCard(props: RoleCardProps) {
     if (props.variant === 'empty') {
       return <AddRoleCardContent onOpenSheet={props.onOpenSheet} role={props.role} />;
     } else {
-      return <InfoRoleCardContent name={props.name} points={props.points} price={props.price} />;
+      return <InfoRoleCardContent name={props.name} />;
     }
   };
 

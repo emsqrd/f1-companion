@@ -1,8 +1,6 @@
 export interface BaseRole {
   id: number;
   countryAbbreviation: string;
-  price: number;
-  points: number;
 }
 
 export interface Driver extends BaseRole {

@@ -10,8 +10,6 @@ describe('ConstructorListItem', () => {
     id: 1,
     name: 'Mercedes',
     countryAbbreviation: 'DE',
-    price: 100,
-    points: 1000,
   };
   const mockOnSelect = vi.fn();
 

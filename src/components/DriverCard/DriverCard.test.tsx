@@ -25,8 +25,6 @@ describe('DriverCard', () => {
       firstName: 'Carlos',
       lastName: 'Sainz',
       countryAbbreviation: 'SPA',
-      price: 100,
-      points: 40,
     };
     const onOpenSheet = vi.fn();
     const onRemove = vi.fn();
@@ -40,8 +38,6 @@ describe('DriverCard', () => {
       expect(mockRoleCard).toHaveBeenCalledWith({
         variant: 'filled',
         name: 'Carlos Sainz',
-        price: 100,
-        points: 40,
         onRemove,
       });
     });
