@@ -9,6 +9,7 @@ describe('ConstructorListItem', () => {
   const constructor: Constructor = {
     id: 1,
     name: 'Mercedes',
+    fullName: 'Mercedes-AMG Petronas F1 Team',
     countryAbbreviation: 'DE',
   };
   const mockOnSelect = vi.fn();

@@ -1,7 +1,7 @@
 import type { Constructor } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
-import { getAllConstructors } from '@/services/constructorService';
-import { useMemo, useState } from 'react';
+import { getActiveConstructors } from '@/services/constructorService';
+import { useEffect, useState } from 'react';
 
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
 import { ConstructorListItem } from '../ConstructorListItem/ConstructorListItem';
@@ -15,20 +15,14 @@ import {
   SheetTrigger,
 } from '../ui/sheet';
 
-export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
-  const initialConstructorsPool = getAllConstructors();
+interface ConstructorPickerContentProps {
+  constructorPool: Constructor[];
+  slotsCount: number;
+}
 
-  const initialSlots = useMemo<(Constructor | null)[]>(
-    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id)!),
-    [initialConstructorsPool],
-  );
-
-  const { slots, pool, add, remove } = useSlots<Constructor>(
-    initialConstructorsPool,
-    initialSlots,
-    slotsCount,
-  );
+function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const { slots, pool, add, remove } = useSlots<Constructor>(constructorPool, [], slotsCount);
 
   return (
     <>
@@ -73,5 +67,48 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
+  const [initialConstructorPool, setInitialConstructorPool] = useState<Constructor[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActiveConstructors = async () => {
+      try {
+        const data = await getActiveConstructors();
+        setInitialConstructorPool(data);
+      } catch {
+        setError('Failed to load active constructors');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActiveConstructors();
+  }, []);
+
+  if (error) {
+    return <div role="error">{error}</div>;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+        <div className="text-center">
+          <div
+            role="status"
+            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
+          ></div>
+          <p className="text-muted-foreground">Loading Drivers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ConstructorPickerContent constructorPool={initialConstructorPool} slotsCount={slotsCount} />
   );
 }

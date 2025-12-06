@@ -10,4 +10,5 @@ export interface Driver extends BaseRole {
 
 export interface Constructor extends BaseRole {
   name: string;
+  fullName: string;
 }

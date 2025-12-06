@@ -23,6 +23,7 @@ describe('ConstructorCard', () => {
     const constructor: Constructor = {
       id: 1,
       name: 'Ferrari',
+      fullName: 'Scuderia Ferrari',
       countryAbbreviation: 'ITA',
     };
     const onOpenSheet = vi.fn();
