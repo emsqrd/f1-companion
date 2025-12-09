@@ -71,7 +71,7 @@ function DriverPickerContent({ driverPool, slotsCount }: DriverPickerContentProp
   );
 }
 
-export function DriverPicker({ slotsCount = 4 }: { slotsCount?: number }) {
+export function DriverPicker({ slotsCount = 5 }: { slotsCount?: number }) {
   const [initialDriverPool, setInitialDriverPool] = useState<Driver[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -125,14 +125,14 @@ export function Team() {
         <TabsContent value="drivers">
           <Card className="py-4">
             <CardContent className="px-4">
-              <DriverPicker slotsCount={4} />
+              <DriverPicker slotsCount={5} />
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="constructors">
           <Card className="py-4">
             <CardContent className="px-4">
-              <ConstructorPicker slotsCount={4} />
+              <ConstructorPicker slotsCount={2} />
             </CardContent>
           </Card>
         </TabsContent>

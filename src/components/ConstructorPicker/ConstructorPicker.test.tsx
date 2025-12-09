@@ -63,12 +63,12 @@ describe('ConstructorPicker', () => {
   });
 
   describe('Slot Rendering', () => {
-    it('renders default of 4 empty slots when loaded', async () => {
+    it('renders default of 2 empty slots when loaded', async () => {
       render(<ConstructorPicker />);
 
       // Wait for loading to complete, then find "Add Constructor" buttons in slot cards
       const addButtons = await screen.findAllByRole('button', { name: /add constructor/i });
-      expect(addButtons).toHaveLength(4);
+      expect(addButtons).toHaveLength(2);
     });
 
     it('renders custom slot count when specified', async () => {
@@ -118,8 +118,8 @@ describe('ConstructorPicker', () => {
 
       // Ferrari should now appear as a selected constructor (in heading)
       expect(screen.getByRole('heading', { name: 'Ferrari' })).toBeInTheDocument();
-      // Should have 3 empty slots remaining
-      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(3);
+      // Should have 1 empty slot remaining
+      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(1);
     });
 
     it('closes sheet without selecting when pressing escape', async () => {
@@ -136,8 +136,8 @@ describe('ConstructorPicker', () => {
         expect(screen.queryByText('Select Constructor')).not.toBeInTheDocument();
       });
 
-      // All 4 slots should still be empty
-      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(4);
+      // All 2 slots should still be empty
+      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(2);
     });
   });
 
@@ -161,7 +161,7 @@ describe('ConstructorPicker', () => {
 
       // Constructor should be removed, all slots empty again
       expect(screen.queryByRole('heading', { name: 'Ferrari' })).not.toBeInTheDocument();
-      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(4);
+      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(2);
     });
   });
 
@@ -250,8 +250,8 @@ describe('ConstructorPicker', () => {
       // Verify two constructors are selected (shown as headings in filled cards)
       expect(screen.getByRole('heading', { name: 'Ferrari' })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'McLaren' })).toBeInTheDocument();
-      // 2 empty slots remaining
-      expect(screen.getAllByRole('button', { name: /add constructor/i })).toHaveLength(2);
+      // 0 empty slots remaining
+      expect(screen.queryByRole('button', { name: /add constructor/i })).toBeNull();
     });
   });
 });

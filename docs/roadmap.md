@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Build a full-featured Fantasy Formula 1 web app that lets users create and join leagues, manage teams within a budget, select drivers/constructors weekly, make trades, and track scoring and leaderboards.  
+Build a full-featured Fantasy Formula 1 web app that lets users create and join leagues, manage teams within a budget, select driver/constructor lineups weekly, make transfers, and track scoring and leaderboards.
+
 AI-powered recommendations will be added later (v3.0) but are **not** part of the MVP. A user can only
 have a single team, but can join multiple leagues.
 
@@ -27,7 +28,8 @@ have a single team, but can join multiple leagues.
 - Season & Grand Prix schedule
 - League creation (public/private), join via code
 - Budgets, price list for drivers/constructors
-- Team management: N drivers & M constructors under budget
+- Driver and Constructor prices change based on performance of each race weekend
+- Team management: 5 drivers & 2 constructors under $100m budget
 - Weekly lock before race
 - Scoring engine
 - Leaderboards (weekly + season totals)

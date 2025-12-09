@@ -70,7 +70,7 @@ function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPi
   );
 }
 
-export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
+export function ConstructorPicker({ slotsCount = 2 }: { slotsCount?: number }) {
   const [initialConstructorPool, setInitialConstructorPool] = useState<Constructor[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -59,12 +59,12 @@ describe('DriverPicker', () => {
   });
 
   describe('Slot Rendering', () => {
-    it('renders default of 4 empty slots when loaded', async () => {
+    it('renders default of 5 empty slots when loaded', async () => {
       render(<DriverPicker />);
 
       // Wait for loading to complete, then find "Add Driver" buttons in slot cards
       const addButtons = await screen.findAllByRole('button', { name: /add driver/i });
-      expect(addButtons).toHaveLength(4);
+      expect(addButtons).toHaveLength(5);
     });
 
     it('renders custom slot count when specified', async () => {
@@ -115,8 +115,8 @@ describe('DriverPicker', () => {
 
       // Oscar Piastri should now appear as a selected driver (in heading)
       expect(screen.getByRole('heading', { name: 'Oscar Piastri' })).toBeInTheDocument();
-      // Should have 3 empty slots remaining
-      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(3);
+      // Should have 4 empty slots remaining
+      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(4);
     });
 
     it('closes sheet without selecting when pressing escape', async () => {
@@ -133,8 +133,8 @@ describe('DriverPicker', () => {
         expect(screen.queryByText('Select Driver')).not.toBeInTheDocument();
       });
 
-      // All 4 slots should still be empty
-      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(4);
+      // All 5 slots should still be empty
+      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(5);
     });
   });
 
@@ -158,7 +158,7 @@ describe('DriverPicker', () => {
 
       // Driver should be removed, all slots empty again
       expect(screen.queryByRole('heading', { name: 'Oscar Piastri' })).not.toBeInTheDocument();
-      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(4);
+      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(5);
     });
   });
 
@@ -248,8 +248,8 @@ describe('DriverPicker', () => {
       // Verify two drivers are selected (shown as headings in filled cards)
       expect(screen.getByRole('heading', { name: 'Oscar Piastri' })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Lando Norris' })).toBeInTheDocument();
-      // 2 empty slots remaining
-      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(2);
+      // 3 empty slots remaining
+      expect(screen.getAllByRole('button', { name: /add driver/i })).toHaveLength(3);
     });
   });
 });

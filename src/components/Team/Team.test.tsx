@@ -202,7 +202,7 @@ describe('Loaded State', () => {
   describe('Content Delivery', () => {
     it('passes correct slotsCount to DriverPicker', () => {
       const driverPicker = screen.getByTestId('driver-picker');
-      expect(driverPicker).toHaveAttribute('data-slots-count', '4');
+      expect(driverPicker).toHaveAttribute('data-slots-count', '5');
     });
 
     it('passes correct slotsCount to ConstructorPicker', async () => {
@@ -213,7 +213,7 @@ describe('Loaded State', () => {
       await user.click(constructorsTab);
 
       const constructorPicker = screen.getByTestId('constructor-picker');
-      expect(constructorPicker).toHaveAttribute('data-slots-count', '4');
+      expect(constructorPicker).toHaveAttribute('data-slots-count', '2');
     });
 
     it('ensures only one tab content is visible at a time', async () => {
