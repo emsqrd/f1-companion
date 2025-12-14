@@ -10,6 +10,14 @@ vi.mock('@/services/driverService', () => ({
   getActiveDrivers: () => mockGetActiveDrivers(),
 }));
 
+// Mock the team service for persistence
+const mockAddDriverToTeam = vi.fn();
+const mockRemoveDriverFromTeam = vi.fn();
+vi.mock('@/services/teamService', () => ({
+  addDriverToTeam: (...args: unknown[]) => mockAddDriverToTeam(...args),
+  removeDriverFromTeam: (...args: unknown[]) => mockRemoveDriverFromTeam(...args),
+}));
+
 const mockDrivers = [
   { id: 1, firstName: 'Oscar', lastName: 'Piastri', countryAbbreviation: 'AUS' },
   { id: 2, firstName: 'Lando', lastName: 'Norris', countryAbbreviation: 'GBR' },
@@ -34,6 +42,8 @@ describe('DriverPicker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetActiveDrivers.mockResolvedValue(mockDrivers);
+    mockAddDriverToTeam.mockResolvedValue(undefined);
+    mockRemoveDriverFromTeam.mockResolvedValue(undefined);
   });
 
   describe('Loading State', () => {

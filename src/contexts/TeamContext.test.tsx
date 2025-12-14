@@ -1,4 +1,4 @@
-import type { Team } from '@/contracts/Team';
+import { createMockTeam } from '@/test-utils';
 import type { User } from '@supabase/supabase-js';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -61,11 +61,7 @@ describe('TeamProvider', () => {
     updated_at: '2023-01-01T00:00:00Z',
   };
 
-  const mockTeam: Team = {
-    id: 1,
-    name: 'Test Team',
-    ownerName: 'Test Owner',
-  };
+  const mockTeam = createMockTeam();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -153,7 +149,7 @@ describe('TeamProvider', () => {
 
       await screen.findByText('1', { selector: '[data-testid="team-id"]' });
 
-      const updatedTeam = { id: 3, name: 'Refreshed Team', ownerName: 'Test Owner' };
+      const updatedTeam = createMockTeam({ id: 3, name: 'Refreshed Team' });
       vi.mocked(getMyTeam).mockResolvedValue(updatedTeam);
 
       await userEvent.click(screen.getByTestId('refresh-btn'));

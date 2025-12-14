@@ -1,8 +1,9 @@
 import { TeamProvider } from '@/contexts/TeamContext.tsx';
-import type { Team } from '@/contracts/Team';
 import * as teamService from '@/services/teamService';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type React from 'react';
 import { toast } from 'sonner';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -28,15 +29,11 @@ vi.mock('react-router', () => ({
 const mockTeamService = vi.mocked(teamService);
 const mockToast = vi.mocked(toast);
 
-const mockTeam: Team = {
-  id: 1,
-  name: 'Test Team',
-  ownerName: 'Test Owner',
-};
+const mockTeam = createMockTeam();
 
-const renderWithTeamProvider = (component: React.ReactElement) => {
+function renderWithTeamProvider(component: React.ReactElement) {
   return render(<TeamProvider>{component}</TeamProvider>);
-};
+}
 
 describe('CreateTeam', () => {
   beforeEach(() => {

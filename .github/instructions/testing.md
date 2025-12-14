@@ -128,6 +128,39 @@ Both approaches are valid. Prefer readability over DRY in tests.
 - Test both success and failure scenarios
 - Keep mocks minimal - only mock what's necessary
 
+### Test Utilities & Mock Factories
+
+**Mock Factories** (Test Data Builder Pattern):
+
+For objects used across multiple test files, use centralized mock factories from `@/test-utils`:
+
+```typescript
+import { createMockTeam, createMockTeamDriver } from '@/test-utils';
+
+// Basic usage with defaults
+const team = createMockTeam();
+
+// Override specific properties
+const customTeam = createMockTeam({
+  name: 'McLaren Racing',
+  drivers: [createMockTeamDriver({ lastName: 'Piastri' })],
+});
+```
+
+**When to use factories:**
+
+- Object used in 3+ test files
+- Object has 4+ required fields
+- Object structure changes frequently during development
+
+**When to use inline mocks:**
+
+- Test validates specific data structure
+- Mock is unique to a single test
+- Explicit values improve test readability
+
+This pattern follows React Testing Library's maintainability principles and the Test Data Builder pattern endorsed by Kent C. Dodds.
+
 ### Coverage Configuration
 
 - **Excludes**: `src/components/ui` (shadcn/ui), `src/contracts`, `src/demos`, config files

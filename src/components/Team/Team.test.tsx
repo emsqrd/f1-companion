@@ -51,6 +51,8 @@ vi.mock('@/services/teamService', () => ({
   getTeamById: vi.fn(() => ({
     id: 1,
     name: 'Team 1',
+    ownerName: 'Test Owner',
+    drivers: [],
   })),
 }));
 
@@ -85,6 +87,7 @@ describe('Loading State', () => {
       id: 1,
       name: 'Test Team',
       ownerName: 'Test Owner',
+      drivers: [],
     });
 
     // Wait for loading to complete and content to render

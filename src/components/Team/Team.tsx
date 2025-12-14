@@ -1,6 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
@@ -33,6 +33,25 @@ export function Team() {
 
     fetchTeam();
   }, [params.teamId]);
+
+  // Memoize driver slot transformation to avoid recalculating on every render
+  const initialDriverSlots = useMemo(() => {
+    if (!team?.drivers) return Array.from({ length: 5 }, () => null);
+
+    return Array.from({ length: 5 }, (_, index) => {
+      const teamDriver = team.drivers.find(d => d.slotPosition === index);
+      return teamDriver ? {
+        id: teamDriver.id,
+        firstName: teamDriver.firstName,
+        lastName: teamDriver.lastName,
+        abbreviation: teamDriver.abbreviation,
+        countryAbbreviation: teamDriver.countryAbbreviation,
+        price: 0,
+        points: 0,
+        type: 'driver' as const,
+      } : null;
+    });
+  }, [team?.drivers]);
 
   if (error) {
     return <div>{error}</div>;
@@ -125,7 +144,7 @@ export function Team() {
         <TabsContent value="drivers">
           <Card className="py-4">
             <CardContent className="px-4">
-              <DriverPicker slotsCount={5} />
+              <DriverPicker slotsCount={5} initialDrivers={initialDriverSlots} />
             </CardContent>
           </Card>
         </TabsContent>

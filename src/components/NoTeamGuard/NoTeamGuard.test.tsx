@@ -1,5 +1,5 @@
-import type { Team } from '@/contracts/Team';
 import { useTeam } from '@/hooks/useTeam';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,11 +10,7 @@ vi.mock('@/hooks/useTeam');
 
 const mockUseTeam = vi.mocked(useTeam);
 
-const mockTeam: Team = {
-  id: 1,
-  name: 'Test Team',
-  ownerName: 'Test Owner',
-};
+const mockTeam = createMockTeam();
 
 // Mock child component that renders when guard allows access
 function CreateTeamPage() {

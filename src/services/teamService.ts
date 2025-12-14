@@ -1,3 +1,4 @@
+import type { AddDriverToTeamRequest } from '@/contracts/AddDriverToTeamRequest';
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
@@ -43,3 +44,27 @@ export async function getTeamById(id: number): Promise<Team | null> {
     throw error;
   }
 }
+
+export async function addDriverToTeam(driverId: number, slotPosition: number): Promise<void> {
+  const request: AddDriverToTeamRequest = {
+    DriverId: driverId,
+    SlotPosition: slotPosition,
+  };
+
+  await apiClient.post('/me/team/drivers', request);
+
+  Sentry.logger.info('Driver added to team', {
+    driverId,
+    slotPosition,
+  });
+}
+
+export async function removeDriverFromTeam(slotPosition: number): Promise<void> {
+  await apiClient.delete(`/me/team/drivers/${slotPosition}`);
+
+  Sentry.logger.info('Driver removed from team', {
+    slotPosition,
+  });
+}
+
+

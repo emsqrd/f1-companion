@@ -180,6 +180,7 @@ describe('PageHeader', () => {
         id: 1,
         name: 'Test Team',
         ownerName: 'Test Owner',
+        drivers: [],
       });
 
       renderWithRouter();
@@ -257,6 +258,7 @@ describe('PageHeader', () => {
         id: 1,
         name: 'Test Team',
         ownerName: 'Test Owner',
+        drivers: [],
       });
       renderWithRouter();
 

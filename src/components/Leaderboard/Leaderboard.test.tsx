@@ -11,16 +11,19 @@ const mockTeams: Team[] = [
     id: 1,
     name: 'Team 1',
     ownerName: 'Owner 1',
+    drivers: [],
   },
   {
     id: 2,
     name: 'Team 2',
     ownerName: 'Owner 2',
+    drivers: [],
   },
   {
     id: 3,
     name: 'Team 3',
     ownerName: 'Owner 3',
+    drivers: [],
   },
 ];
 
@@ -94,9 +97,9 @@ describe('Leaderboard', () => {
 
     it('should display teams even when some data is missing', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([
-        { id: 1, name: 'Complete Team', ownerName: 'Complete Owner' },
-        { id: 2, name: '', ownerName: 'Owner Only' }, // Missing team name
-        { id: 3, name: 'Team Only', ownerName: '' }, // Missing owner
+        { id: 1, name: 'Complete Team', ownerName: 'Complete Owner', drivers: [] },
+        { id: 2, name: '', ownerName: 'Owner Only', drivers: [] }, // Missing team name
+        { id: 3, name: 'Team Only', ownerName: '', drivers: [] }, // Missing owner
       ]);
 
       render(
@@ -121,8 +124,7 @@ describe('Leaderboard', () => {
       const manyTeams = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         name: `Team ${i + 1}`,
-        ownerName: `Owner ${i + 1}`,
-      }));
+        ownerName: `Owner ${i + 1}`,        drivers: [],      }));
 
       vi.mocked(getTeams).mockResolvedValueOnce(manyTeams);
 

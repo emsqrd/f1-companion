@@ -1,6 +1,7 @@
 import type { Driver } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
 import { getActiveDrivers } from '@/services/driverService';
+import { addDriverToTeam, removeDriverFromTeam } from '@/services/teamService';
 import { useEffect, useState } from 'react';
 
 import { DriverCard } from '../DriverCard/DriverCard';
@@ -18,11 +19,37 @@ import {
 interface DriverPickerContentProps {
   driverPool: Driver[];
   slotsCount: number;
+  initialDrivers?: Driver[];
 }
 
-function DriverPickerContent({ driverPool, slotsCount }: DriverPickerContentProps) {
+function DriverPickerContent({ driverPool, slotsCount, initialDrivers = [] }: DriverPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { slots, pool, add, remove } = useSlots<Driver>(driverPool, [], slotsCount);
+  const { slots, pool, add, remove } = useSlots<Driver>(driverPool, initialDrivers, slotsCount);
+
+  const handleAdd = async (slotPosition: number, driver: Driver) => {
+    try {
+      add(slotPosition, driver);
+      await addDriverToTeam(driver.id, slotPosition);
+    } catch (error) {
+      // Rollback on error
+      remove(slotPosition);
+      throw error;
+    }
+  };
+
+  const handleRemove = async (slotPosition: number) => {
+    const driver = slots[slotPosition];
+    try {
+      remove(slotPosition);
+      await removeDriverFromTeam(slotPosition);
+    } catch (error) {
+      // Rollback on error
+      if (driver) {
+        add(slotPosition, driver);
+      }
+      throw error;
+    }
+  };
 
   return (
     <>
@@ -32,7 +59,7 @@ function DriverPickerContent({ driverPool, slotsCount }: DriverPickerContentProp
             key={idx}
             driver={driver}
             onOpenSheet={() => setActiveSlot(idx)}
-            onRemove={() => remove(idx)}
+            onRemove={() => handleRemove(idx)}
           />
         ))}
       </div>
@@ -57,7 +84,7 @@ function DriverPickerContent({ driverPool, slotsCount }: DriverPickerContentProp
                   driver={driver}
                   onSelect={() => {
                     if (activeSlot !== null) {
-                      add(activeSlot, driver);
+                      handleAdd(activeSlot, driver);
                       setActiveSlot(null);
                     }
                   }}
@@ -71,7 +98,12 @@ function DriverPickerContent({ driverPool, slotsCount }: DriverPickerContentProp
   );
 }
 
-export function DriverPicker({ slotsCount = 5 }: { slotsCount?: number }) {
+interface DriverPickerProps {
+  slotsCount?: number;
+  initialDrivers?: Driver[];
+}
+
+export function DriverPicker({ slotsCount = 5, initialDrivers }: DriverPickerProps) {
   const [initialDriverPool, setInitialDriverPool] = useState<Driver[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,5 +141,5 @@ export function DriverPicker({ slotsCount = 5 }: { slotsCount?: number }) {
     );
   }
 
-  return <DriverPickerContent driverPool={initialDriverPool} slotsCount={slotsCount} />;
+  return <DriverPickerContent driverPool={initialDriverPool} slotsCount={slotsCount} initialDrivers={initialDrivers} />;
 }
