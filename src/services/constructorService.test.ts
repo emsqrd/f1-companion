@@ -20,9 +20,10 @@ describe('constructorService', () => {
   describe('getActiveConstructors', () => {
     it('calls apiClient.get with correct endpoint and query parameter', async () => {
       const mockConstructors: Constructor[] = [
-        { id: 1, name: 'Red Bull', fullName: 'Oracle Red Bull Racing', countryAbbreviation: 'AT' },
+        { id: 1, type: 'constructor', name: 'Red Bull', fullName: 'Oracle Red Bull Racing', countryAbbreviation: 'AT' },
         {
           id: 2,
+          type: 'constructor',
           name: 'Mercedes',
           fullName: 'Mercedes-AMG Petronas F1 Team',
           countryAbbreviation: 'DE',

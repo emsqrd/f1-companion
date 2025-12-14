@@ -8,6 +8,7 @@ import { DriverListItem } from './DriverListItem';
 describe('DriverListItem', () => {
   const driver: Driver = {
     id: 1,
+    type: 'driver',
     firstName: 'Carlos',
     lastName: 'Sainz',
     countryAbbreviation: 'ESP',

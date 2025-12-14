@@ -22,6 +22,7 @@ describe('DriverCard', () => {
   describe('Filled Variant', () => {
     const driver: Driver = {
       id: 1,
+      type: 'driver',
       firstName: 'Carlos',
       lastName: 'Sainz',
       countryAbbreviation: 'SPA',

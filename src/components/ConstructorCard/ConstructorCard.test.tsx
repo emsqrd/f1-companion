@@ -22,6 +22,7 @@ describe('ConstructorCard', () => {
   describe('Filled Variant', () => {
     const constructor: Constructor = {
       id: 1,
+      type: 'constructor',
       name: 'Ferrari',
       fullName: 'Scuderia Ferrari',
       countryAbbreviation: 'ITA',
