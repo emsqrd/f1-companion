@@ -22,7 +22,11 @@ interface DriverPickerContentProps {
   initialDrivers?: Driver[];
 }
 
-function DriverPickerContent({ driverPool, slotsCount, initialDrivers = [] }: DriverPickerContentProps) {
+function DriverPickerContent({
+  driverPool,
+  slotsCount,
+  initialDrivers = [],
+}: DriverPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const { slots, pool, add, remove } = useSlots<Driver>(driverPool, initialDrivers, slotsCount);
 
@@ -141,5 +145,11 @@ export function DriverPicker({ slotsCount = 5, initialDrivers }: DriverPickerPro
     );
   }
 
-  return <DriverPickerContent driverPool={initialDriverPool} slotsCount={slotsCount} initialDrivers={initialDrivers} />;
+  return (
+    <DriverPickerContent
+      driverPool={initialDriverPool}
+      slotsCount={slotsCount}
+      initialDrivers={initialDrivers}
+    />
+  );
 }

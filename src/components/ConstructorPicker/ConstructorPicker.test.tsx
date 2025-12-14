@@ -10,6 +10,14 @@ vi.mock('@/services/constructorService', () => ({
   getActiveConstructors: () => mockGetActiveConstructors(),
 }));
 
+// Mock the team service for persistence
+const mockAddConstructorToTeam = vi.fn();
+const mockRemoveConstructorFromTeam = vi.fn();
+vi.mock('@/services/teamService', () => ({
+  addConstructorToTeam: (...args: unknown[]) => mockAddConstructorToTeam(...args),
+  removeConstructorFromTeam: (...args: unknown[]) => mockRemoveConstructorFromTeam(...args),
+}));
+
 const mockConstructors = [
   { id: 1, name: 'Ferrari', fullName: 'Scuderia Ferrari', countryAbbreviation: 'ITA' },
   { id: 2, name: 'McLaren', fullName: 'McLaren F1 Team', countryAbbreviation: 'GBR' },
@@ -36,6 +44,8 @@ describe('ConstructorPicker', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetActiveConstructors.mockResolvedValue(mockConstructors);
+    mockAddConstructorToTeam.mockResolvedValue(undefined);
+    mockRemoveConstructorFromTeam.mockResolvedValue(undefined);
   });
 
   describe('Loading State', () => {
@@ -46,7 +56,7 @@ describe('ConstructorPicker', () => {
       render(<ConstructorPicker />);
 
       expect(screen.getByRole('status')).toBeInTheDocument();
-      expect(screen.getByText('Loading Drivers...')).toBeInTheDocument();
+      expect(screen.getByText('Loading Constructors...')).toBeInTheDocument();
     });
   });
 

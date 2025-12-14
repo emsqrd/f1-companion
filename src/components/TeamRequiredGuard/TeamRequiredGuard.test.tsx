@@ -179,5 +179,4 @@ describe('TeamRequiredGuard', () => {
       expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
     });
   });
-
 });

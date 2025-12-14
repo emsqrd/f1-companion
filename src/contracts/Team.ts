@@ -7,9 +7,18 @@ export interface TeamDriver {
   countryAbbreviation: string;
 }
 
+export interface TeamConstructor {
+  slotPosition: number;
+  id: number;
+  name: string;
+  abbreviation: string;
+  countryAbbreviation: string;
+}
+
 export interface Team {
   id: number;
   name: string;
   ownerName: string;
   drivers: TeamDriver[];
+  constructors: TeamConstructor[];
 }

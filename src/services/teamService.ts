@@ -1,3 +1,4 @@
+import type { AddConstructorToTeamRequest } from '@/contracts/AddConstructorToTeamRequest';
 import type { AddDriverToTeamRequest } from '@/contracts/AddDriverToTeamRequest';
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
@@ -67,4 +68,24 @@ export async function removeDriverFromTeam(slotPosition: number): Promise<void> 
   });
 }
 
+export async function addConstructorToTeam(constructorId: number, slotPosition: number): Promise<void> {
+  const request: AddConstructorToTeamRequest = {
+    ConstructorId: constructorId,
+    SlotPosition: slotPosition,
+  };
 
+  await apiClient.post('/me/team/constructors', request);
+
+  Sentry.logger.info('Constructor added to team', {
+    constructorId,
+    slotPosition,
+  });
+}
+
+export async function removeConstructorFromTeam(slotPosition: number): Promise<void> {
+  await apiClient.delete(`/me/team/constructors/${slotPosition}`);
+
+  Sentry.logger.info('Constructor removed from team', {
+    slotPosition,
+  });
+}

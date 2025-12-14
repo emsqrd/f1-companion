@@ -1,6 +1,7 @@
 import type { Constructor } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
 import { getActiveConstructors } from '@/services/constructorService';
+import { addConstructorToTeam, removeConstructorFromTeam } from '@/services/teamService';
 import { useEffect, useState } from 'react';
 
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
@@ -18,11 +19,37 @@ import {
 interface ConstructorPickerContentProps {
   constructorPool: Constructor[];
   slotsCount: number;
+  initialConstructors?: Constructor[];
 }
 
-function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPickerContentProps) {
+function ConstructorPickerContent({ constructorPool, slotsCount, initialConstructors = [] }: ConstructorPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { slots, pool, add, remove } = useSlots<Constructor>(constructorPool, [], slotsCount);
+  const { slots, pool, add, remove } = useSlots<Constructor>(constructorPool, initialConstructors, slotsCount);
+
+  const handleAdd = async (slotPosition: number, constructor: Constructor) => {
+    try {
+      add(slotPosition, constructor);
+      await addConstructorToTeam(constructor.id, slotPosition);
+    } catch (error) {
+      // Rollback on error
+      remove(slotPosition);
+      throw error;
+    }
+  };
+
+  const handleRemove = async (slotPosition: number) => {
+    const constructor = slots[slotPosition];
+    try {
+      remove(slotPosition);
+      await removeConstructorFromTeam(slotPosition);
+    } catch (error) {
+      // Rollback on error
+      if (constructor) {
+        add(slotPosition, constructor);
+      }
+      throw error;
+    }
+  };
 
   return (
     <>
@@ -32,7 +59,7 @@ function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPi
             key={idx}
             constructor={constructor}
             onOpenSheet={() => setActiveSlot(idx)}
-            onRemove={() => remove(idx)}
+            onRemove={() => handleRemove(idx)}
           ></ConstructorCard>
         ))}
       </div>
@@ -56,7 +83,7 @@ function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPi
                   constructor={constructor}
                   onSelect={() => {
                     if (activeSlot !== null) {
-                      add(activeSlot, constructor);
+                      handleAdd(activeSlot, constructor);
                       setActiveSlot(null);
                     }
                   }}
@@ -70,7 +97,12 @@ function ConstructorPickerContent({ constructorPool, slotsCount }: ConstructorPi
   );
 }
 
-export function ConstructorPicker({ slotsCount = 2 }: { slotsCount?: number }) {
+interface ConstructorPickerProps {
+  slotsCount?: number;
+  initialConstructors?: Constructor[];
+}
+
+export function ConstructorPicker({ slotsCount = 2, initialConstructors }: ConstructorPickerProps) {
   const [initialConstructorPool, setInitialConstructorPool] = useState<Constructor[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,13 +134,17 @@ export function ConstructorPicker({ slotsCount = 2 }: { slotsCount?: number }) {
             role="status"
             className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
           ></div>
-          <p className="text-muted-foreground">Loading Drivers...</p>
+          <p className="text-muted-foreground">Loading Constructors...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <ConstructorPickerContent constructorPool={initialConstructorPool} slotsCount={slotsCount} />
+    <ConstructorPickerContent 
+      constructorPool={initialConstructorPool} 
+      slotsCount={slotsCount} 
+      initialConstructors={initialConstructors}
+    />
   );
 }

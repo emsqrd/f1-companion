@@ -1,6 +1,7 @@
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
+import { createMockTeam } from '@/test-utils';
 import type { ApiError } from '@/utils/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,12 +25,11 @@ describe('teamService', () => {
         name: 'Racing Legends',
       };
 
-      const mockResponse: Team = {
+      const mockResponse: Team = createMockTeam({
         id: 1,
         name: 'Racing Legends',
         ownerName: 'John Doe',
-        drivers: [],
-      };
+      });
 
       vi.mocked(apiClient.post).mockResolvedValue(mockResponse);
 
@@ -54,12 +54,11 @@ describe('teamService', () => {
 
   describe('getMyTeam', () => {
     it('calls apiClient.get with correct endpoint', async () => {
-      const mockTeam: Team = {
+      const mockTeam: Team = createMockTeam({
         id: 1,
         name: 'My Racing Team',
         ownerName: 'Current User',
-        drivers: [],
-      };
+      });
 
       vi.mocked(apiClient.get).mockResolvedValue(mockTeam);
 
@@ -98,9 +97,9 @@ describe('teamService', () => {
   describe('getTeams', () => {
     it('calls apiClient.get with correct endpoint', async () => {
       const mockTeams: Team[] = [
-        { id: 1, name: 'Team Alpha', ownerName: 'Alice', drivers: [] },
-        { id: 2, name: 'Team Beta', ownerName: 'Bob', drivers: [] },
-        { id: 3, name: 'Team Gamma', ownerName: 'Charlie', drivers: [] },
+        createMockTeam({ id: 1, name: 'Team Alpha', ownerName: 'Alice' }),
+        createMockTeam({ id: 2, name: 'Team Beta', ownerName: 'Bob' }),
+        createMockTeam({ id: 3, name: 'Team Gamma', ownerName: 'Charlie' }),
       ];
 
       vi.mocked(apiClient.get).mockResolvedValue(mockTeams);
@@ -132,12 +131,11 @@ describe('teamService', () => {
 
   describe('getTeamById', () => {
     it('calls apiClient.get with correct endpoint and team id', async () => {
-      const mockTeam: Team = {
+      const mockTeam: Team = createMockTeam({
         id: 99,
         name: 'Specific Team',
         ownerName: 'David',
-        drivers: [],
-      };
+      });
 
       vi.mocked(apiClient.get).mockResolvedValue(mockTeam);
 

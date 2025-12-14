@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { avatarEvents } from '@/lib/avatarEvents';
 import * as teamService from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
+import { createMockTeam } from '@/test-utils';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -176,12 +177,13 @@ describe('PageHeader', () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
-      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue({
-        id: 1,
-        name: 'Test Team',
-        ownerName: 'Test Owner',
-        drivers: [],
-      });
+      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue(
+        createMockTeam({
+          id: 1,
+          name: 'Test Team',
+          ownerName: 'Test Owner',
+        }),
+      );
 
       renderWithRouter();
 
@@ -254,12 +256,13 @@ describe('PageHeader', () => {
 
     it('should navigate to dashboard when Dashboard is clicked', async () => {
       const user = userEvent.setup();
-      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue({
-        id: 1,
-        name: 'Test Team',
-        ownerName: 'Test Owner',
-        drivers: [],
-      });
+      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue(
+        createMockTeam({
+          id: 1,
+          name: 'Test Team',
+          ownerName: 'Test Owner',
+        }),
+      );
       renderWithRouter();
 
       const dropdownButtons = screen.getAllByRole('button');
