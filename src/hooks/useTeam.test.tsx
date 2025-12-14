@@ -33,13 +33,10 @@ describe('useTeam', () => {
 
   it('returns context value when used within TeamProvider', () => {
     const mockContext: TeamContextType = {
-      team: null,
+      myTeamId: null,
       hasTeam: false,
       isCheckingTeam: false,
-      error: null,
-      setTeam: vi.fn(),
-      refetchTeam: vi.fn(),
-      clearError: vi.fn(),
+      refreshMyTeam: vi.fn(),
     };
 
     const { result } = renderHook(() => useTeam(), {

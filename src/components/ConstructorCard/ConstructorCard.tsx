@@ -13,13 +13,5 @@ export function ConstructorCard({ constructor, onOpenSheet, onRemove }: Construc
     return <RoleCard variant="empty" role="Constructor" onOpenSheet={onOpenSheet} />;
   }
 
-  return (
-    <RoleCard
-      variant="filled"
-      name={constructor.name}
-      points={constructor.points}
-      price={constructor.price}
-      onRemove={onRemove}
-    />
-  );
+  return <RoleCard variant="filled" name={constructor.name} onRemove={onRemove} />;
 }

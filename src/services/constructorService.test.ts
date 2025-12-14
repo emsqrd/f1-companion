@@ -1,55 +1,59 @@
 import type { Constructor } from '@/contracts/Role';
-import { describe, expect, it } from 'vitest';
+import { apiClient } from '@/lib/api';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getAllConstructors } from './constructorService';
+import { getActiveConstructors } from './constructorService';
+
+vi.mock('@/lib/api', () => ({
+  apiClient: {
+    get: vi.fn(),
+  },
+}));
+
+const mockApiClient = vi.mocked(apiClient);
 
 describe('constructorService', () => {
-  describe('getAllConstructors', () => {
-    it('should return 20 constructors', () => {
-      const constructors = getAllConstructors();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-      expect(constructors).toHaveLength(20);
-      expect(Array.isArray(constructors)).toBe(true);
+  describe('getActiveConstructors', () => {
+    it('calls apiClient.get with correct endpoint and query parameter', async () => {
+      const mockConstructors: Constructor[] = [
+        { id: 1, type: 'constructor', name: 'Red Bull', fullName: 'Oracle Red Bull Racing', countryAbbreviation: 'AT' },
+        {
+          id: 2,
+          type: 'constructor',
+          name: 'Mercedes',
+          fullName: 'Mercedes-AMG Petronas F1 Team',
+          countryAbbreviation: 'DE',
+        },
+      ];
+
+      mockApiClient.get.mockResolvedValue(mockConstructors);
+
+      const result = await getActiveConstructors();
+
+      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
+      expect(result).toEqual(mockConstructors);
     });
 
-    it('should contain exactly 10 F1 teams with 2 entries each', () => {
-      const constructors = getAllConstructors();
-      const teamCounts: Record<string, number> = {};
+    it('returns empty array when no active constructors exist', async () => {
+      mockApiClient.get.mockResolvedValue([]);
 
-      constructors.forEach((constructor) => {
-        teamCounts[constructor.name] = (teamCounts[constructor.name] || 0) + 1;
-      });
+      const result = await getActiveConstructors();
 
-      expect(Object.keys(teamCounts)).toHaveLength(10);
-      Object.values(teamCounts).forEach((count) => {
-        expect(count).toBe(2);
-      });
+      expect(result).toEqual([]);
+      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
     });
 
-    it('should have consistent data for constructors from the same team', () => {
-      const constructors = getAllConstructors();
-      const teamGroups: Record<string, Constructor[]> = {};
+    it('propagates API errors during constructor retrieval', async () => {
+      const mockError = new Error('Failed to fetch constructors');
 
-      constructors.forEach((constructor) => {
-        if (!teamGroups[constructor.name]) {
-          teamGroups[constructor.name] = [];
-        }
-        teamGroups[constructor.name].push(constructor);
-      });
+      mockApiClient.get.mockRejectedValue(mockError);
 
-      Object.values(teamGroups).forEach((teamConstructors) => {
-        const [first, second] = teamConstructors;
-
-        expect(first.name).toBe(second.name);
-        expect(first.countryAbbreviation).toBe(second.countryAbbreviation);
-        expect(first.price).toBe(second.price);
-        expect(first.points).toBe(second.points);
-        expect(first.id).not.toBe(second.id);
-      });
-    });
-
-    it('should not throw errors when called', () => {
-      expect(() => getAllConstructors()).not.toThrow();
+      await expect(getActiveConstructors()).rejects.toThrow('Failed to fetch constructors');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
     });
   });
 });

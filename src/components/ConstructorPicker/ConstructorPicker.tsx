@@ -1,7 +1,8 @@
 import type { Constructor } from '@/contracts/Role';
 import { useSlots } from '@/hooks/useSlots';
-import { getAllConstructors } from '@/services/constructorService';
-import { useMemo, useState } from 'react';
+import { getActiveConstructors } from '@/services/constructorService';
+import { addConstructorToTeam, removeConstructorFromTeam } from '@/services/teamService';
+import { useEffect, useState } from 'react';
 
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
 import { ConstructorListItem } from '../ConstructorListItem/ConstructorListItem';
@@ -15,20 +16,48 @@ import {
   SheetTrigger,
 } from '../ui/sheet';
 
-export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
-  const initialConstructorsPool = getAllConstructors();
+interface ConstructorPickerContentProps {
+  constructorPool: Constructor[];
+  slotsCount: number;
+  initialConstructors?: Constructor[];
+}
 
-  const initialSlots = useMemo<(Constructor | null)[]>(
-    () => [11, 13, 7, 19].map((id) => initialConstructorsPool.find((d) => d.id === id)!),
-    [initialConstructorsPool],
-  );
-
+function ConstructorPickerContent({
+  constructorPool,
+  slotsCount,
+  initialConstructors = [],
+}: ConstructorPickerContentProps) {
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const { slots, pool, add, remove } = useSlots<Constructor>(
-    initialConstructorsPool,
-    initialSlots,
+    constructorPool,
+    initialConstructors,
     slotsCount,
   );
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+
+  const handleAdd = async (slotPosition: number, constructor: Constructor) => {
+    try {
+      add(slotPosition, constructor);
+      await addConstructorToTeam(constructor.id, slotPosition);
+    } catch (error) {
+      // Rollback on error
+      remove(slotPosition);
+      throw error;
+    }
+  };
+
+  const handleRemove = async (slotPosition: number) => {
+    const constructor = slots[slotPosition];
+    try {
+      remove(slotPosition);
+      await removeConstructorFromTeam(slotPosition);
+    } catch (error) {
+      // Rollback on error
+      if (constructor) {
+        add(slotPosition, constructor);
+      }
+      throw error;
+    }
+  };
 
   return (
     <>
@@ -38,7 +67,7 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
             key={idx}
             constructor={constructor}
             onOpenSheet={() => setActiveSlot(idx)}
-            onRemove={() => remove(idx)}
+            onRemove={() => handleRemove(idx)}
           ></ConstructorCard>
         ))}
       </div>
@@ -62,7 +91,7 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
                   constructor={constructor}
                   onSelect={() => {
                     if (activeSlot !== null) {
-                      add(activeSlot, constructor);
+                      handleAdd(activeSlot, constructor);
                       setActiveSlot(null);
                     }
                   }}
@@ -73,5 +102,57 @@ export function ConstructorPicker({ slotsCount = 4 }: { slotsCount?: number }) {
         </SheetContent>
       </Sheet>
     </>
+  );
+}
+
+interface ConstructorPickerProps {
+  slotsCount?: number;
+  initialConstructors?: Constructor[];
+}
+
+export function ConstructorPicker({ slotsCount = 2, initialConstructors }: ConstructorPickerProps) {
+  const [initialConstructorPool, setInitialConstructorPool] = useState<Constructor[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActiveConstructors = async () => {
+      try {
+        const data = await getActiveConstructors();
+        setInitialConstructorPool(data);
+      } catch {
+        setError('Failed to load active constructors');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActiveConstructors();
+  }, []);
+
+  if (error) {
+    return <div role="error">{error}</div>;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+        <div className="text-center">
+          <div
+            role="status"
+            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
+          ></div>
+          <p className="text-muted-foreground">Loading Constructors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ConstructorPickerContent
+      constructorPool={initialConstructorPool}
+      slotsCount={slotsCount}
+      initialConstructors={initialConstructors}
+    />
   );
 }

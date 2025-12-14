@@ -2,6 +2,21 @@
 
 ## Testing Philosophy
 
+### Documentation & Best Practices
+
+When writing or reviewing tests, validate approaches against official documentation using the Context7 MCP server:
+
+- **React Testing Library**: Resolve `/testing-library/react-testing-library` for RTL best practices, query priorities, and patterns
+- **Vitest**: Resolve `/vitest-dev/vitest` for test runner features, mocking patterns, and configuration
+- **React 19**: Resolve `/facebook/react` when testing React 19-specific features (new hooks, Server Components, Actions, etc.)
+
+Consult these sources when:
+
+- Implementing unfamiliar testing patterns
+- Deciding between testing approaches (e.g., when to mock, query strategies)
+- Troubleshooting test failures or flaky tests
+- Ensuring alignment with current industry standards
+
 ### What to Test (High Value)
 
 - Business logic specific to your component/service
@@ -57,14 +72,94 @@ Keep **one focused test** per critical configuration point that validates the er
 1. **Prefer semantic queries**: `getByRole`, `getByLabelText`, `getByText`
 2. **Fallback to**: `data-testid` attributes when semantic queries aren't practical
 3. **Test from user's perspective**: How would a user interact with this?
+4. **Use `within()` for scoped queries**: When selecting elements inside a specific container
+
+### Test Data Strategy
+
+**Hardcoded strings in tests are acceptable** when:
+
+- The data is mock data you control (defined in the test file)
+- The strings represent what users actually see
+- Tests serve as documentation of expected behavior
+
+**Avoid hardcoding** when:
+
+- Testing against production data that changes frequently
+- Testing exact marketing copy that updates regularly
+- The string is an implementation detail, not user-facing
+
+**Example - Good:**
+
+```typescript
+const mockDrivers = [{ id: 1, firstName: 'Oscar', lastName: 'Piastri' }];
+
+// Clear, documents expected behavior
+expect(screen.getByRole('heading', { name: 'Oscar Piastri' })).toBeInTheDocument();
+```
+
+**Alternative - Reference mock data directly:**
+
+```typescript
+const expectedName = `${mockDrivers[0].firstName} ${mockDrivers[0].lastName}`;
+expect(screen.getByRole('heading', { name: expectedName })).toBeInTheDocument();
+```
+
+Both approaches are valid. Prefer readability over DRY in tests.
 
 ### Mock Strategy
 
-- Mock external dependencies (services, contexts, APIs)
-- Mock child components to isolate behavior
+**What to Mock:**
+
+- External dependencies (API services, network calls)
+- Browser APIs not available in test environment
+- Contexts when testing components in isolation
+- Time-dependent code (`vi.useFakeTimers()`)
+
+**What NOT to Mock:**
+
+- Child components (per RTL philosophy: "The more your tests resemble the way your software is used, the more confidence they can give you")
+- User interactions - use real events via `userEvent`
+- State management within the component under test
+
+**Mock Best Practices:**
+
 - Use `vi.fn()` and `vi.mock()` for Vitest mocks
 - Ensure mocks are deterministic and don't rely on external state
 - Test both success and failure scenarios
+- Keep mocks minimal - only mock what's necessary
+
+### Test Utilities & Mock Factories
+
+**Mock Factories** (Test Data Builder Pattern):
+
+For objects used across multiple test files, use centralized mock factories from `@/test-utils`:
+
+```typescript
+import { createMockTeam, createMockTeamDriver } from '@/test-utils';
+
+// Basic usage with defaults
+const team = createMockTeam();
+
+// Override specific properties
+const customTeam = createMockTeam({
+  name: 'McLaren Racing',
+  drivers: [createMockTeamDriver({ lastName: 'Piastri' })],
+});
+```
+
+**When to use factories:**
+
+- Object used in 3+ test files
+- Object has 4+ required fields
+- Object structure changes frequently during development
+
+**When to use inline mocks:**
+
+- Test validates specific data structure
+- Mock is unique to a single test
+- Explicit values improve test readability
+
+This pattern follows React Testing Library's maintainability principles and the Test Data Builder pattern endorsed by Kent C. Dodds.
 
 ### Coverage Configuration
 
@@ -161,9 +256,13 @@ vi.mock('react-router', () => ({
 }));
 ```
 
-## Quick Test Generation Prompt
+## Quick Test Generation Prompts
 
-When asking Copilot to generate tests, you can use this prompt:
+The testing instructions in this document will be automatically included in Copilot's context.
+
+### For New Test Files
+
+Use this prompt when creating tests for a file that doesn't have any tests yet:
 
 ```
 Generate high-value tests for this file following our testing guidelines.
@@ -176,7 +275,18 @@ Generate high-value tests for this file following our testing guidelines.
 - Verify all tests provide high value per our testing philosophy
 ```
 
-The testing instructions in this document will be automatically included in Copilot's context.
+### For Existing Test Files
+
+Use this prompt when adding tests to cover new functionality in an existing test file:
+
+```
+Add tests for the new [describe feature/functionality] following our testing guidelines.
+- Review existing tests to understand current coverage and patterns
+- Add only tests for the new functionality, avoiding duplicates
+- Follow the existing test file's naming conventions and organization
+- Run tests to ensure they pass alongside existing tests
+- Verify new tests cover the added functionality
+```
 
 ## Essential Commands
 

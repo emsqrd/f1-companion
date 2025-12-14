@@ -1,39 +1,42 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function useSlots<T extends { id: number }>(
   initialPool: T[],
-  initialSlots: (T | null)[],
+  initialSlots: (T | null)[] | null | undefined,
   slotCount = 4,
 ) {
-  const [slots, setSlots] = useState<(T | null)[]>(
-    initialSlots.length === slotCount
-      ? initialSlots
-      : [...initialSlots, ...Array(slotCount - initialSlots.length).fill(null)],
-  );
-  const selectedIds = initialSlots.filter(Boolean).map((d) => d!.id);
-  const [pool, setPool] = useState(initialPool.filter((d) => !selectedIds.includes(d.id)));
+  // Ensure initialSlots is always an array for null safety
+  const safeInitialSlots = initialSlots ?? [];
 
-  const add = (idx: number, item: T) => {
+  const [slots, setSlots] = useState<(T | null)[]>(() => {
+    // Lazy initialization to avoid recalculation on every render
+    return safeInitialSlots.length === slotCount
+      ? safeInitialSlots
+      : [...safeInitialSlots, ...Array(slotCount - safeInitialSlots.length).fill(null)];
+  });
+
+  // Derive pool from slots - no separate state needed
+  // This automatically stays in sync and avoids nested setState
+  const pool = useMemo(() => {
+    const selectedIds = slots.filter((item): item is T => item !== null).map((item) => item.id);
+    return initialPool.filter((item) => !selectedIds.includes(item.id));
+  }, [slots, initialPool]);
+
+  const add = useCallback((idx: number, item: T) => {
     setSlots((prev) => {
       const updated = [...prev];
       updated[idx] = item;
       return updated;
     });
+  }, []);
 
-    setPool((prevPool) => prevPool.filter((p) => p.id !== item.id));
-  };
-  const remove = (idx: number) => {
+  const remove = useCallback((idx: number) => {
     setSlots((prev) => {
       const updated = [...prev];
       updated[idx] = null;
-      // Rebuild pool in original order, excluding currently selected items
-      const selectedIds = updated
-        .filter((selected): selected is T => selected !== null)
-        .map((selected) => selected.id);
-      setPool(initialPool.filter((pool) => !selectedIds.includes(pool.id)));
       return updated;
     });
-  };
+  }, []);
 
   return { slots, pool, add, remove };
 }

@@ -1,5 +1,5 @@
-import type { Team } from '@/contracts/Team';
 import { useTeam } from '@/hooks/useTeam';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,20 +10,16 @@ vi.mock('@/hooks/useTeam');
 
 const mockUseTeam = vi.mocked(useTeam);
 
-const mockTeam: Team = {
-  id: 1,
-  name: 'Test Team',
-  ownerName: 'Test Owner',
-};
+const mockTeam = createMockTeam();
 
 // Mock child component that renders when guard allows access
 function CreateTeamPage() {
   return <div>Create Team Page</div>;
 }
 
-// Mock leagues page (redirect target)
-function LeaguesPage() {
-  return <div>Leagues Page</div>;
+// Mock team page (redirect target)
+function TeamPage() {
+  return <div>Team Page</div>;
 }
 
 // Helper to render NoTeamGuard within routing context
@@ -34,7 +30,7 @@ function renderWithRouter(initialRoute = '/create-team') {
         <Route path="/create-team" element={<NoTeamGuard />}>
           <Route index element={<CreateTeamPage />} />
         </Route>
-        <Route path="/leagues" element={<LeaguesPage />} />
+        <Route path="/team/:teamId" element={<TeamPage />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -48,13 +44,10 @@ describe('NoTeamGuard', () => {
   describe('User without Team', () => {
     it('renders protected content when user has no team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -65,21 +58,18 @@ describe('NoTeamGuard', () => {
   });
 
   describe('User with Team', () => {
-    it('redirects to leagues when user already has a team', async () => {
+    it('redirects to team page when user already has a team', async () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
 
       await waitFor(() => {
-        expect(screen.getByText('Leagues Page')).toBeInTheDocument();
+        expect(screen.getByText('Team Page')).toBeInTheDocument();
       });
 
       expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
@@ -89,13 +79,10 @@ describe('NoTeamGuard', () => {
   describe('Loading State', () => {
     it('shows loading state and prevents navigation while checking team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -103,7 +90,7 @@ describe('NoTeamGuard', () => {
       expect(screen.getByRole('status')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
       expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
-      expect(screen.queryByText('Leagues Page')).not.toBeInTheDocument();
+      expect(screen.queryByText('Team Page')).not.toBeInTheDocument();
     });
   });
 
@@ -115,20 +102,17 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
 
       // Start with loading state
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -137,7 +121,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -146,13 +130,10 @@ describe('NoTeamGuard', () => {
 
       // Transition to loaded state (no team)
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -161,7 +142,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -180,20 +161,17 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
 
       // Start with loading state
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -202,7 +180,7 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
@@ -211,13 +189,10 @@ describe('NoTeamGuard', () => {
 
       // Transition to loaded state (has team)
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -226,13 +201,13 @@ describe('NoTeamGuard', () => {
             <Route path="/create-team" element={<NoTeamGuard />}>
               <Route index element={<CreateTeamPage />} />
             </Route>
-            <Route path="/leagues" element={<LeaguesPage />} />
+            <Route path="/team/:teamId" element={<TeamPage />} />
           </Routes>
         </MemoryRouter>,
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Leagues Page')).toBeInTheDocument();
+        expect(screen.getByText('Team Page')).toBeInTheDocument();
       });
     });
   });

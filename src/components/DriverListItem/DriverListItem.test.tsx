@@ -8,11 +8,10 @@ import { DriverListItem } from './DriverListItem';
 describe('DriverListItem', () => {
   const driver: Driver = {
     id: 1,
+    type: 'driver',
     firstName: 'Carlos',
     lastName: 'Sainz',
     countryAbbreviation: 'ESP',
-    price: 100,
-    points: 100,
   };
   const mockOnSelect = vi.fn();
 

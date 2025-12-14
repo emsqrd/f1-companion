@@ -1,6 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
@@ -33,6 +33,47 @@ export function Team() {
 
     fetchTeam();
   }, [params.teamId]);
+
+  // Memoize driver slot transformation to avoid recalculating on every render
+  const initialDriverSlots = useMemo(() => {
+    if (!team?.drivers) return Array.from({ length: 5 }, () => null);
+
+    return Array.from({ length: 5 }, (_, index) => {
+      const teamDriver = team.drivers.find((d) => d.slotPosition === index);
+      return teamDriver
+        ? {
+            id: teamDriver.id,
+            firstName: teamDriver.firstName,
+            lastName: teamDriver.lastName,
+            abbreviation: teamDriver.abbreviation,
+            countryAbbreviation: teamDriver.countryAbbreviation,
+            price: 0,
+            points: 0,
+            type: 'driver' as const,
+          }
+        : null;
+    });
+  }, [team?.drivers]);
+
+  // Memoize constructor slot transformation to avoid recalculating on every render
+  const initialConstructorSlots = useMemo(() => {
+    if (!team?.constructors) return Array.from({ length: 2 }, () => null);
+
+    return Array.from({ length: 2 }, (_, index) => {
+      const teamConstructor = team.constructors.find((c) => c.slotPosition === index);
+      return teamConstructor
+        ? {
+            id: teamConstructor.id,
+            name: teamConstructor.name,
+            abbreviation: teamConstructor.abbreviation,
+            countryAbbreviation: teamConstructor.countryAbbreviation,
+            price: 0,
+            points: 0,
+            type: 'constructor' as const,
+          }
+        : null;
+    });
+  }, [team?.constructors]);
 
   if (error) {
     return <div>{error}</div>;
@@ -125,14 +166,14 @@ export function Team() {
         <TabsContent value="drivers">
           <Card className="py-4">
             <CardContent className="px-4">
-              <DriverPicker slotsCount={4} />
+              <DriverPicker slotsCount={5} initialDrivers={initialDriverSlots} />
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="constructors">
           <Card className="py-4">
             <CardContent className="px-4">
-              <ConstructorPicker slotsCount={4} />
+              <ConstructorPicker slotsCount={2} initialConstructors={initialConstructorSlots} />
             </CardContent>
           </Card>
         </TabsContent>

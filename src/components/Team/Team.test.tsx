@@ -1,5 +1,6 @@
 import type { Team as TeamType } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -48,10 +49,13 @@ vi.mock('react-router', () => ({
 }));
 
 vi.mock('@/services/teamService', () => ({
-  getTeamById: vi.fn(() => ({
-    id: 1,
-    name: 'Team 1',
-  })),
+  getTeamById: vi.fn(() =>
+    createMockTeam({
+      id: 1,
+      name: 'Team 1',
+      ownerName: 'Test Owner',
+    }),
+  ),
 }));
 
 describe('Loading State', () => {
@@ -81,11 +85,13 @@ describe('Loading State', () => {
     expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
 
     // Resolve the API call
-    resolveTeamFetch!({
-      id: 1,
-      name: 'Test Team',
-      ownerName: 'Test Owner',
-    });
+    resolveTeamFetch!(
+      createMockTeam({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+      }),
+    );
 
     // Wait for loading to complete and content to render
     await waitFor(() => {
@@ -202,7 +208,7 @@ describe('Loaded State', () => {
   describe('Content Delivery', () => {
     it('passes correct slotsCount to DriverPicker', () => {
       const driverPicker = screen.getByTestId('driver-picker');
-      expect(driverPicker).toHaveAttribute('data-slots-count', '4');
+      expect(driverPicker).toHaveAttribute('data-slots-count', '5');
     });
 
     it('passes correct slotsCount to ConstructorPicker', async () => {
@@ -213,7 +219,7 @@ describe('Loaded State', () => {
       await user.click(constructorsTab);
 
       const constructorPicker = screen.getByTestId('constructor-picker');
-      expect(constructorPicker).toHaveAttribute('data-slots-count', '4');
+      expect(constructorPicker).toHaveAttribute('data-slots-count', '2');
     });
 
     it('ensures only one tab content is visible at a time', async () => {

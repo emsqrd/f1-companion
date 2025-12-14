@@ -1,5 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,21 +8,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Leaderboard } from './Leaderboard';
 
 const mockTeams: Team[] = [
-  {
-    id: 1,
-    name: 'Team 1',
-    ownerName: 'Owner 1',
-  },
-  {
-    id: 2,
-    name: 'Team 2',
-    ownerName: 'Owner 2',
-  },
-  {
-    id: 3,
-    name: 'Team 3',
-    ownerName: 'Owner 3',
-  },
+  createMockTeam({ id: 1, name: 'Team 1', ownerName: 'Owner 1' }),
+  createMockTeam({ id: 2, name: 'Team 2', ownerName: 'Owner 2' }),
+  createMockTeam({ id: 3, name: 'Team 3', ownerName: 'Owner 3' }),
 ];
 
 vi.mock('@/services/teamService', () => ({
@@ -94,9 +83,9 @@ describe('Leaderboard', () => {
 
     it('should display teams even when some data is missing', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([
-        { id: 1, name: 'Complete Team', ownerName: 'Complete Owner' },
-        { id: 2, name: '', ownerName: 'Owner Only' }, // Missing team name
-        { id: 3, name: 'Team Only', ownerName: '' }, // Missing owner
+        createMockTeam({ id: 1, name: 'Complete Team', ownerName: 'Complete Owner' }),
+        createMockTeam({ id: 2, name: '', ownerName: 'Owner Only' }), // Missing team name
+        createMockTeam({ id: 3, name: 'Team Only', ownerName: '' }), // Missing owner
       ]);
 
       render(
@@ -118,11 +107,13 @@ describe('Leaderboard', () => {
     });
 
     it('should handle displaying many teams', async () => {
-      const manyTeams = Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        name: `Team ${i + 1}`,
-        ownerName: `Owner ${i + 1}`,
-      }));
+      const manyTeams = Array.from({ length: 20 }, (_, i) =>
+        createMockTeam({
+          id: i + 1,
+          name: `Team ${i + 1}`,
+          ownerName: `Owner ${i + 1}`,
+        }),
+      );
 
       vi.mocked(getTeams).mockResolvedValueOnce(manyTeams);
 

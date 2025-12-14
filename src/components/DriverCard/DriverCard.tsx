@@ -17,8 +17,6 @@ export function DriverCard({ driver, onOpenSheet, onRemove }: DriverCardProps) {
     <RoleCard
       variant="filled"
       name={`${driver.firstName} ${driver.lastName}`}
-      points={driver.points}
-      price={driver.price}
       onRemove={onRemove}
     />
   );

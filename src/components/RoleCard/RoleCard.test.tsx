@@ -58,14 +58,10 @@ describe('RoleCard', () => {
 
   describe('Filled Variant', () => {
     const name = 'Carlos Sainz';
-    const points = 50;
-    const price = 100;
     const onRemove = vi.fn();
 
     beforeEach(() => {
-      render(
-        <RoleCard variant="filled" name={name} points={points} price={price} onRemove={onRemove} />,
-      );
+      render(<RoleCard variant="filled" name={name} onRemove={onRemove} />);
     });
 
     it('should only render InfoRoleCardContent component', () => {
@@ -76,8 +72,6 @@ describe('RoleCard', () => {
     it('should forward correct props to InfoRoleCardContent component', () => {
       expect(mockInfoRoleCardContent).toBeCalledWith({
         name: name,
-        points: points,
-        price: price,
       });
     });
 
@@ -95,33 +89,11 @@ describe('RoleCard', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle zero points', () => {
-      render(
-        <RoleCard variant="filled" name="Test Driver" points={0} price={0} onRemove={vi.fn()} />,
-      );
+    it('should handle empty name', () => {
+      render(<RoleCard variant="filled" name="" onRemove={vi.fn()} />);
 
       expect(mockInfoRoleCardContent).toBeCalledWith({
-        name: 'Test Driver',
-        points: 0,
-        price: 0,
-      });
-    });
-
-    it('should handle very large number', () => {
-      render(
-        <RoleCard
-          variant="filled"
-          name="Test Driver"
-          points={999}
-          price={9999999}
-          onRemove={vi.fn()}
-        />,
-      );
-
-      expect(mockInfoRoleCardContent).toBeCalledWith({
-        name: 'Test Driver',
-        points: 999,
-        price: 9999999,
+        name: '',
       });
     });
   });

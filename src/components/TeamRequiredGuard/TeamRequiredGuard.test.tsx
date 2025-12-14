@@ -1,7 +1,6 @@
-import type { Team } from '@/contracts/Team';
 import { useTeam } from '@/hooks/useTeam';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,11 +10,7 @@ vi.mock('@/hooks/useTeam');
 
 const mockUseTeam = vi.mocked(useTeam);
 
-const mockTeam: Team = {
-  id: 1,
-  name: 'Test Team',
-  ownerName: 'Test Owner',
-};
+const mockTeam = createMockTeam();
 
 // Mock child component that renders when guard allows access
 function ProtectedPage() {
@@ -49,13 +44,10 @@ describe('TeamRequiredGuard', () => {
   describe('User with Team', () => {
     it('renders protected content when user has a team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -65,13 +57,10 @@ describe('TeamRequiredGuard', () => {
 
     it('hides loading state when team is already loaded', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: mockTeam.id,
         hasTeam: true,
         isCheckingTeam: false,
-        error: null,
-        team: mockTeam,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -85,13 +74,10 @@ describe('TeamRequiredGuard', () => {
     it('redirects to create-team when user has no team', async () => {
       // Start with loading state, then transition to no team
       mockUseTeam.mockReturnValueOnce({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       const { rerender } = renderWithRouter();
@@ -101,13 +87,10 @@ describe('TeamRequiredGuard', () => {
 
       // Transition to loaded state with no team
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       rerender(
@@ -130,13 +113,10 @@ describe('TeamRequiredGuard', () => {
 
     it('hides protected content while redirecting', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: false,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -148,13 +128,10 @@ describe('TeamRequiredGuard', () => {
   describe('Loading State', () => {
     it('shows loading spinner while checking team status', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -165,13 +142,10 @@ describe('TeamRequiredGuard', () => {
 
     it('shows loading text while checking team status', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -181,13 +155,10 @@ describe('TeamRequiredGuard', () => {
 
     it('hides protected content while checking team', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();
@@ -197,101 +168,10 @@ describe('TeamRequiredGuard', () => {
 
     it('prevents redirect while still checking team status', () => {
       mockUseTeam.mockReturnValue({
+        myTeamId: null,
         hasTeam: false,
         isCheckingTeam: true,
-        error: null,
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
-      });
-
-      renderWithRouter();
-
-      expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('displays error message when team fetch fails', () => {
-      mockUseTeam.mockReturnValue({
-        hasTeam: false,
-        isCheckingTeam: false,
-        error: new Error('Network error'),
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
-      });
-
-      renderWithRouter();
-
-      expect(screen.getByText(/Failed to load team information/i)).toBeInTheDocument();
-      expect(screen.getByText(/Network error/i)).toBeInTheDocument();
-    });
-
-    it('shows retry button when error occurs', () => {
-      mockUseTeam.mockReturnValue({
-        hasTeam: false,
-        isCheckingTeam: false,
-        error: new Error('Network error'),
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
-      });
-
-      renderWithRouter();
-
-      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
-    });
-
-    it('calls refetchTeam when retry button is clicked', async () => {
-      const mockRefetchTeam = vi.fn();
-      mockUseTeam.mockReturnValue({
-        hasTeam: false,
-        isCheckingTeam: false,
-        error: new Error('Network error'),
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: mockRefetchTeam,
-        clearError: vi.fn(),
-      });
-
-      renderWithRouter();
-      const user = userEvent.setup();
-
-      const retryButton = screen.getByRole('button', { name: /retry/i });
-      await user.click(retryButton);
-
-      expect(mockRefetchTeam).toHaveBeenCalledTimes(1);
-    });
-
-    it('hides protected content when error occurs', () => {
-      mockUseTeam.mockReturnValue({
-        hasTeam: false,
-        isCheckingTeam: false,
-        error: new Error('Network error'),
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
-      });
-
-      renderWithRouter();
-
-      expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
-    });
-
-    it('prevents redirect to create-team when error occurs', () => {
-      mockUseTeam.mockReturnValue({
-        hasTeam: false,
-        isCheckingTeam: false,
-        error: new Error('Network error'),
-        team: null,
-        setTeam: vi.fn(),
-        refetchTeam: vi.fn(),
-        clearError: vi.fn(),
+        refreshMyTeam: vi.fn(),
       });
 
       renderWithRouter();

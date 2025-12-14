@@ -83,6 +83,20 @@ describe('useSlots', () => {
       expect(result.current.slots).toEqual([null, null, null]);
       expect(result.current.pool).toEqual(mockPool);
     });
+
+    it('handles null initialSlots gracefully', () => {
+      const { result } = renderHook(() => useSlots(mockPool, null, 3));
+
+      expect(result.current.slots).toEqual([null, null, null]);
+      expect(result.current.pool).toEqual(mockPool);
+    });
+
+    it('handles undefined initialSlots gracefully', () => {
+      const { result } = renderHook(() => useSlots(mockPool, undefined, 3));
+
+      expect(result.current.slots).toEqual([null, null, null]);
+      expect(result.current.pool).toEqual(mockPool);
+    });
   });
 
   describe('Adding items', () => {

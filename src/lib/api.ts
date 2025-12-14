@@ -147,6 +147,10 @@ class ApiClient {
   async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
     return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
   }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.makeRequest<T>(endpoint, { method: 'DELETE' });
+  }
 }
 
 export const apiClient = new ApiClient();
