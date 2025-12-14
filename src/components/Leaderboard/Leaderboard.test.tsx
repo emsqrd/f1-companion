@@ -1,11 +1,11 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
+import { createMockTeam } from '@/test-utils';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from './Leaderboard';
-import { createMockTeam } from '@/test-utils';
 
 const mockTeams: Team[] = [
   createMockTeam({ id: 1, name: 'Team 1', ownerName: 'Owner 1' }),

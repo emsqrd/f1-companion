@@ -22,9 +22,17 @@ interface ConstructorPickerContentProps {
   initialConstructors?: Constructor[];
 }
 
-function ConstructorPickerContent({ constructorPool, slotsCount, initialConstructors = [] }: ConstructorPickerContentProps) {
+function ConstructorPickerContent({
+  constructorPool,
+  slotsCount,
+  initialConstructors = [],
+}: ConstructorPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { slots, pool, add, remove } = useSlots<Constructor>(constructorPool, initialConstructors, slotsCount);
+  const { slots, pool, add, remove } = useSlots<Constructor>(
+    constructorPool,
+    initialConstructors,
+    slotsCount,
+  );
 
   const handleAdd = async (slotPosition: number, constructor: Constructor) => {
     try {
@@ -141,9 +149,9 @@ export function ConstructorPicker({ slotsCount = 2, initialConstructors }: Const
   }
 
   return (
-    <ConstructorPickerContent 
-      constructorPool={initialConstructorPool} 
-      slotsCount={slotsCount} 
+    <ConstructorPickerContent
+      constructorPool={initialConstructorPool}
+      slotsCount={slotsCount}
       initialConstructors={initialConstructors}
     />
   );

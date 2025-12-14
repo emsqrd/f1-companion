@@ -68,7 +68,10 @@ export async function removeDriverFromTeam(slotPosition: number): Promise<void> 
   });
 }
 
-export async function addConstructorToTeam(constructorId: number, slotPosition: number): Promise<void> {
+export async function addConstructorToTeam(
+  constructorId: number,
+  slotPosition: number,
+): Promise<void> {
   const request: AddConstructorToTeamRequest = {
     ConstructorId: constructorId,
     SlotPosition: slotPosition,
