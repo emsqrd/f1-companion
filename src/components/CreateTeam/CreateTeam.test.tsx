@@ -138,9 +138,7 @@ describe('CreateTeam', () => {
       expect(mockToast.error).toHaveBeenCalledWith('Network error');
     });
 
-    // Navigation should not happen on error
-    await waitFor(() => {
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+    // Navigation should not happen on error (synchronous check)
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

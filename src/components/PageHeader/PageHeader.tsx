@@ -66,7 +66,9 @@ export function PageHeader() {
       }
 
       try {
-        setIsLoading(true);
+        if (!isCancelled) {
+          setIsLoading(true);
+        }
         const profile = await userProfileService.getCurrentProfile();
         if (!isCancelled) {
           setAvatarUrl(profile?.avatarUrl || '');

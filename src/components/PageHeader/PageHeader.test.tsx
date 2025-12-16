@@ -470,6 +470,9 @@ describe('PageHeader', () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
 
+      // Spy on console.error to detect React warnings about state updates on unmounted components
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       // Delay the profile fetch to simulate slow network
       let resolveProfile: (value: UserProfile) => void;
       const profilePromise = new Promise<UserProfile>((resolve) => {
@@ -485,10 +488,17 @@ describe('PageHeader', () => {
       // Now resolve the profile - should not cause state updates
       resolveProfile!(createMockUserProfile('https://example.com/avatar.jpg'));
 
-      // Wait a tick to ensure no state updates occur
+      // Wait to ensure async operations complete
       await waitFor(() => {
         expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(1);
       });
+
+      // Verify no React warnings about setState on unmounted component
+      expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('unmounted component'),
+      );
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should not update avatar when user changes rapidly', async () => {
@@ -523,10 +533,16 @@ describe('PageHeader', () => {
       // Now resolve the first profile - should be ignored
       resolveProfile1!(createMockUserProfile('https://example.com/user1-avatar.jpg'));
 
-      // Wait for second profile to load
+      // Wait for second profile to load and verify correct avatar is displayed
       await waitFor(() => {
-        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(2);
+        const avatarImg = screen.queryByRole('img', { hidden: true });
+        if (avatarImg) {
+          expect(avatarImg).toHaveAttribute('src', 'https://example.com/user2-avatar.jpg');
+        }
       });
+
+      // Verify service was called twice (once for each user)
+      expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(2);
     });
 
     it('should handle error during profile fetch without state update after unmount', async () => {
