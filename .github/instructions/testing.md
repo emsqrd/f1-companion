@@ -1,3 +1,8 @@
+---
+description: 'Testing philosophy, strategies, patterns, and best practices for React application test suites'
+applyTo: '**/*.test.tsx, **/*.test.ts, **/*.spec.tsx, **/*.spec.ts'
+---
+
 # Testing Guidelines
 
 ## Testing Philosophy

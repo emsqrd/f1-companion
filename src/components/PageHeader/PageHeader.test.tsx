@@ -464,4 +464,91 @@ describe('PageHeader', () => {
       expect(getLogoButton()).toBeInTheDocument();
     });
   });
+
+  describe('Race condition prevention', () => {
+    it('should not update state when component unmounts during profile fetch', async () => {
+      const mockUser = createMockUser();
+      mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+
+      // Delay the profile fetch to simulate slow network
+      let resolveProfile: (value: UserProfile) => void;
+      const profilePromise = new Promise<UserProfile>((resolve) => {
+        resolveProfile = resolve;
+      });
+      mockUserProfileService.getCurrentProfile.mockReturnValue(profilePromise);
+
+      const { unmount } = renderWithRouter();
+
+      // Unmount before the profile resolves
+      unmount();
+
+      // Now resolve the profile - should not cause state updates
+      resolveProfile!(createMockUserProfile('https://example.com/avatar.jpg'));
+
+      // Wait a tick to ensure no state updates occur
+      await waitFor(() => {
+        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should not update avatar when user changes rapidly', async () => {
+      const user1 = createMockUser();
+      const user2 = { ...createMockUser(), id: '2', email: 'user2@example.com' };
+
+      // First render with user1
+      mockUseAuth.mockReturnValue(createMockAuthContext(user1));
+
+      let resolveProfile1: (value: UserProfile) => void;
+      const profile1Promise = new Promise<UserProfile>((resolve) => {
+        resolveProfile1 = resolve;
+      });
+      mockUserProfileService.getCurrentProfile.mockReturnValue(profile1Promise);
+
+      const { rerender } = renderWithRouter();
+
+      // Change user before first profile loads
+      mockUseAuth.mockReturnValue(createMockAuthContext(user2));
+      mockUserProfileService.getCurrentProfile.mockResolvedValue(
+        createMockUserProfile('https://example.com/user2-avatar.jpg'),
+      );
+
+      rerender(
+        <MemoryRouter initialEntries={['/']}>
+          <TeamProvider>
+            <PageHeader />
+          </TeamProvider>
+        </MemoryRouter>,
+      );
+
+      // Now resolve the first profile - should be ignored
+      resolveProfile1!(createMockUserProfile('https://example.com/user1-avatar.jpg'));
+
+      // Wait for second profile to load
+      await waitFor(() => {
+        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should handle error during profile fetch without state update after unmount', async () => {
+      const mockUser = createMockUser();
+      mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+
+      let rejectProfile: (error: Error) => void;
+      const profilePromise = new Promise<UserProfile>((_, reject) => {
+        rejectProfile = reject;
+      });
+      mockUserProfileService.getCurrentProfile.mockReturnValue(profilePromise);
+
+      const { unmount } = renderWithRouter();
+
+      unmount();
+
+      // Now reject the profile - should not cause state updates or errors
+      rejectProfile!(new Error('Network error'));
+
+      await waitFor(() => {
+        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
 });

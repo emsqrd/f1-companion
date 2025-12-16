@@ -35,8 +35,6 @@ export function CreateTeam() {
         name: formData.teamName,
       });
 
-      toast.success('Team created successfully');
-
       // Refresh context to update myTeamId
       refreshMyTeam();
 

@@ -55,25 +55,39 @@ export function PageHeader() {
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchUserProfile = async () => {
       if (!user) {
-        setAvatarUrl('');
+        if (!isCancelled) {
+          setAvatarUrl('');
+        }
         return;
       }
 
       try {
         setIsLoading(true);
         const profile = await userProfileService.getCurrentProfile();
-        setAvatarUrl(profile?.avatarUrl || '');
+        if (!isCancelled) {
+          setAvatarUrl(profile?.avatarUrl || '');
+        }
       } catch {
         // Error already captured by API client (5xx or network errors)
-        setAvatarUrl('');
+        if (!isCancelled) {
+          setAvatarUrl('');
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchUserProfile();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [user]); // Only depend on user, not location
 
   // Listen for avatar update events
