@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Account } from './Account';
@@ -14,6 +15,11 @@ import { Account } from './Account';
 // Mock the services and dependencies
 vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
+  },
+}));
 vi.mock('../AvatarUpload/AvatarUpload', () => ({
   AvatarUpload: ({
     onAvatarChange,
@@ -38,6 +44,8 @@ vi.mock('../AvatarUpload/AvatarUpload', () => ({
     </div>
   ),
 }));
+
+const mockToast = vi.mocked(toast);
 
 const mockUserProfileService = vi.mocked(userProfileService);
 const mockAvatarEvents = vi.mocked(avatarEvents);
@@ -143,10 +151,10 @@ describe('Account', () => {
       renderWithAuth(<Account />);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
       });
 
-      expect(screen.getByText('Failed to load user profile')).toBeInTheDocument();
       consoleError.mockRestore();
     });
 
@@ -168,10 +176,9 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('Update failed');
       });
-
-      expect(screen.getByText('Update failed')).toBeInTheDocument();
     });
 
     it('shows fallback error message when avatar update throws non-Error', async () => {
@@ -188,10 +195,9 @@ describe('Account', () => {
       await userEvent.click(avatarUploadButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to update avatar');
       });
-
-      expect(screen.getByText('Failed to update avatar')).toBeInTheDocument();
     });
 
     it('should show fallback error message when saving account throws non-error', async () => {
@@ -214,10 +220,9 @@ describe('Account', () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to update profile');
       });
-
-      expect(screen.getByText('Failed to update profile'));
     });
   });
 
@@ -305,16 +310,14 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('status')).toBeInTheDocument(); // success message
-      });
-
-      expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
-      expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledWith({
-        ...mockUserProfile,
-        displayName: 'Updated Name',
-        firstName: mockUserProfile.firstName,
-        lastName: mockUserProfile.lastName,
-        email: mockUserProfile.email,
+        // Silent success pattern - verify service was called
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledWith({
+          ...mockUserProfile,
+          displayName: 'Updated Name',
+          firstName: mockUserProfile.firstName,
+          lastName: mockUserProfile.lastName,
+          email: mockUserProfile.email,
+        });
       });
     });
 
@@ -337,11 +340,9 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
+        // Silent success pattern - verify form reset (button disabled means pristine)
+        expect(saveButton).toBeDisabled();
       });
-
-      // Form should be pristine again
-      expect(saveButton).toBeDisabled();
     });
 
     it('clears previous feedback before new submission', async () => {
@@ -363,7 +364,8 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('First error')).toBeInTheDocument();
+        // First error shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('First error');
       });
 
       // Now mock success and try again
@@ -375,10 +377,9 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
+        // Silent success pattern - verify service was called with correct data
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledTimes(2);
       });
-
-      expect(screen.queryByText('First error')).not.toBeInTheDocument();
     });
   });
 
@@ -397,7 +398,8 @@ describe('Account', () => {
       await userEvent.click(avatarUploadButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Avatar updated successfully!')).toBeInTheDocument();
+        // Silent success - avatar URL update is confirmation
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
       });
 
       expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledWith({
@@ -419,10 +421,9 @@ describe('Account', () => {
       await userEvent.click(avatarErrorButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast, not inline alert
+        expect(mockToast.error).toHaveBeenCalledWith('Avatar upload failed');
       });
-
-      expect(screen.getByText('Avatar upload failed')).toBeInTheDocument();
     });
 
     it('handles avatar update service error', async () => {
@@ -438,10 +439,9 @@ describe('Account', () => {
       await userEvent.click(avatarUploadButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error shown via toast, not inline alert
+        expect(mockToast.error).toHaveBeenCalledWith('Avatar service error');
       });
-
-      expect(screen.getByText('Avatar service error')).toBeInTheDocument();
     });
 
     it('passes current avatar URL to AvatarUpload component', async () => {
@@ -468,17 +468,18 @@ describe('Account', () => {
       expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     });
 
-    it('uses proper ARIA roles for feedback messages', async () => {
+    it('displays error feedback via toast notifications', async () => {
       mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Test error'));
 
       renderWithAuth(<Account />);
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error notifications shown via toast
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
       });
     });
 
-    it('provides status role for success messages', async () => {
+    it('uses silent success pattern for form submission', async () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
@@ -494,7 +495,9 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByRole('status')).toBeInTheDocument();
+        // Silent success - no toast notification on success
+        expect(mockToast.error).not.toHaveBeenCalled();
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
       });
     });
   });
@@ -555,7 +558,8 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
+        // Form should be reset after successful update (silent success pattern)
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
       });
 
       // Should call update with the stale profile as base
@@ -619,7 +623,8 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Profile updated successfully!')).toBeInTheDocument();
+        // Should complete update (silent success pattern)
+        expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
       });
 
       // Should only call update once due to form state management
@@ -633,7 +638,8 @@ describe('Account', () => {
       const user = userEvent.setup();
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Error should be shown via toast, not inline alert
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
       });
 
       // Form should still be editable even when initial fetch fails

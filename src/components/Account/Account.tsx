@@ -1,6 +1,5 @@
 import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
-import { useFormFeedback } from '@/hooks/useFormFeedback';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
 import {
@@ -10,6 +9,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { AvatarUpload } from '../AvatarUpload/AvatarUpload';
@@ -21,7 +21,6 @@ export function Account() {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { feedback, showSuccess, showError, clearFeedback } = useFormFeedback();
 
   const {
     register,
@@ -55,18 +54,16 @@ export function Account() {
           lastName,
           email,
         });
-
-        clearFeedback();
       } catch {
         // Error already captured by API client (5xx or network errors)
-        showError('Failed to load user profile');
+        toast.error('Failed to load user profile');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [reset, clearFeedback, showError]);
+  }, [reset]);
 
   const handleAvatarChange = async (avatarUrl: string) => {
     if (!userProfile) return;
@@ -80,17 +77,14 @@ export function Account() {
       setUserProfile(updatedProfile);
       // Emit avatar change event so PageHeader updates immediately
       avatarEvents.emit(avatarUrl);
-      showSuccess('Avatar updated successfully!');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update avatar';
-      showError(message);
+      toast.error(message);
     }
   };
 
   const onSubmit = async (formData: UserProfileFormData) => {
     if (!userProfile) return;
-
-    clearFeedback();
 
     try {
       const updatedProfile = await userProfileService.updateUserProfile({
@@ -99,13 +93,12 @@ export function Account() {
       });
 
       setUserProfile(updatedProfile);
-      showSuccess('Profile updated successfully!');
 
       // Reset form state to mark it as clean
       reset(formData);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update profile';
-      showError(message);
+      toast.error(message);
     }
   };
 
@@ -125,20 +118,6 @@ export function Account() {
       className="flex w-full items-center justify-center p-8 md:min-h-screen"
     >
       <div className="w-full max-w-md space-y-4">
-        {/* Feedback Messages */}
-        {feedback.type && (
-          <div
-            className={`rounded-md p-3 text-sm ${
-              feedback.type === 'success'
-                ? 'bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200'
-                : 'bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200'
-            }`}
-            role={feedback.type === 'error' ? 'alert' : 'status'}
-          >
-            {feedback.message}
-          </div>
-        )}
-
         <Card className="w-full max-w-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-2xl">Profile Information</CardTitle>
@@ -146,7 +125,7 @@ export function Account() {
               userId={user?.id || ''}
               currentAvatarUrl={userProfile?.avatarUrl || ''}
               onAvatarChange={handleAvatarChange}
-              onError={showError}
+              onError={toast.error}
               size="lg"
             />
           </CardHeader>

@@ -56,7 +56,7 @@ describe('CreateTeam', () => {
       });
     });
 
-    expect(mockToast.success).toHaveBeenCalledWith('Team created successfully');
+    // Silent success pattern - navigation is the feedback
     expect(mockNavigate).toHaveBeenCalledWith('/team/1');
   });
 
@@ -138,6 +138,7 @@ describe('CreateTeam', () => {
       expect(mockToast.error).toHaveBeenCalledWith('Network error');
     });
 
+    // Navigation should not happen on error (synchronous check)
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
