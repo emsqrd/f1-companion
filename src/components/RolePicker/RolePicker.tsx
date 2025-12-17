@@ -19,8 +19,8 @@ import {
 interface RoleCardProps<T extends BaseRole> {
   /** The item to display, or null for empty slots */
   item: T | null;
-  /** Callback to open the selection sheet */
-  onOpenSheet: () => void;
+  /** Callback when the card is clicked */
+  onClick: () => void;
   /** Callback to remove the item from this slot */
   onRemove: () => void;
 }
@@ -126,7 +126,7 @@ function RolePickerContent<T extends BaseRole>({
           <CardComponent
             key={idx}
             item={item}
-            onOpenSheet={() => setActiveSlot(idx)}
+            onClick={() => setActiveSlot(idx)}
             onRemove={() => handleRemove(idx)}
           />
         ))}
@@ -198,13 +198,13 @@ export interface RolePickerProps<T extends BaseRole> {
 
 /**
  * Generic RolePicker component for selecting items (drivers, constructors, etc.) for a team.
- * 
+ *
  * This component handles:
  * - Data fetching with loading and error states
  * - Slot management with add/remove operations
  * - Optimistic updates with automatic rollback on error
  * - Generic rendering via component props
- * 
+ *
  * @example
  * ```tsx
  * <RolePicker<Driver>
