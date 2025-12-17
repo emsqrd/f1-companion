@@ -1,5 +1,5 @@
 import type { Driver } from '@/contracts/Role';
-import { useSlots } from '@/hooks/useSlots';
+import { useLineup } from '@/hooks/useLineup';
 import { getActiveDrivers } from '@/services/driverService';
 import { addDriverToTeam, removeDriverFromTeam } from '@/services/teamService';
 import { useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ function DriverPickerContent({
   initialDrivers = [],
 }: DriverPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { slots, pool, add, remove } = useSlots<Driver>(driverPool, initialDrivers, slotsCount);
+  const { lineup, pool, add, remove } = useLineup<Driver>(driverPool, initialDrivers, slotsCount);
 
   const handleAdd = async (slotPosition: number, driver: Driver) => {
     try {
@@ -42,7 +42,7 @@ function DriverPickerContent({
   };
 
   const handleRemove = async (slotPosition: number) => {
-    const driver = slots[slotPosition];
+    const driver = lineup[slotPosition];
     try {
       remove(slotPosition);
       await removeDriverFromTeam(slotPosition);
@@ -58,7 +58,7 @@ function DriverPickerContent({
   return (
     <>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {slots.map((driver, idx) => (
+        {lineup.map((driver, idx) => (
           <DriverCard
             key={idx}
             driver={driver}

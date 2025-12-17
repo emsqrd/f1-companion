@@ -1,5 +1,5 @@
 import type { Constructor } from '@/contracts/Role';
-import { useSlots } from '@/hooks/useSlots';
+import { useLineup } from '@/hooks/useLineup';
 import { getActiveConstructors } from '@/services/constructorService';
 import { addConstructorToTeam, removeConstructorFromTeam } from '@/services/teamService';
 import { useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ function ConstructorPickerContent({
   initialConstructors = [],
 }: ConstructorPickerContentProps) {
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { slots, pool, add, remove } = useSlots<Constructor>(
+  const { lineup, pool, add, remove } = useLineup<Constructor>(
     constructorPool,
     initialConstructors,
     slotsCount,
@@ -46,7 +46,7 @@ function ConstructorPickerContent({
   };
 
   const handleRemove = async (slotPosition: number) => {
-    const constructor = slots[slotPosition];
+    const constructor = lineup[slotPosition];
     try {
       remove(slotPosition);
       await removeConstructorFromTeam(slotPosition);
@@ -62,7 +62,7 @@ function ConstructorPickerContent({
   return (
     <>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {slots.map((constructor, idx) => (
+        {lineup.map((constructor, idx) => (
           <ConstructorCard
             key={idx}
             constructor={constructor}
