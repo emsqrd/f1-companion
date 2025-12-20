@@ -83,13 +83,6 @@ function RolePickerContent<T extends BaseRole>({
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const { lineup, pool, add, remove } = useLineup<T>(itemPool, initialItems, lineupSize);
 
-  /**
-   * Optimistic UI Pattern: Update state immediately, rollback on error.
-   * Use when: Fast, reversible actions where errors are rare (likes, add/remove items).
-   * Avoid when: Irreversible actions (payments, deletions) or when simplicity > speed.
-   *
-   * Note: Using direct state updates instead of useOptimistic to avoid flicker with local state.
-   */
   const handleAdd = async (position: number, item: T) => {
     // Optimistically update state immediately
     add(position, item);
@@ -206,22 +199,6 @@ export interface RolePickerProps<T extends BaseRole> {
  * - Lineup management with add/remove operations
  * - Optimistic updates with automatic rollback on error
  * - Generic rendering via component props
- *
- * @example
- * ```tsx
- * <RolePicker<Driver>
- *   lineupSize={5}
- *   CardComponent={DriverCard}
- *   ListItemComponent={DriverListItem}
- *   fetchItems={getActiveDrivers}
- *   addToTeam={addDriverToTeam}
- *   removeFromTeam={removeDriverFromTeam}
- *   sheetTitle="Select Driver"
- *   sheetDescription="Choose a driver from the list below to add to your team."
- *   loadingMessage="Loading Drivers..."
- *   errorPrefix="Failed to load active drivers"
- * />
- * ```
  */
 export function RolePicker<T extends BaseRole>({
   lineupSize = 5,
