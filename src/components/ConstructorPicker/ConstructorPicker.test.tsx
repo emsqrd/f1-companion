@@ -82,7 +82,7 @@ describe('ConstructorPicker', () => {
     });
 
     it('renders custom slot count when specified', async () => {
-      render(<ConstructorPicker slotsCount={2} />);
+      render(<ConstructorPicker lineupSize={2} />);
 
       const addButtons = await screen.findAllByRole('button', { name: /add constructor/i });
       expect(addButtons).toHaveLength(2);

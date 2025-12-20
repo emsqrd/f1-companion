@@ -23,17 +23,17 @@ beforeAll(() => {
 
 // Mock child components to isolate Team component testing
 vi.mock('../DriverPicker/DriverPicker', () => ({
-  DriverPicker: vi.fn(({ slotsCount = 4 }) => (
-    <div data-testid="driver-picker" data-slots-count={slotsCount}>
-      Mocked DriverPicker with {slotsCount} slots
+  DriverPicker: vi.fn(({ lineupSize = 4 }) => (
+    <div data-testid="driver-picker" data-lineup-size={lineupSize}>
+      Mocked DriverPicker with {lineupSize} positions
     </div>
   )),
 }));
 
 vi.mock('../ConstructorPicker/ConstructorPicker', () => ({
-  ConstructorPicker: vi.fn(({ slotsCount = 4 }) => (
-    <div data-testid="constructor-picker" data-slots-count={slotsCount}>
-      Mocked ConstructorPicker with {slotsCount} slots
+  ConstructorPicker: vi.fn(({ lineupSize = 4 }) => (
+    <div data-testid="constructor-picker" data-lineup-size={lineupSize}>
+      Mocked ConstructorPicker with {lineupSize} positions
     </div>
   )),
 }));
@@ -206,12 +206,12 @@ describe('Loaded State', () => {
   });
 
   describe('Content Delivery', () => {
-    it('passes correct slotsCount to DriverPicker', () => {
+    it('passes correct lineupSize to DriverPicker', () => {
       const driverPicker = screen.getByTestId('driver-picker');
-      expect(driverPicker).toHaveAttribute('data-slots-count', '5');
+      expect(driverPicker).toHaveAttribute('data-lineup-size', '5');
     });
 
-    it('passes correct slotsCount to ConstructorPicker', async () => {
+    it('passes correct lineupSize to ConstructorPicker', async () => {
       const user = userEvent.setup();
 
       // Switch to constructors tab
@@ -219,7 +219,7 @@ describe('Loaded State', () => {
       await user.click(constructorsTab);
 
       const constructorPicker = screen.getByTestId('constructor-picker');
-      expect(constructorPicker).toHaveAttribute('data-slots-count', '2');
+      expect(constructorPicker).toHaveAttribute('data-lineup-size', '2');
     });
 
     it('ensures only one tab content is visible at a time', async () => {

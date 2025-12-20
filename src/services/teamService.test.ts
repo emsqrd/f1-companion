@@ -1,3 +1,5 @@
+import type { AddConstructorToTeamRequest } from '@/contracts/AddConstructorToTeamRequest';
+import type { AddDriverToTeamRequest } from '@/contracts/AddDriverToTeamRequest';
 import type { CreateTeamRequest } from '@/contracts/CreateTeamRequest';
 import type { Team } from '@/contracts/Team';
 import { apiClient } from '@/lib/api';
@@ -5,12 +7,28 @@ import { createMockTeam } from '@/test-utils';
 import type { ApiError } from '@/utils/errors';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createTeam, getMyTeam, getTeamById, getTeams } from './teamService';
+import {
+  addConstructorToTeam,
+  addDriverToTeam,
+  createTeam,
+  getMyTeam,
+  getTeamById,
+  getTeams,
+  removeConstructorFromTeam,
+  removeDriverFromTeam,
+} from './teamService';
 
 vi.mock('@/lib/api', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+vi.mock('@sentry/react', () => ({
+  logger: {
+    info: vi.fn(),
   },
 }));
 
@@ -143,6 +161,108 @@ describe('teamService', () => {
 
       expect(apiClient.get).toHaveBeenCalledWith('/teams/99');
       expect(result).toEqual(mockTeam);
+    });
+  });
+
+  describe('addDriverToTeam', () => {
+    it('calls apiClient.post with correct endpoint and request data', async () => {
+      const driverId = 5;
+      const slotPosition = 2;
+
+      vi.mocked(apiClient.post).mockResolvedValue(undefined);
+
+      await addDriverToTeam(driverId, slotPosition);
+
+      const expectedRequest: AddDriverToTeamRequest = {
+        DriverId: driverId,
+        SlotPosition: slotPosition,
+      };
+
+      expect(apiClient.post).toHaveBeenCalledWith('/me/team/drivers', expectedRequest);
+    });
+
+    it('propagates API errors when adding driver fails', async () => {
+      const driverId = 10;
+      const slotPosition = 1;
+      const mockError = new Error('Failed to add driver');
+
+      vi.mocked(apiClient.post).mockRejectedValue(mockError);
+
+      await expect(addDriverToTeam(driverId, slotPosition)).rejects.toThrow('Failed to add driver');
+    });
+  });
+
+  describe('removeDriverFromTeam', () => {
+    it('calls apiClient.delete with correct endpoint', async () => {
+      const slotPosition = 2;
+
+      vi.mocked(apiClient.delete).mockResolvedValue(undefined);
+
+      await removeDriverFromTeam(slotPosition);
+
+      expect(apiClient.delete).toHaveBeenCalledWith('/me/team/drivers/2');
+    });
+
+    it('propagates API errors when removing driver fails', async () => {
+      const slotPosition = 1;
+      const mockError = new Error('Failed to remove driver');
+
+      vi.mocked(apiClient.delete).mockRejectedValue(mockError);
+
+      await expect(removeDriverFromTeam(slotPosition)).rejects.toThrow('Failed to remove driver');
+    });
+  });
+
+  describe('addConstructorToTeam', () => {
+    it('calls apiClient.post with correct endpoint and request data', async () => {
+      const constructorId = 3;
+      const slotPosition = 1;
+
+      vi.mocked(apiClient.post).mockResolvedValue(undefined);
+
+      await addConstructorToTeam(constructorId, slotPosition);
+
+      const expectedRequest: AddConstructorToTeamRequest = {
+        ConstructorId: constructorId,
+        SlotPosition: slotPosition,
+      };
+
+      expect(apiClient.post).toHaveBeenCalledWith('/me/team/constructors', expectedRequest);
+    });
+
+    it('propagates API errors when adding constructor fails', async () => {
+      const constructorId = 5;
+      const slotPosition = 0;
+      const mockError = new Error('Failed to add constructor');
+
+      vi.mocked(apiClient.post).mockRejectedValue(mockError);
+
+      await expect(addConstructorToTeam(constructorId, slotPosition)).rejects.toThrow(
+        'Failed to add constructor',
+      );
+    });
+  });
+
+  describe('removeConstructorFromTeam', () => {
+    it('calls apiClient.delete with correct endpoint', async () => {
+      const slotPosition = 1;
+
+      vi.mocked(apiClient.delete).mockResolvedValue(undefined);
+
+      await removeConstructorFromTeam(slotPosition);
+
+      expect(apiClient.delete).toHaveBeenCalledWith('/me/team/constructors/1');
+    });
+
+    it('propagates API errors when removing constructor fails', async () => {
+      const slotPosition = 0;
+      const mockError = new Error('Failed to remove constructor');
+
+      vi.mocked(apiClient.delete).mockRejectedValue(mockError);
+
+      await expect(removeConstructorFromTeam(slotPosition)).rejects.toThrow(
+        'Failed to remove constructor',
+      );
     });
   });
 });

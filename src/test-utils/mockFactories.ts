@@ -1,4 +1,22 @@
+import type { Driver } from '@/contracts/Role';
 import type { Team, TeamDriver } from '@/contracts/Team';
+
+/**
+ * Test utility: Creates a mock Driver with sensible defaults.
+ *
+ * @example
+ * const driver = createMockDriver({ firstName: 'Max', lastName: 'Verstappen' });
+ */
+export function createMockDriver(overrides: Partial<Driver> = {}): Driver {
+  return {
+    type: 'driver',
+    id: 1,
+    firstName: 'Test',
+    lastName: 'Driver',
+    countryAbbreviation: 'TST',
+    ...overrides,
+  };
+}
 
 /**
  * Test utility: Creates a mock TeamDriver with sensible defaults.
