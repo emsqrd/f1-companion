@@ -16,12 +16,12 @@ import {
  * Props for card components displayed in the picker grid.
  * T represents the role type (Driver, Constructor, etc.)
  */
-interface RoleCardProps<T extends BaseRole> {
-  /** The item to display, or null for empty slots */
+export interface RoleCardProps<T extends BaseRole> {
+  /** The item to display, or null for empty positions */
   item: T | null;
   /** Callback when the card is clicked */
   onClick: () => void;
-  /** Callback to remove the item from this slot */
+  /** Callback to remove the item from this position */
   onRemove: () => void;
 }
 
@@ -29,7 +29,7 @@ interface RoleCardProps<T extends BaseRole> {
  * Props for list item components displayed in the selection sheet.
  * T represents the role type (Driver, Constructor, etc.)
  */
-interface RoleListItemProps<T extends BaseRole> {
+export interface RoleListItemProps<T extends BaseRole> {
   /** The item to display in the list */
   item: T;
   /** Callback when the item is selected */
@@ -38,13 +38,13 @@ interface RoleListItemProps<T extends BaseRole> {
 
 /**
  * Props for the internal RolePickerContent component.
- * This component handles the core picker logic with slots and selection.
+ * This component handles the core picker logic with lineup management and selection.
  */
 interface RolePickerContentProps<T extends BaseRole> {
   /** Pool of available items to choose from */
   itemPool: T[];
-  /** Number of slots to display */
-  slotsCount: number;
+  /** Number of positions in the lineup */
+  lineupSize: number;
   /** Initially selected items */
   initialItems?: T[];
   /** Component to render each card in the grid */
@@ -52,9 +52,9 @@ interface RolePickerContentProps<T extends BaseRole> {
   /** Component to render each item in the selection list */
   ListItemComponent: React.ComponentType<RoleListItemProps<T>>;
   /** Async function to add an item to the team */
-  addToTeam: (itemId: number, slotPosition: number) => Promise<void>;
+  addToTeam: (itemId: number, position: number) => Promise<void>;
   /** Async function to remove an item from the team */
-  removeFromTeam: (slotPosition: number) => Promise<void>;
+  removeFromTeam: (position: number) => Promise<void>;
   /** Title for the selection sheet */
   sheetTitle: string;
   /** Description for the selection sheet */
@@ -64,13 +64,13 @@ interface RolePickerContentProps<T extends BaseRole> {
 }
 
 /**
- * Internal component that handles the picker UI and slot management logic.
- * This is where the generic business logic lives - managing slots, handling
+ * Internal component that handles the picker UI and lineup management logic.
+ * This is where the generic business logic lives - managing the lineup, handling
  * add/remove operations with rollback, and coordinating the sheet UI.
  */
 function RolePickerContent<T extends BaseRole>({
   itemPool,
-  slotsCount,
+  lineupSize,
   initialItems = [],
   CardComponent,
   ListItemComponent,
@@ -80,41 +80,42 @@ function RolePickerContent<T extends BaseRole>({
   sheetDescription,
   gridClassName = 'grid grid-cols-1 gap-4 sm:grid-cols-2',
 }: RolePickerContentProps<T>) {
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { lineup, pool, add, remove } = useLineup<T>(itemPool, initialItems, slotsCount);
+  const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
+  const { lineup, pool, add, remove } = useLineup<T>(itemPool, initialItems, lineupSize);
 
   /**
-   * Handles adding an item to a slot with optimistic update and rollback on error.
+   * Optimistic UI Pattern: Update state immediately, rollback on error.
+   * Use when: Fast, reversible actions where errors are rare (likes, add/remove items).
+   * Avoid when: Irreversible actions (payments, deletions) or when simplicity > speed.
+   *
+   * Note: Using direct state updates instead of useOptimistic to avoid flicker with local state.
    */
-  const handleAdd = async (slotPosition: number, item: T) => {
+  const handleAdd = async (position: number, item: T) => {
+    // Optimistically update state immediately
+    add(position, item);
     try {
-      // Optimistically update local state
-      add(slotPosition, item);
       // Persist to backend
-      await addToTeam(item.id, slotPosition);
+      await addToTeam(item.id, position);
     } catch (error) {
       // Rollback on error
-      remove(slotPosition);
-      throw error;
+      remove(position);
+      console.error('Failed to add item:', error);
     }
   };
 
-  /**
-   * Handles removing an item from a slot with optimistic update and rollback on error.
-   */
-  const handleRemove = async (slotPosition: number) => {
-    const item = lineup[slotPosition];
+  const handleRemove = async (position: number) => {
+    const item = lineup[position];
+    // Optimistically update state immediately
+    remove(position);
     try {
-      // Optimistically update local state
-      remove(slotPosition);
       // Persist to backend
-      await removeFromTeam(slotPosition);
+      await removeFromTeam(position);
     } catch (error) {
       // Rollback on error
       if (item) {
-        add(slotPosition, item);
+        add(position, item);
       }
-      throw error;
+      console.error('Failed to remove item:', error);
     }
   };
 
@@ -126,16 +127,16 @@ function RolePickerContent<T extends BaseRole>({
           <CardComponent
             key={idx}
             item={item}
-            onClick={() => setActiveSlot(idx)}
+            onClick={() => setSelectedPosition(idx)}
             onRemove={() => handleRemove(idx)}
           />
         ))}
       </div>
 
       {/* Selection sheet */}
-      <Sheet open={activeSlot !== null} onOpenChange={(o) => !o && setActiveSlot(null)}>
+      <Sheet open={selectedPosition !== null} onOpenChange={(o) => !o && setSelectedPosition(null)}>
         <SheetTrigger asChild>
-          {/* Invisible trigger - we open imperatively via setActiveSlot */}
+          {/* Invisible trigger - we open imperatively via setSelectedPosition */}
           <div />
         </SheetTrigger>
         <SheetContent className="flex h-full w-80 flex-col">
@@ -149,10 +150,11 @@ function RolePickerContent<T extends BaseRole>({
                 <ListItemComponent
                   key={item.id}
                   item={item}
-                  onSelect={() => {
-                    if (activeSlot !== null) {
-                      handleAdd(activeSlot, item);
-                      setActiveSlot(null);
+                  onSelect={async () => {
+                    if (selectedPosition !== null) {
+                      await handleAdd(selectedPosition, item);
+                      // Always close sheet after add attempt (whether success or rolled back)
+                      setSelectedPosition(null);
                     }
                   }}
                 />
@@ -170,8 +172,8 @@ function RolePickerContent<T extends BaseRole>({
  * This defines the external API for using the generic picker.
  */
 export interface RolePickerProps<T extends BaseRole> {
-  /** Number of slots to display (e.g., 5 for drivers, 2 for constructors) */
-  slotsCount?: number;
+  /** Number of positions in the lineup (e.g., 5 for drivers, 2 for constructors) */
+  lineupSize?: number;
   /** Initially selected items */
   initialItems?: T[];
   /** Component to render each card in the grid */
@@ -181,9 +183,9 @@ export interface RolePickerProps<T extends BaseRole> {
   /** Async function to fetch available items */
   fetchItems: () => Promise<T[]>;
   /** Async function to add an item to the team */
-  addToTeam: (itemId: number, slotPosition: number) => Promise<void>;
+  addToTeam: (itemId: number, position: number) => Promise<void>;
   /** Async function to remove an item from the team */
-  removeFromTeam: (slotPosition: number) => Promise<void>;
+  removeFromTeam: (position: number) => Promise<void>;
   /** Title for the selection sheet */
   sheetTitle: string;
   /** Description for the selection sheet */
@@ -201,14 +203,14 @@ export interface RolePickerProps<T extends BaseRole> {
  *
  * This component handles:
  * - Data fetching with loading and error states
- * - Slot management with add/remove operations
+ * - Lineup management with add/remove operations
  * - Optimistic updates with automatic rollback on error
  * - Generic rendering via component props
  *
  * @example
  * ```tsx
  * <RolePicker<Driver>
- *   slotsCount={5}
+ *   lineupSize={5}
  *   CardComponent={DriverCard}
  *   ListItemComponent={DriverListItem}
  *   fetchItems={getActiveDrivers}
@@ -222,7 +224,7 @@ export interface RolePickerProps<T extends BaseRole> {
  * ```
  */
 export function RolePicker<T extends BaseRole>({
-  slotsCount = 5,
+  lineupSize = 5,
   initialItems,
   CardComponent,
   ListItemComponent,
@@ -275,7 +277,7 @@ export function RolePicker<T extends BaseRole>({
   return (
     <RolePickerContent
       itemPool={itemPool}
-      slotsCount={slotsCount}
+      lineupSize={lineupSize}
       initialItems={initialItems}
       CardComponent={CardComponent}
       ListItemComponent={ListItemComponent}

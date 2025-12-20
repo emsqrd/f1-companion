@@ -1,158 +1,45 @@
 import type { Constructor } from '@/contracts/Role';
-import { useLineup } from '@/hooks/useLineup';
 import { getActiveConstructors } from '@/services/constructorService';
 import { addConstructorToTeam, removeConstructorFromTeam } from '@/services/teamService';
-import { useEffect, useState } from 'react';
+import type { ComponentType } from 'react';
 
 import { ConstructorCard } from '../ConstructorCard/ConstructorCard';
 import { ConstructorListItem } from '../ConstructorListItem/ConstructorListItem';
-import { ScrollArea } from '../ui/scroll-area';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '../ui/sheet';
+import type { RoleCardProps, RoleListItemProps } from '../RolePicker/RolePicker';
+import { RolePicker } from '../RolePicker/RolePicker';
 
-interface ConstructorPickerContentProps {
-  constructorPool: Constructor[];
-  slotsCount: number;
-  initialConstructors?: Constructor[];
-}
+// Adapter components to bridge between RolePicker's generic props and Constructor-specific components
+const ConstructorCardAdapter: ComponentType<RoleCardProps<Constructor>> = ({
+  item,
+  onClick,
+  onRemove,
+}) => <ConstructorCard constructor={item} onOpenSheet={onClick} onRemove={onRemove} />;
 
-function ConstructorPickerContent({
-  constructorPool,
-  slotsCount,
-  initialConstructors = [],
-}: ConstructorPickerContentProps) {
-  const [activeSlot, setActiveSlot] = useState<number | null>(null);
-  const { lineup, pool, add, remove } = useLineup<Constructor>(
-    constructorPool,
-    initialConstructors,
-    slotsCount,
-  );
-
-  const handleAdd = async (slotPosition: number, constructor: Constructor) => {
-    try {
-      add(slotPosition, constructor);
-      await addConstructorToTeam(constructor.id, slotPosition);
-    } catch (error) {
-      // Rollback on error
-      remove(slotPosition);
-      throw error;
-    }
-  };
-
-  const handleRemove = async (slotPosition: number) => {
-    const constructor = lineup[slotPosition];
-    try {
-      remove(slotPosition);
-      await removeConstructorFromTeam(slotPosition);
-    } catch (error) {
-      // Rollback on error
-      if (constructor) {
-        add(slotPosition, constructor);
-      }
-      throw error;
-    }
-  };
-
-  return (
-    <>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {lineup.map((constructor, idx) => (
-          <ConstructorCard
-            key={idx}
-            constructor={constructor}
-            onOpenSheet={() => setActiveSlot(idx)}
-            onRemove={() => handleRemove(idx)}
-          ></ConstructorCard>
-        ))}
-      </div>
-
-      <Sheet open={activeSlot !== null} onOpenChange={(o) => !o && setActiveSlot(null)}>
-        <SheetTrigger asChild>
-          <div />
-        </SheetTrigger>
-        <SheetContent className="flex h-full w-80 flex-col">
-          <SheetHeader>
-            <SheetTitle>Select Constructor</SheetTitle>
-            <SheetDescription>
-              Choose a constructor from the list below to add to your team.
-            </SheetDescription>
-          </SheetHeader>
-          <ScrollArea className="h-full min-h-0 flex-1 pr-4 pl-4">
-            <ul className="space-y-2">
-              {pool.map((constructor) => (
-                <ConstructorListItem
-                  key={constructor.id}
-                  constructor={constructor}
-                  onSelect={() => {
-                    if (activeSlot !== null) {
-                      handleAdd(activeSlot, constructor);
-                      setActiveSlot(null);
-                    }
-                  }}
-                />
-              ))}
-            </ul>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-    </>
-  );
-}
+const ConstructorListItemAdapter: ComponentType<RoleListItemProps<Constructor>> = ({
+  item,
+  onSelect,
+}) => <ConstructorListItem constructor={item} onSelect={onSelect} />;
 
 interface ConstructorPickerProps {
-  slotsCount?: number;
+  lineupSize?: number;
   initialConstructors?: Constructor[];
 }
 
-export function ConstructorPicker({ slotsCount = 2, initialConstructors }: ConstructorPickerProps) {
-  const [initialConstructorPool, setInitialConstructorPool] = useState<Constructor[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchActiveConstructors = async () => {
-      try {
-        const data = await getActiveConstructors();
-        setInitialConstructorPool(data);
-      } catch {
-        setError('Failed to load active constructors');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchActiveConstructors();
-  }, []);
-
-  if (error) {
-    return <div role="error">{error}</div>;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
-        <div className="text-center">
-          <div
-            role="status"
-            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
-          ></div>
-          <p className="text-muted-foreground">Loading Constructors...</p>
-        </div>
-      </div>
-    );
-  }
-
+export function ConstructorPicker({ lineupSize = 2, initialConstructors }: ConstructorPickerProps) {
   return (
-    <ConstructorPickerContent
-      constructorPool={initialConstructorPool}
-      slotsCount={slotsCount}
-      initialConstructors={initialConstructors}
+    <RolePicker<Constructor>
+      lineupSize={lineupSize}
+      initialItems={initialConstructors}
+      fetchItems={getActiveConstructors}
+      addToTeam={addConstructorToTeam}
+      removeFromTeam={removeConstructorFromTeam}
+      CardComponent={ConstructorCardAdapter}
+      ListItemComponent={ConstructorListItemAdapter}
+      sheetTitle="Select Constructor"
+      sheetDescription="Choose a constructor from the list below to add to your team."
+      loadingMessage="Loading Constructors..."
+      errorPrefix="Failed to load active constructors"
+      gridClassName="grid grid-cols-1 gap-4 lg:grid-cols-2"
     />
   );
 }

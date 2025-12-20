@@ -78,7 +78,7 @@ describe('DriverPicker', () => {
     });
 
     it('renders custom slot count when specified', async () => {
-      render(<DriverPicker slotsCount={2} />);
+      render(<DriverPicker lineupSize={2} />);
 
       const addButtons = await screen.findAllByRole('button', { name: /add driver/i });
       expect(addButtons).toHaveLength(2);

@@ -133,7 +133,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={5}
+          lineupSize={5}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -160,7 +160,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={3}
+          lineupSize={3}
           initialItems={initialDrivers}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
@@ -177,7 +177,7 @@ describe('RolePicker', () => {
       expect(await screen.findByText('Max Verstappen')).toBeInTheDocument();
     });
 
-    it('uses default slotsCount of 5 when not provided', async () => {
+    it('uses default lineupSize of 5 when not provided', async () => {
       const mockDrivers = [createMockDriver({ id: 1 })];
       const mockFetchItems = vi.fn<() => Promise<Driver[]>>().mockResolvedValue(mockDrivers);
 
@@ -208,7 +208,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -238,7 +238,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -268,7 +268,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -302,7 +302,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -334,7 +334,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -369,7 +369,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -422,7 +422,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           initialItems={initialDrivers}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
@@ -453,7 +453,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           initialItems={initialDrivers}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
@@ -489,7 +489,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           initialItems={initialDrivers}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
@@ -526,7 +526,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -545,13 +545,15 @@ describe('RolePicker', () => {
       const selectButton = within(screen.getByTestId('driver-list-item')).getByRole('button');
       await user.click(selectButton);
 
-      // Wait for the error to be handled
+      // Wait for the error to be handled and rollback to complete
       await waitFor(() => {
         expect(mockAddToTeam).toHaveBeenCalled();
       });
 
-      // Card should remain empty after rollback
-      expect(screen.queryByText('Max Verstappen')).not.toBeInTheDocument();
+      // Wait for rollback - card should remain empty after rollback
+      await waitFor(() => {
+        expect(screen.queryByText('Max Verstappen')).not.toBeInTheDocument();
+      });
     });
 
     it('rolls back remove operation when removeFromTeam fails', async () => {
@@ -563,7 +565,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           initialItems={initialDrivers}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
@@ -610,7 +612,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Constructor>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockConstructorCard}
           ListItemComponent={MockConstructorListItem}
           fetchItems={mockFetchItems}
@@ -637,7 +639,7 @@ describe('RolePicker', () => {
 
       render(
         <RolePicker<Constructor>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockConstructorCard}
           ListItemComponent={MockConstructorListItem}
           fetchItems={mockFetchItems}
@@ -670,7 +672,7 @@ describe('RolePicker', () => {
 
       const { container } = render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
@@ -696,7 +698,7 @@ describe('RolePicker', () => {
 
       const { container } = render(
         <RolePicker<Driver>
-          slotsCount={2}
+          lineupSize={2}
           CardComponent={MockDriverCard}
           ListItemComponent={MockDriverListItem}
           fetchItems={mockFetchItems}
