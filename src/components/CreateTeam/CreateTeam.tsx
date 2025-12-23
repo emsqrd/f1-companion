@@ -36,7 +36,7 @@ export function CreateTeam() {
       });
 
       // Refresh context to update myTeamId
-      refreshMyTeam();
+      await refreshMyTeam();
 
       // Navigate using startTransition for non-blocking UI updates
       startTransition(() => {
