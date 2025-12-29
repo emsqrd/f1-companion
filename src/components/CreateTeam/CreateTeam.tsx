@@ -1,26 +1,30 @@
+import { useLiveRegion } from '@/hooks/useLiveRegion';
 import { useTeam } from '@/hooks/useTeam';
 import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { FormFieldInput } from '../FormField/FormField';
-import { Button } from '../ui/button';
+import { InlineError } from '../InlineError/InlineError';
+import { LiveRegion } from '../LiveRegion/LiveRegion';
+import { LoadingButton } from '../LoadingButton/LoadingButton';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function CreateTeam() {
   const navigate = useNavigate();
   const { refreshMyTeam } = useTeam();
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const { message, announce } = useLiveRegion();
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<CreateTeamFormData>({
     resolver: zodResolver(createTeamFormSchema),
     mode: 'onBlur',
@@ -30,6 +34,8 @@ export function CreateTeam() {
   });
 
   const onSubmit = async (formData: CreateTeamFormData) => {
+    setError(null);
+
     try {
       const createdTeam = await createTeam({
         name: formData.teamName,
@@ -43,8 +49,9 @@ export function CreateTeam() {
         navigate(`/team/${createdTeam.id}`);
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create team';
-      toast.error(message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create team';
+      setError(errorMessage);
+      announce(errorMessage);
     }
   };
 
@@ -60,6 +67,8 @@ export function CreateTeam() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <LiveRegion message={message} />
+              {error && <InlineError message={error} />}
               <FormFieldInput
                 label="Team Name"
                 id="teamName"
@@ -71,13 +80,14 @@ export function CreateTeam() {
               />
 
               <div className="flex justify-end pt-2">
-                <Button
-                  disabled={isSubmitting || !isDirty || isPending}
+                <LoadingButton
+                  isLoading={isSubmitting || isPending}
                   className="min-w-32"
                   type="submit"
+                  loadingText={isSubmitting ? 'Creating...' : 'Redirecting...'}
                 >
-                  {isSubmitting ? 'Creating...' : isPending ? 'Redirecting...' : 'Create Team'}
-                </Button>
+                  Create Team
+                </LoadingButton>
               </div>
             </form>
           </CardContent>
