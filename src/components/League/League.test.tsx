@@ -1,6 +1,7 @@
 import type { League as LeagueType } from '@/contracts/League';
 import { getLeagueById } from '@/services/leagueService';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { League } from './League';
@@ -97,8 +98,42 @@ describe('League', () => {
 
     render(<League />);
 
-    expect(await screen.findByRole('error')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('Failed to load league')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
 
     expect(screen.queryByTestId('leaderboard')).not.toBeInTheDocument();
+  });
+
+  it('refetches data when retry button is clicked', async () => {
+    const user = userEvent.setup();
+
+    // First call fails
+    vi.mocked(getLeagueById).mockRejectedValueOnce({ error: 'Failed to load league' });
+
+    render(<League />);
+
+    // Wait for error state
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('Failed to load league')).toBeInTheDocument();
+
+    // Mock successful response for retry
+    vi.mocked(getLeagueById).mockResolvedValueOnce({
+      id: 1,
+      name: 'Test League',
+      description: 'Test Description',
+      ownerName: 'Test Owner',
+      isPrivate: false,
+    });
+
+    // Click retry button
+    await user.click(screen.getByRole('button', { name: /try again/i }));
+
+    // Wait for loading state to clear and data to appear
+    expect(await screen.findByText('Test League')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Verify getLeagueById was called twice (initial + retry)
+    expect(getLeagueById).toHaveBeenCalledTimes(2);
   });
 });

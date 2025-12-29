@@ -90,7 +90,7 @@ describe('Leagues', () => {
 
     render(<LeagueList />);
 
-    expect(await screen.findByRole('error')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
 
     expect(screen.queryByText('league-list')).not.toBeInTheDocument();
   });

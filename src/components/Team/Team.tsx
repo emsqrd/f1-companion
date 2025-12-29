@@ -6,6 +6,7 @@ import { useParams } from 'react-router';
 import { AppContainer } from '../AppContainer/AppContainer';
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
+import { ErrorState } from '../ErrorState/ErrorState';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -16,13 +17,15 @@ export function Team() {
   const [team, setTeam] = useState<Team | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchTeam = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const data = await getTeamById(Number(params.teamId));
         setTeam(data);
-        setError(null);
       } catch {
         // Error already captured by API client (5xx or network errors)
         setError('Failed to load team. Please try again later.');
@@ -32,7 +35,9 @@ export function Team() {
     };
 
     fetchTeam();
-  }, [params.teamId]);
+  }, [params.teamId, refetchTrigger]);
+
+  const handleRetry = () => setRefetchTrigger((prev) => prev + 1);
 
   // Memoize driver slot transformation to avoid recalculating on every render
   const initialDriverSlots = useMemo(() => {
@@ -76,7 +81,7 @@ export function Team() {
   }, [team?.constructors]);
 
   if (error) {
-    return <div>{error}</div>;
+    return <ErrorState message={error} onRetry={handleRetry} />;
   }
 
   if (isLoading) {

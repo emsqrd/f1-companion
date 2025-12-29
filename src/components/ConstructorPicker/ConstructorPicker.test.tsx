@@ -66,7 +66,7 @@ describe('ConstructorPicker', () => {
 
       render(<ConstructorPicker />);
 
-      expect(await screen.findByRole('error')).toHaveTextContent(
+      expect(await screen.findByRole('alert')).toHaveTextContent(
         'Failed to load active constructors',
       );
     });

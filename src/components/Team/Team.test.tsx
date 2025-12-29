@@ -293,8 +293,11 @@ describe('Error Handling', () => {
 
     // Wait for error state to be displayed
     await waitFor(() => {
-      expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
+
+    expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
 
     // Verify loading state is no longer displayed
     expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
@@ -305,6 +308,38 @@ describe('Error Handling', () => {
 
     // Components no longer capture exceptions - API client handles it
     expect(captureException).not.toHaveBeenCalled();
+  });
+
+  it('refetches data when retry button is clicked', async () => {
+    const user = userEvent.setup();
+
+    // First call fails
+    vi.mocked(getTeamById).mockRejectedValueOnce(new Error('Network error'));
+
+    render(<Team />);
+
+    // Wait for error state
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
+
+    // Mock successful response for retry
+    vi.mocked(getTeamById).mockResolvedValueOnce(
+      createMockTeam({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+      }),
+    );
+
+    // Click retry button
+    await user.click(screen.getByRole('button', { name: /try again/i }));
+
+    // Wait for loading state to clear and data to appear
+    expect(await screen.findByText('Test Team')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Verify getTeamById was called twice (initial + retry)
+    expect(getTeamById).toHaveBeenCalledTimes(2);
   });
 
   it('should display team not found message when team is not found', async () => {
