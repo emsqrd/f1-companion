@@ -1,5 +1,6 @@
 import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useLiveRegion } from '@/hooks/useLiveRegion';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
 import {
@@ -14,13 +15,19 @@ import { toast } from 'sonner';
 import { AppContainer } from '../AppContainer/AppContainer';
 import { AvatarUpload } from '../AvatarUpload/AvatarUpload';
 import { FormFieldInput } from '../FormField/FormField';
-import { Button } from '../ui/button';
+import { InlineError } from '../InlineError/InlineError';
+import { InlineSuccess } from '../InlineSuccess/InlineSuccess';
+import { LiveRegion } from '../LiveRegion/LiveRegion';
+import { LoadingButton } from '../LoadingButton/LoadingButton';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function Account() {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { message, announce } = useLiveRegion();
 
   const {
     register,
@@ -56,14 +63,16 @@ export function Account() {
         });
       } catch {
         // Error already captured by API client (5xx or network errors)
-        toast.error('Failed to load user profile');
+        const errorMessage = 'Failed to load user profile';
+        setError(errorMessage);
+        announce(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [reset]);
+  }, [reset, announce]);
 
   const handleAvatarChange = async (avatarUrl: string) => {
     if (!userProfile) return;
@@ -79,12 +88,21 @@ export function Account() {
       avatarEvents.emit(avatarUrl);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update avatar';
+      // Keep toast for avatar upload - it's a background operation
       toast.error(message);
     }
   };
 
   const onSubmit = async (formData: UserProfileFormData) => {
     if (!userProfile) return;
+
+    // Early return if nothing changed - silent, no feedback needed
+    if (!isDirty) {
+      return;
+    }
+
+    setError(null);
+    setSuccessMessage(null);
 
     try {
       const updatedProfile = await userProfileService.updateUserProfile({
@@ -96,9 +114,17 @@ export function Account() {
 
       // Reset form state to mark it as clean
       reset(formData);
+
+      const success = 'Profile updated successfully';
+      setSuccessMessage(success);
+      announce(success);
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update profile';
-      toast.error(message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      setError(errorMessage);
+      announce(errorMessage);
     }
   };
 
@@ -131,6 +157,9 @@ export function Account() {
           </CardHeader>
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <LiveRegion message={message} />
+              {error && <InlineError message={error} />}
+              {successMessage && <InlineSuccess message={successMessage} />}
               <FormFieldInput
                 label="Display Name"
                 id="displayName"
@@ -168,9 +197,14 @@ export function Account() {
               />
 
               <div className="flex justify-end pt-2">
-                <Button disabled={isSubmitting || !isDirty} className="min-w-20" type="submit">
-                  {isSubmitting ? 'Saving...' : 'Save'}
-                </Button>
+                <LoadingButton
+                  isLoading={isSubmitting}
+                  className="min-w-20"
+                  type="submit"
+                  loadingText="Saving..."
+                >
+                  Save
+                </LoadingButton>
               </div>
             </form>
           </CardContent>

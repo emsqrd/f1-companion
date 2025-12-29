@@ -146,7 +146,10 @@ describe('SignUpForm', () => {
       target: { value: 'password123' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(screen.getByRole('button', { name: /creating account/i })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('button', { name: /creating account/i })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
     await waitFor(() => expect(mockSignUp).toHaveBeenCalled());
   });
 
