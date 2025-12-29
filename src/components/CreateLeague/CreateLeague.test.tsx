@@ -2,21 +2,13 @@ import type { League } from '@/contracts/League';
 import * as leagueService from '@/services/leagueService';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { toast } from 'sonner';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CreateLeague } from './CreateLeague';
 
 vi.mock('@/services/leagueService');
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 const mockLeagueService = vi.mocked(leagueService);
-const mockToast = vi.mocked(toast);
 
 const mockLeague: League = {
   id: 1,
@@ -174,7 +166,6 @@ describe('CreateLeague', () => {
       });
 
       expect(onLeagueCreated).toHaveBeenCalledWith(mockLeague);
-      expect(mockToast.success).toHaveBeenCalledWith('League created successfully!');
     });
 
     it('should successfully create league with only required fields', async () => {
@@ -235,7 +226,7 @@ describe('CreateLeague', () => {
 
       await user.click(submitButton);
 
-      expect(submitButton).toBeDisabled();
+      expect(submitButton).toHaveAttribute('aria-busy', 'true');
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -255,9 +246,8 @@ describe('CreateLeague', () => {
       await user.type(screen.getByLabelText(/league name/i), 'Test League');
       await user.click(screen.getByRole('button', { name: /submit/i }));
 
-      await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Network error');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/network error/i);
 
       // Dialog should remain open
       expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -278,9 +268,8 @@ describe('CreateLeague', () => {
       // First attempt - fails
       await user.click(screen.getByRole('button', { name: /submit/i }));
 
-      await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('First attempt failed');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/first attempt failed/i);
 
       // Second attempt - succeeds
       await user.click(screen.getByRole('button', { name: /submit/i }));

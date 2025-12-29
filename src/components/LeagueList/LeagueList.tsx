@@ -31,7 +31,7 @@ export function LeagueList() {
   }, []);
 
   if (error) {
-    return <div role="error">{error}</div>;
+    return <div role="alert">{error}</div>;
   }
 
   if (isLoading) {

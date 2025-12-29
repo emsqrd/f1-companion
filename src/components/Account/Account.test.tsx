@@ -150,10 +150,8 @@ describe('Account', () => {
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        // Error shown via toast
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
 
       consoleError.mockRestore();
     });
@@ -175,10 +173,8 @@ describe('Account', () => {
       const saveButton = screen.getByRole('button', { name: /save/i });
       await user.click(saveButton);
 
-      await waitFor(() => {
-        // Error shown via toast
-        expect(mockToast.error).toHaveBeenCalledWith('Update failed');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/update failed/i);
     });
 
     it('shows fallback error message when avatar update throws non-Error', async () => {
@@ -219,10 +215,8 @@ describe('Account', () => {
       const saveButton = screen.getByRole('button', { name: /save/i });
       await userEvent.click(saveButton);
 
-      await waitFor(() => {
-        // Error shown via toast
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to update profile');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/failed to update profile/i);
     });
   });
 
@@ -262,15 +256,36 @@ describe('Account', () => {
       });
     });
 
-    it('disables save button when form is pristine', async () => {
+    it('keeps save button enabled when form is pristine (ARIA best practice)', async () => {
       renderWithAuth(<Account />);
 
       await waitFor(() => {
         expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
       });
 
+      // LoadingButton doesn't use disabled attribute - keeps button keyboard accessible
       const saveButton = screen.getByRole('button', { name: /save/i });
-      expect(saveButton).toBeDisabled();
+      expect(saveButton).not.toBeDisabled();
+      expect(saveButton).toHaveAttribute('aria-busy', 'false');
+    });
+
+    it('silently ignores save button click with no changes', async () => {
+      renderWithAuth(<Account />);
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
+      });
+
+      const saveButton = screen.getByRole('button', { name: /save/i });
+      await user.click(saveButton);
+
+      // Should not call the service
+      expect(mockUserProfileService.updateUserProfile).not.toHaveBeenCalled();
+
+      // Should not show any success or error messages
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
 
     it('enables save button when form is dirty and valid', async () => {
@@ -310,7 +325,6 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        // Silent success pattern - verify service was called
         expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledWith({
           ...mockUserProfile,
           displayName: 'Updated Name',
@@ -318,6 +332,13 @@ describe('Account', () => {
           lastName: mockUserProfile.lastName,
           email: mockUserProfile.email,
         });
+      });
+
+      // Check for InlineSuccess message (visible one, not sr-only)
+      await waitFor(() => {
+        const successMessages = screen.getAllByText(/profile updated successfully/i);
+        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+        expect(visibleSuccess).toBeInTheDocument();
       });
     });
 
@@ -340,8 +361,25 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        // Silent success pattern - verify form reset (button disabled means pristine)
-        expect(saveButton).toBeDisabled();
+        // Verify form was reset by checking visible success message (InlineSuccess)
+        const successStatuses = screen.getAllByRole('status');
+        const visibleSuccess = successStatuses.find(
+          (el) =>
+            !el.classList.contains('sr-only') &&
+            el.textContent?.includes('Profile updated successfully'),
+        );
+        expect(visibleSuccess).toBeInTheDocument();
+      });
+
+      // LoadingButton remains enabled (not disabled) per ARIA best practices
+      expect(saveButton).not.toBeDisabled();
+      expect(saveButton).toHaveAttribute('aria-busy', 'false');
+
+      // Check for InlineSuccess message (visible one, not sr-only)
+      await waitFor(() => {
+        const successMessages = screen.getAllByText(/profile updated successfully/i);
+        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+        expect(visibleSuccess).toBeInTheDocument();
       });
     });
 
@@ -363,10 +401,8 @@ describe('Account', () => {
       const saveButton = screen.getByRole('button', { name: /save/i });
       await user.click(saveButton);
 
-      await waitFor(() => {
-        // First error shown via toast
-        expect(mockToast.error).toHaveBeenCalledWith('First error');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/first error/i);
 
       // Now mock success and try again
       mockUserProfileService.updateUserProfile.mockResolvedValue({
@@ -377,8 +413,14 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        // Silent success pattern - verify service was called with correct data
         expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledTimes(2);
+      });
+
+      // Check for InlineSuccess message (visible one, not sr-only)
+      await waitFor(() => {
+        const successMessages = screen.getAllByText(/profile updated successfully/i);
+        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+        expect(visibleSuccess).toBeInTheDocument();
       });
     });
   });
@@ -468,18 +510,16 @@ describe('Account', () => {
       expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     });
 
-    it('displays error feedback via toast notifications', async () => {
+    it('displays error feedback via InlineError alert', async () => {
       mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Test error'));
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        // Error notifications shown via toast
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
     });
 
-    it('uses silent success pattern for form submission', async () => {
+    it('displays success feedback via InlineSuccess status', async () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
@@ -495,9 +535,14 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        // Silent success - no toast notification on success
-        expect(mockToast.error).not.toHaveBeenCalled();
         expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
+      });
+
+      // Check for InlineSuccess message (visible one, not sr-only)
+      await waitFor(() => {
+        const successMessages = screen.getAllByText(/profile updated successfully/i);
+        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+        expect(visibleSuccess).toBeInTheDocument();
       });
     });
   });
@@ -623,11 +668,12 @@ describe('Account', () => {
       await user.click(saveButton);
 
       await waitFor(() => {
-        // Should complete update (silent success pattern)
+        // Should complete update
         expect(mockUserProfileService.updateUserProfile).toHaveBeenCalled();
       });
 
-      // Should only call update once due to form state management
+      // First click saves and resets form (making it pristine)
+      // Subsequent clicks show "No changes to save" without calling service
       expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledTimes(1);
     });
 
@@ -637,10 +683,8 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        // Error should be shown via toast, not inline alert
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to load user profile');
-      });
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
 
       // Form should still be editable even when initial fetch fails
       const displayNameInput = screen.getByPlaceholderText('Enter your display name');

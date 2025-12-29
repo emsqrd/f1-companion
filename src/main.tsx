@@ -8,6 +8,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 
 import { Account } from './components/Account/Account.tsx';
 import { CreateTeam } from './components/CreateTeam/CreateTeam.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary.tsx';
 import { LandingPage } from './components/LandingPage/LandingPage.tsx';
 import { Layout } from './components/Layout/Layout.tsx';
 import { League } from './components/League/League.tsx';
@@ -58,7 +59,16 @@ const ProtectedTeam = withProtection(Team);
 const ProtectedAccount = withProtection(Account);
 const ProtectedCreateTeam = withProtection(CreateTeam);
 
-createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root');
+if (!container) throw new Error('Root container not found');
+
+const root = createRoot(container, {
+  onUncaughtError: Sentry.reactErrorHandler(),
+  onCaughtError: Sentry.reactErrorHandler(),
+  onRecoverableError: Sentry.reactErrorHandler(),
+});
+
+root.render(
   <StrictMode>
     <Toaster position="top-center" />
     <AuthProvider>
@@ -75,7 +85,14 @@ createRoot(document.getElementById('root')!).render(
               <Route path="/account" element={<ProtectedAccount />} />
 
               {/* Protected route - view any team */}
-              <Route path="/team/:teamId" element={<ProtectedTeam />} />
+              <Route
+                path="/team/:teamId"
+                element={
+                  <ErrorBoundary level="section">
+                    <ProtectedTeam />
+                  </ErrorBoundary>
+                }
+              />
 
               {/* Protected route - only accessible to users without a team */}
               <Route element={<NoTeamGuard />}>
@@ -85,7 +102,14 @@ createRoot(document.getElementById('root')!).render(
               {/* Protected routes - team required */}
               <Route element={<TeamRequiredGuard />}>
                 <Route path="/leagues" element={<ProtectedLeagueList />} />
-                <Route path="/league/:leagueId" element={<ProtectedLeague />} />
+                <Route
+                  path="/league/:leagueId"
+                  element={
+                    <ErrorBoundary level="section">
+                      <ProtectedLeague />
+                    </ErrorBoundary>
+                  }
+                />
               </Route>
             </Route>
           </Routes>

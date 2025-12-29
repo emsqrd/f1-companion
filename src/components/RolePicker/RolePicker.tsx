@@ -234,7 +234,7 @@ export function RolePicker<T extends BaseRole>({
   }, [fetchItems, errorPrefix]);
 
   if (error) {
-    return <div role="error">{error}</div>;
+    return <div role="alert">{error}</div>;
   }
 
   if (isLoading) {

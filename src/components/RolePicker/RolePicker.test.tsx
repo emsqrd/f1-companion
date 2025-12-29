@@ -119,7 +119,7 @@ describe('RolePicker', () => {
         />,
       );
 
-      expect(await screen.findByRole('error')).toHaveTextContent('Failed to load drivers');
+      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to load drivers');
     });
   });
 

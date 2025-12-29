@@ -4,7 +4,6 @@ import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type React from 'react';
-import { toast } from 'sonner';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CreateTeam } from './CreateTeam';
@@ -14,12 +13,6 @@ vi.mock('@/services/teamService');
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: '123' } }),
 }));
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 const mockNavigate = vi.fn();
 vi.mock('react-router', () => ({
@@ -27,7 +20,6 @@ vi.mock('react-router', () => ({
 }));
 
 const mockTeamService = vi.mocked(teamService);
-const mockToast = vi.mocked(toast);
 
 const mockTeam = createMockTeam();
 
@@ -100,17 +92,6 @@ describe('CreateTeam', () => {
     ).toBeInTheDocument();
   });
 
-  it('disables submit button until form is modified', async () => {
-    renderWithTeamProvider(<CreateTeam />);
-    const user = userEvent.setup();
-
-    const submitButton = screen.getByRole('button', { name: /create team/i });
-    expect(submitButton).toBeDisabled();
-
-    await user.type(screen.getByLabelText(/team name/i), 'Valid Team');
-    expect(submitButton).toBeEnabled();
-  });
-
   it('shows loading state during submission', async () => {
     mockTeamService.createTeam.mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve(mockTeam), 100)),
@@ -122,7 +103,8 @@ describe('CreateTeam', () => {
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
-    expect(screen.getByRole('button', { name: /creating\.\.\./i })).toBeInTheDocument();
+    const submitButton = screen.getByRole('button', { name: /creating/i });
+    expect(submitButton).toHaveAttribute('aria-busy', 'true');
   });
 
   it('displays error message when submission fails', async () => {
@@ -134,9 +116,8 @@ describe('CreateTeam', () => {
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
-    await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Network error');
-    });
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/network error/i);
 
     // Navigation should not happen on error (synchronous check)
     expect(mockNavigate).not.toHaveBeenCalled();

@@ -64,7 +64,7 @@ describe('DriverPicker', () => {
 
       render(<DriverPicker />);
 
-      expect(await screen.findByRole('error')).toHaveTextContent('Failed to load active drivers');
+      expect(await screen.findByRole('alert')).toHaveTextContent('Failed to load active drivers');
     });
   });
 

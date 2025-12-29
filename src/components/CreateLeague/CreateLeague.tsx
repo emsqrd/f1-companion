@@ -1,4 +1,5 @@
 import type { League } from '@/contracts/League';
+import { useLiveRegion } from '@/hooks/useLiveRegion';
 import { createLeague } from '@/services/leagueService';
 import {
   type CreateLeagueFormData,
@@ -7,9 +8,11 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { FormFieldInput, FormFieldSwitch, FormFieldTextarea } from '../FormField/FormField';
+import { InlineError } from '../InlineError/InlineError';
+import { LiveRegion } from '../LiveRegion/LiveRegion';
+import { LoadingButton } from '../LoadingButton/LoadingButton';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -28,13 +31,15 @@ interface CreateLeagueProps {
 
 export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { message, announce } = useLiveRegion();
 
   const {
     register,
     handleSubmit,
     control,
     reset,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<CreateLeagueFormData>({
     resolver: zodResolver(createLeagueFormSchema),
     mode: 'onBlur',
@@ -46,6 +51,7 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
   });
 
   const onSubmit = async (formData: CreateLeagueFormData) => {
+    setError(null);
     try {
       const createdLeague = await createLeague({
         name: formData.leagueName,
@@ -53,14 +59,14 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
         isPrivate: formData.leagueIsPrivate,
       });
 
-      toast.success('League created successfully!');
       setIsOpen(false);
       reset();
 
       onLeagueCreated?.(createdLeague);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create league';
-      toast.error(message);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create league';
+      setError(errorMessage);
+      announce(errorMessage);
     }
   };
 
@@ -68,6 +74,7 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
     setIsOpen(open);
     if (!open) {
       reset();
+      setError(null);
     }
   };
 
@@ -82,6 +89,8 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
             <DialogTitle>Create League</DialogTitle>
             <DialogDescription>Enter your league details below</DialogDescription>
           </DialogHeader>
+          <LiveRegion message={message} />
+          {error && <InlineError message={error} />}
           <FormFieldInput
             label="League Name"
             id="leagueName"
@@ -114,9 +123,9 @@ export function CreateLeague({ onLeagueCreated }: CreateLeagueProps) {
             <DialogClose asChild>
               <Button variant="secondary">Close</Button>
             </DialogClose>
-            <Button disabled={isSubmitting || !isDirty} type="submit">
+            <LoadingButton isLoading={isSubmitting} type="submit" loadingText="Creating...">
               Submit
-            </Button>
+            </LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

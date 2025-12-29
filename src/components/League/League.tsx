@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
+import { ErrorState } from '../ErrorState/ErrorState';
 import { Leaderboard } from '../Leaderboard/Leaderboard';
 
 export function League() {
@@ -13,13 +14,15 @@ export function League() {
   const [league, setLeague] = useState<League | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
     const fetchLeague = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const data = await getLeagueById(Number(params.leagueId));
         setLeague(data);
-        setError(null);
       } catch {
         // Error already captured by API client (5xx or network errors)
         // Just handle the UX here
@@ -30,10 +33,12 @@ export function League() {
     };
 
     fetchLeague();
-  }, [params.leagueId]);
+  }, [params.leagueId, refetchTrigger]);
+
+  const handleRetry = () => setRefetchTrigger((prev) => prev + 1);
 
   if (error) {
-    return <div role="error">{error}</div>;
+    return <ErrorState message={error} onRetry={handleRetry} />;
   }
 
   if (isLoading) {
