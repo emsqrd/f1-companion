@@ -75,7 +75,8 @@ describe('SignUpForm', () => {
       target: { value: 'password2' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/passwords do not match/i);
   });
 
   it('shows error if password is too short', async () => {
@@ -85,7 +86,8 @@ describe('SignUpForm', () => {
     fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: '123' } });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(await screen.findByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/password must be at least 6 characters/i);
   });
 
   it('calls signUp with correct values and navigates on success', async () => {
@@ -116,7 +118,8 @@ describe('SignUpForm', () => {
       target: { value: 'password123' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(await screen.findByText(/sign up failed/i)).toBeInTheDocument();
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/sign up failed/i);
   });
 
   it('shows generic error message if signUp throws non-Error object', async () => {
@@ -129,7 +132,8 @@ describe('SignUpForm', () => {
       target: { value: 'password123' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(await screen.findByText('Sign up failed')).toBeInTheDocument();
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent('Sign up failed');
   });
 
   it('disables submit button while loading', async () => {
@@ -142,7 +146,7 @@ describe('SignUpForm', () => {
       target: { value: 'password123' },
     });
     fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    expect(screen.getByRole('button', { name: /creating account/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /creating account/i })).toHaveAttribute('aria-busy', 'true');
     await waitFor(() => expect(mockSignUp).toHaveBeenCalled());
   });
 

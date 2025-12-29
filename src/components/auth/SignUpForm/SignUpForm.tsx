@@ -1,8 +1,12 @@
+import { InlineError } from '@/components/InlineError/InlineError';
+import { LiveRegion } from '@/components/LiveRegion/LiveRegion';
+import { LoadingButton } from '@/components/LoadingButton/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { useLiveRegion } from '@/hooks/useLiveRegion';
 import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -15,6 +19,7 @@ export function SignUpForm() {
   const [error, setError] = useState<string | null>(null);
   const { user, signUp } = useAuth();
   const navigate = useNavigate();
+  const { message, announce } = useLiveRegion();
 
   //TODO: Move this to a route guard instead
   // Redirect authenticated users
@@ -31,13 +36,17 @@ export function SignUpForm() {
 
     // Client-side validation
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      const errorMessage = 'Passwords do not match';
+      setError(errorMessage);
+      announce(errorMessage);
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      const errorMessage = 'Password must be at least 6 characters';
+      setError(errorMessage);
+      announce(errorMessage);
       setIsLoading(false);
       return;
     }
@@ -46,7 +55,9 @@ export function SignUpForm() {
       await signUp(email, password, { displayName });
       navigate('/create-team', { replace: true });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Sign up failed');
+      const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
+      setError(errorMessage);
+      announce(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -61,12 +72,9 @@ export function SignUpForm() {
             <CardDescription>Join the F1 fantasy league</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
-                  {error}
-                </div>
-              )}
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              <LiveRegion message={message} />
+              {error && <InlineError message={error} />}
 
               <div className="space-y-2">
                 <Label htmlFor="display-name">Display Name</Label>
@@ -118,9 +126,14 @@ export function SignUpForm() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Sign Up'}
-              </Button>
+              <LoadingButton
+                type="submit"
+                className="w-full"
+                isLoading={isLoading}
+                loadingText="Creating account..."
+              >
+                Sign Up
+              </LoadingButton>
             </form>
           </CardContent>
         </Card>

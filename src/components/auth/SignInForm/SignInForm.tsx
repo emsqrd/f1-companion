@@ -1,8 +1,12 @@
+import { InlineError } from '@/components/InlineError/InlineError';
+import { LiveRegion } from '@/components/LiveRegion/LiveRegion';
+import { LoadingButton } from '@/components/LoadingButton/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { useLiveRegion } from '@/hooks/useLiveRegion';
 import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -13,6 +17,7 @@ export function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const { user, signIn } = useAuth();
   const navigate = useNavigate();
+  const { message, announce } = useLiveRegion();
 
   //TODO: Move this to a route guard instead
   // Redirect authenticated users
@@ -31,8 +36,10 @@ export function SignInForm() {
       await signIn(email, password);
       navigate('/leagues');
     } catch (error) {
-      setError(error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed');
-      // Handle error (show toast, etc.)
+      const errorMessage =
+        error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed';
+      setError(errorMessage);
+      announce(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -48,11 +55,8 @@ export function SignInForm() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
-                  {error}
-                </div>
-              )}
+              <LiveRegion message={message} />
+              {error && <InlineError message={error} />}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -73,9 +77,14 @@ export function SignInForm() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
+              <LoadingButton
+                type="submit"
+                className="w-full"
+                isLoading={isLoading}
+                loadingText="Signing in..."
+              >
+                Sign In
+              </LoadingButton>
             </form>
           </CardContent>
         </Card>

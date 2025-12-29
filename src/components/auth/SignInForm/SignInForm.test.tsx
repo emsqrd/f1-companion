@@ -89,9 +89,8 @@ describe('SignInForm', () => {
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'fail@example.com' } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'badpass' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    await waitFor(() => {
-      expect(screen.getByText(/login failed: invalid credentials/i)).toBeInTheDocument();
-    });
+    const errorAlert = await screen.findByRole('alert');
+    expect(errorAlert).toHaveTextContent(/login failed: invalid credentials/i);
     expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
   });
 
@@ -111,12 +110,12 @@ describe('SignInForm', () => {
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'user@example.com' } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /signing in/i })).toHaveAttribute('aria-busy', 'true');
     // Resolve the promise to finish loading
     await waitFor(() => resolvePromise !== undefined && resolvePromise !== null);
     resolvePromise();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /sign in/i })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /sign in/i })).toHaveAttribute('aria-busy', 'false');
     });
   });
 
