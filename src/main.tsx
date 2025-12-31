@@ -1,25 +1,12 @@
-import { SignInForm } from '@/components/auth/SignInForm/SignInForm.tsx';
-import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm.tsx';
 import { Toaster } from '@/components/ui/sonner';
 import * as Sentry from '@sentry/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { Account } from './components/Account/Account.tsx';
-import { CreateTeam } from './components/CreateTeam/CreateTeam.tsx';
-import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary.tsx';
-import { LandingPage } from './components/LandingPage/LandingPage.tsx';
-import { Layout } from './components/Layout/Layout.tsx';
-import { League } from './components/League/League.tsx';
-import { LeagueList } from './components/LeagueList/LeagueList.tsx';
-import { NoTeamGuard } from './components/NoTeamGuard/NoTeamGuard.tsx';
-import { Team } from './components/Team/Team.tsx';
-import { TeamRequiredGuard } from './components/TeamRequiredGuard/TeamRequiredGuard.tsx';
+import { InnerApp } from './InnerApp.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { TeamProvider } from './contexts/TeamContext.tsx';
 import './index.css';
-import { withProtection } from './utils/routeHelpers.tsx';
 
 // Initialize Sentry for error tracking and performance monitoring
 Sentry.init({
@@ -53,12 +40,6 @@ Sentry.init({
   enableLogs: true,
 });
 
-const ProtectedLeagueList = withProtection(LeagueList);
-const ProtectedLeague = withProtection(League);
-const ProtectedTeam = withProtection(Team);
-const ProtectedAccount = withProtection(Account);
-const ProtectedCreateTeam = withProtection(CreateTeam);
-
 const container = document.getElementById('root');
 if (!container) throw new Error('Root container not found');
 
@@ -73,47 +54,7 @@ root.render(
     <Toaster position="top-center" />
     <AuthProvider>
       <TeamProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* Public routes */}
-              <Route index element={<LandingPage />} />
-              <Route path="/sign-in" element={<SignInForm />} />
-              <Route path="/sign-up" element={<SignUpForm />} />
-
-              {/* Protected route - account (no team required) */}
-              <Route path="/account" element={<ProtectedAccount />} />
-
-              {/* Protected route - view any team */}
-              <Route
-                path="/team/:teamId"
-                element={
-                  <ErrorBoundary level="section">
-                    <ProtectedTeam />
-                  </ErrorBoundary>
-                }
-              />
-
-              {/* Protected route - only accessible to users without a team */}
-              <Route element={<NoTeamGuard />}>
-                <Route path="/create-team" element={<ProtectedCreateTeam />} />
-              </Route>
-
-              {/* Protected routes - team required */}
-              <Route element={<TeamRequiredGuard />}>
-                <Route path="/leagues" element={<ProtectedLeagueList />} />
-                <Route
-                  path="/league/:leagueId"
-                  element={
-                    <ErrorBoundary level="section">
-                      <ProtectedLeague />
-                    </ErrorBoundary>
-                  }
-                />
-              </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <InnerApp />
       </TeamProvider>
     </AuthProvider>
   </StrictMode>,

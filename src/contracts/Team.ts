@@ -11,7 +11,7 @@ export interface TeamConstructor {
   slotPosition: number;
   id: number;
   name: string;
-  abbreviation: string;
+  fullName: string;
   countryAbbreviation: string;
 }
 

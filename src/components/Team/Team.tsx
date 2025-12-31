@@ -1,3 +1,4 @@
+import type { Constructor, Driver } from '@/contracts/Role';
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
 import { useEffect, useMemo, useState } from 'react';
@@ -45,19 +46,8 @@ export function Team() {
 
     return Array.from({ length: 5 }, (_, index) => {
       const teamDriver = team.drivers.find((d) => d.slotPosition === index);
-      return teamDriver
-        ? {
-            id: teamDriver.id,
-            firstName: teamDriver.firstName,
-            lastName: teamDriver.lastName,
-            abbreviation: teamDriver.abbreviation,
-            countryAbbreviation: teamDriver.countryAbbreviation,
-            price: 0,
-            points: 0,
-            type: 'driver' as const,
-          }
-        : null;
-    });
+      return teamDriver ? { ...teamDriver, type: 'driver' as const } : null;
+    }) as (Driver | null)[];
   }, [team?.drivers]);
 
   // Memoize constructor slot transformation to avoid recalculating on every render
@@ -66,18 +56,8 @@ export function Team() {
 
     return Array.from({ length: 2 }, (_, index) => {
       const teamConstructor = team.constructors.find((c) => c.slotPosition === index);
-      return teamConstructor
-        ? {
-            id: teamConstructor.id,
-            name: teamConstructor.name,
-            abbreviation: teamConstructor.abbreviation,
-            countryAbbreviation: teamConstructor.countryAbbreviation,
-            price: 0,
-            points: 0,
-            type: 'constructor' as const,
-          }
-        : null;
-    });
+      return teamConstructor ? { ...teamConstructor, type: 'constructor' as const } : null;
+    }) as (Constructor | null)[];
   }, [team?.constructors]);
 
   if (error) {

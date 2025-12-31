@@ -22,7 +22,7 @@ const ConstructorListItemAdapter: ComponentType<RoleListItemProps<Constructor>> 
 
 interface ConstructorPickerProps {
   lineupSize?: number;
-  initialConstructors?: Constructor[];
+  initialConstructors?: (Constructor | null)[];
 }
 
 export function ConstructorPicker({ lineupSize = 2, initialConstructors }: ConstructorPickerProps) {
