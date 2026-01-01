@@ -14,31 +14,48 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [
     Sentry.tanstackRouterBrowserTracingIntegration(router),
-    Sentry.replayIntegration({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
+    // Conditional integrations based on environment
+    ...(import.meta.env.DEV
+      ? [
+          // Development: Use Spotlight for local debugging
+          Sentry.spotlightBrowserIntegration(),
+          Sentry.captureConsoleIntegration({
+            levels: ['log', 'info', 'warn', 'error', 'debug'],
+          }),
+        ]
+      : [
+          // Production: Enable Session Replay to capture user sessions
+          Sentry.replayIntegration({
+            maskAllText: false,
+            blockAllMedia: false,
+          }),
+        ]),
   ],
 
-  // Performance Monitoring
+  // Performance Monitoring - Higher sample rate in dev for testing, lower in prod
   tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
     ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
-    : 0.1, // Default: 10% (override with VITE_SENTRY_TRACES_SAMPLE_RATE env var)
+    : import.meta.env.DEV
+      ? 1.0
+      : 0.1, // Dev: 100%, Prod: 10%
 
   // Set tracePropagationTargets to control distributed tracing between frontend and backend
   tracePropagationTargets: ['localhost', import.meta.env.VITE_F1_FANTASY_API].filter(Boolean),
 
-  // Session Replay
+  // Session Replay - Higher sample rate in dev, lower in prod
   replaysSessionSampleRate: import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE
     ? parseFloat(import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE)
-    : 0.1,
+    : import.meta.env.DEV
+      ? 1.0
+      : 0.1, // Dev: 100%, Prod: 10%
 
   environment: import.meta.env.MODE,
 
   // Only enable in production or when DSN is configured
   enabled: !!import.meta.env.VITE_SENTRY_DSN,
 
-  enableLogs: true,
+  // Enable structured logs in production (dev uses Spotlight with console integration)
+  enableLogs: import.meta.env.PROD,
 });
 
 const container = document.getElementById('root');

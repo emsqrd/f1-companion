@@ -139,9 +139,10 @@ describe('CreateTeam', () => {
     // Navigation should not happen on error (synchronous check)
     expect(mockNavigate).not.toHaveBeenCalled();
 
-    // Wait a tick to ensure all cleanup is done
+    // Wait for all React state updates to complete
+    // This prevents "window is not defined" errors from async setState after test teardown
     await waitFor(() => {
-      expect(mockTeamService.createTeam).toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
   });
 });
