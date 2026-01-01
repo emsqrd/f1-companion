@@ -39,6 +39,9 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
+    // Wait for loading state to complete and form to appear
+    await screen.findByLabelText(/team name/i);
+
     await user.type(screen.getByLabelText(/team name/i), 'My Racing Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -56,6 +59,9 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
+    // Wait for loading state to complete and form to appear
+    await screen.findByLabelText(/team name/i);
+
     await user.type(screen.getByLabelText(/team name/i), '  Test Team  ');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -70,7 +76,9 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
-    const teamNameInput = screen.getByLabelText(/team name/i);
+    // Wait for loading state to complete and form to appear
+    const teamNameInput = await screen.findByLabelText(/team name/i);
+
     await user.click(teamNameInput);
     await user.tab();
 
@@ -82,7 +90,9 @@ describe('CreateTeam', () => {
     const user = userEvent.setup();
 
     const longName = 'A'.repeat(51);
-    const teamNameInput = screen.getByLabelText(/team name/i);
+
+    // Wait for loading state to complete and form to appear
+    const teamNameInput = await screen.findByLabelText(/team name/i);
 
     await user.type(teamNameInput, longName);
     await user.tab();
@@ -100,6 +110,9 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
+    // Wait for loading state to complete and form to appear
+    await screen.findByLabelText(/team name/i);
+
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -113,13 +126,22 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
+    // Wait for loading state to complete and form to appear
+    await screen.findByLabelText(/team name/i);
+
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
+    // Wait for error to appear (this ensures all async operations complete)
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toHaveTextContent(/network error/i);
 
     // Navigation should not happen on error (synchronous check)
     expect(mockNavigate).not.toHaveBeenCalled();
+
+    // Wait a tick to ensure all cleanup is done
+    await waitFor(() => {
+      expect(mockTeamService.createTeam).toHaveBeenCalled();
+    });
   });
 });

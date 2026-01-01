@@ -7,12 +7,13 @@ import { InnerApp } from './InnerApp.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { TeamProvider } from './contexts/TeamContext.tsx';
 import './index.css';
+import { router } from './router.tsx';
 
 // Initialize Sentry for error tracking and performance monitoring
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   integrations: [
-    Sentry.browserTracingIntegration(),
+    Sentry.tanstackRouterBrowserTracingIntegration(router),
     Sentry.replayIntegration({
       maskAllText: false,
       blockAllMedia: false,

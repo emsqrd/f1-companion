@@ -9,8 +9,8 @@ import { LeagueList } from '@/components/LeagueList/LeagueList';
 import { Team } from '@/components/Team/Team';
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm';
-import type { AuthContextType } from '@/contexts/AuthContext';
-import type { TeamContextType } from '@/contexts/TeamContext';
+import type { RouterContext } from '@/lib/router-context';
+import { requireAuth, requireTeam } from '@/lib/route-guards';
 import {
   ErrorComponent,
   createRootRouteWithContext,
@@ -18,12 +18,6 @@ import {
   createRouter,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-
-// Define the router context interface that will be available to all routes
-interface RouterContext {
-  auth: AuthContextType;
-  team: TeamContextType;
-}
 
 // Create root route with context - this will wrap all routes
 const rootRoute = createRootRouteWithContext<RouterContext>()({
@@ -72,10 +66,10 @@ const signUpRoute = createRoute({
 });
 
 // Protected routes (authentication required)
-// We'll add beforeLoad guards in Phase 2
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/account',
+  beforeLoad: ({ context }) => requireAuth(context),
   component: Account,
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
@@ -83,6 +77,11 @@ const accountRoute = createRoute({
 const createTeamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/create-team',
+  beforeLoad: ({ context }) => {
+    requireAuth(context);
+    // Note: Cannot use requireNoTeam guard here due to async team data loading
+    // Component handles redirect after team data loads
+  },
   component: CreateTeam,
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
@@ -90,6 +89,10 @@ const createTeamRoute = createRoute({
 const leaguesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/leagues',
+  beforeLoad: ({ context }) => {
+    requireAuth(context);
+    requireTeam(context);
+  },
   component: LeagueList,
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
@@ -97,6 +100,10 @@ const leaguesRoute = createRoute({
 const leagueRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/league/$leagueId',
+  beforeLoad: ({ context }) => {
+    requireAuth(context);
+    requireTeam(context);
+  },
   component: () => (
     <ErrorBoundary level="section">
       <League />
@@ -108,6 +115,10 @@ const leagueRoute = createRoute({
 const teamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/team/$teamId',
+  beforeLoad: ({ context }) => {
+    requireAuth(context);
+    requireTeam(context);
+  },
   component: () => (
     <ErrorBoundary level="section">
       <Team />
@@ -128,7 +139,8 @@ const routeTree = rootRoute.addChildren([
   teamRoute,
 ]);
 
-// Create the router instance with default components and Sentry integration
+// Create the router instance with default components
+// Note: Sentry integration is configured in main.tsx via tanStackRouterBrowserTracingIntegration
 export const router = createRouter({
   routeTree,
   context: {

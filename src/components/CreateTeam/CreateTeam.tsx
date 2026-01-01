@@ -4,7 +4,7 @@ import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { AppContainer } from '../AppContainer/AppContainer';
@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function CreateTeam() {
   const navigate = useNavigate();
-  const { refreshMyTeam } = useTeam();
+  const { refreshMyTeam, hasTeam, isCheckingTeam } = useTeam();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const { message, announce } = useLiveRegion();
@@ -32,6 +32,28 @@ export function CreateTeam() {
       teamName: '',
     },
   });
+
+  // Redirect if user already has a team (temporary workaround until Phase 4/5 loaders)
+  useEffect(() => {
+    if (!isCheckingTeam && hasTeam) {
+      navigate({ to: '/leagues', replace: true });
+    }
+  }, [isCheckingTeam, hasTeam, navigate]);
+
+  // Show loading state while checking team ownership
+  // This prevents users from seeing the form briefly before redirect
+  // TODO: Remove this in Phase 4/5 when loaders are implemented
+  if (isCheckingTeam) {
+    return (
+      <AppContainer maxWidth="md">
+        <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
+          <div role="status" className="text-center">
+            Loading...
+          </div>
+        </div>
+      </AppContainer>
+    );
+  }
 
   const onSubmit = async (formData: CreateTeamFormData) => {
     setError(null);

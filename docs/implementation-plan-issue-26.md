@@ -93,19 +93,19 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task      | Description                                                                                            | Completed |
 | --------- | ------------------------------------------------------------------------------------------------------ | --------- |
-| TASK-001  | Install TanStack Router dependencies: `@tanstack/react-router` and `@tanstack/router-devtools`         |           |
-| TASK-002  | Create root route in `src/router.tsx` using `createRootRoute()` with Layout wrapper and error boundary |           |
-| TASK-003  | Create initial route tree configuration in `src/router.tsx` with all existing routes defined           |           |
-| TASK-004  | Create router instance using `createRouter()` with proper TypeScript configuration                     |           |
-| TASK-004a | Configure global `notFoundComponent` in router for 404 handling                                        |           |
-| TASK-004b | Configure global `defaultPendingComponent` in router for consistent loading UX                         |           |
-| TASK-004c | Configure global `errorComponent` fallback in router for unhandled errors                              |           |
-| TASK-005  | Create type-safe route context interface in `src/router.tsx` for auth and team state                   |           |
-| TASK-006  | Configure Sentry integration with TanStack Router for performance monitoring                           |           |
-| TASK-007  | Update `src/main.tsx` to use `RouterProvider` exclusively (remove `BrowserRouter` entirely)            |           |
-| TASK-008  | Test that dev server starts successfully with new router initialized                                   |           |
-| TASK-009  | Verify TypeScript compilation passes with router types                                                 |           |
-| TASK-010  | Add TanStack Router DevTools to development environment for debugging                                  |           |
+| TASK-001  | Install TanStack Router dependencies: `@tanstack/react-router` and `@tanstack/router-devtools`         | ✅        |
+| TASK-002  | Create root route in `src/router.tsx` using `createRootRoute()` with Layout wrapper and error boundary | ✅        |
+| TASK-003  | Create initial route tree configuration in `src/router.tsx` with all existing routes defined           | ✅        |
+| TASK-004  | Create router instance using `createRouter()` with proper TypeScript configuration                     | ✅        |
+| TASK-004a | Configure global `notFoundComponent` in router for 404 handling                                        | ✅        |
+| TASK-004b | Configure global `defaultPendingComponent` in router for consistent loading UX                         | ✅        |
+| TASK-004c | Configure global `errorComponent` fallback in router for unhandled errors                              | ✅        |
+| TASK-005  | Create type-safe route context interface in `src/router.tsx` for auth and team state                   | ✅        |
+| TASK-006  | Configure Sentry integration with TanStack Router for performance monitoring                           | ✅        |
+| TASK-007  | Update `src/main.tsx` to use `RouterProvider` exclusively (remove `BrowserRouter` entirely)            | ✅        |
+| TASK-008  | Test that dev server starts successfully with new router initialized                                   | ✅        |
+| TASK-009  | Verify TypeScript compilation passes with router types                                                 | ✅        |
+| TASK-010  | Add TanStack Router DevTools to development environment for debugging                                  | ✅        |
 
 **Testing for Phase 1:**
 
@@ -122,23 +122,23 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task     | Description                                                                                    | Completed |
 | -------- | ---------------------------------------------------------------------------------------------- | --------- |
-| TASK-011 | Create `src/lib/router-context.ts` defining AuthRouteContext and TeamRouteContext interfaces   |           |
-| TASK-012 | Update root route to provide auth and team state via context in `beforeLoad`                   |           |
-| TASK-013 | Create `src/lib/route-guards.ts` with `requireAuth` guard using `throw redirect()` pattern     |           |
-| TASK-014 | Create `requireTeam` guard function in `route-guards.ts` that checks team existence            |           |
-| TASK-015 | Create `requireNoTeam` guard function that redirects users with teams using `throw redirect()` |           |
-| TASK-016 | Add proper TypeScript type inference for guard return types                                    |           |
-| TASK-017 | Write unit tests for `requireAuth` with mock auth context and verify redirect throws           |           |
-| TASK-018 | Write unit tests for `requireTeam` with various team states                                    |           |
-| TASK-019 | Write unit tests for `requireNoTeam` guard logic                                               |           |
-| TASK-020 | Document guard usage patterns including `throw redirect()` pattern in code comments            |           |
+| TASK-011 | Create `src/lib/router-context.ts` defining AuthRouteContext and TeamRouteContext interfaces   | ✅        |
+| TASK-012 | Update root route to provide auth and team state via context in `beforeLoad`                   | ✅        |
+| TASK-013 | Create `src/lib/route-guards.ts` with `requireAuth` guard using `throw redirect()` pattern     | ✅        |
+| TASK-014 | Create `requireTeam` guard function in `route-guards.ts` that checks team existence            | ✅        |
+| TASK-015 | Create `requireNoTeam` guard function that redirects users with teams using `throw redirect()` | ✅        |
+| TASK-016 | Add proper TypeScript type inference for guard return types                                    | ✅        |
+| TASK-017 | Write unit tests for `requireAuth` with mock auth context and verify redirect throws           | ✅        |
+| TASK-018 | Write unit tests for `requireTeam` with various team states                                    | ✅        |
+| TASK-019 | Write unit tests for `requireNoTeam` guard logic                                               | ✅        |
+| TASK-020 | Document guard usage patterns including `throw redirect()` pattern in code comments            | ✅        |
 
 **Testing for Phase 2:**
 
-- Unit test each guard function in isolation
-- Test redirect throws (not returns) with mock router context
-- Validate TypeScript inference for auth state
-- Test guard composition (multiple guards in sequence)
+- ✅ Unit test each guard function in isolation
+- ✅ Test redirect throws (not returns) with mock router context
+- ✅ Validate TypeScript inference for auth state
+- ✅ Test guard composition (multiple guards in sequence)
 
 ---
 
@@ -148,17 +148,17 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task      | Description                                                                                       | Completed |
 | --------- | ------------------------------------------------------------------------------------------------- | --------- |
-| TASK-021  | Define index route (`/`) in route tree using `createRoute()` for landing page with errorComponent |           |
-| TASK-022  | Define sign-in route (`/sign-in`) in route tree with errorComponent                               |           |
-| TASK-023  | Define sign-up route (`/sign-up`) in route tree with errorComponent                               |           |
-| TASK-024  | Update SignInForm component to use TanStack Router's `useNavigate` hook                           |           |
-| TASK-025  | Update SignUpForm component to use type-safe navigation after registration                        |           |
-| TASK-026  | Test landing page renders correctly at `/` route                                                  |           |
-| TASK-027  | Test sign-in flow navigates to `/leagues` after successful authentication                         |           |
-| TASK-028  | Test sign-up flow creates profile and navigates correctly                                         |           |
-| TASK-029  | Verify navigation links work with `Link` component from TanStack Router                           |           |
-| TASK-030  | Update tests for LandingPage, SignInForm, and SignUpForm components                               |           |
-| TASK-030a | Test errorComponent renders correctly for each public route when errors occur                     |           |
+| TASK-021  | Define index route (`/`) in route tree using `createRoute()` for landing page with errorComponent | ✅        |
+| TASK-022  | Define sign-in route (`/sign-in`) in route tree with errorComponent                               | ✅        |
+| TASK-023  | Define sign-up route (`/sign-up`) in route tree with errorComponent                               | ✅        |
+| TASK-024  | Update SignInForm component to use TanStack Router's `useNavigate` hook                           | ✅        |
+| TASK-025  | Update SignUpForm component to use type-safe navigation after registration                        | ✅        |
+| TASK-026  | Test landing page renders correctly at `/` route                                                  | ✅        |
+| TASK-027  | Test sign-in flow navigates to `/leagues` after successful authentication                         | ✅        |
+| TASK-028  | Test sign-up flow creates profile and navigates correctly                                         | ✅        |
+| TASK-029  | Verify navigation links work with `Link` component from TanStack Router                           | ✅        |
+| TASK-030  | Update tests for LandingPage, SignInForm, and SignUpForm components                               | ✅        |
+| TASK-030a | Test errorComponent renders correctly for each public route when errors occur                     | ✅        |
 
 **Testing for Phase 3:**
 
@@ -324,6 +324,7 @@ This implementation plan provides a comprehensive, phased approach for migrating
 | TASK-086  | Run linter to catch any remaining React Router imports                 |           |
 | TASK-086a | Run memory profiler to verify no leaks from old router remain          |           |
 | TASK-086b | Verify all error boundaries converted to errorComponent pattern        |           |
+| TASK-086c | Remove temporary redirect logic from CreateTeam component              |           |
 
 **Testing for Phase 8:**
 
