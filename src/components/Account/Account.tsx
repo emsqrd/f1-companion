@@ -8,7 +8,8 @@ import {
   userProfileFormSchema,
 } from '@/validations/userProfileFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { getRouteApi } from '@tanstack/react-router';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -21,13 +22,25 @@ import { LiveRegion } from '../LiveRegion/LiveRegion';
 import { LoadingButton } from '../LoadingButton/LoadingButton';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
+/**
+ * Get the route API for the account route to access loader data
+ * Route path is '/account' (child of pathless 'authenticated' layout)
+ */
+const routeApi = getRouteApi('/_authenticated/account');
+
 export function Account() {
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Get loader data from route - profile is fetched before component renders
+  const { userProfile: initialProfile } = routeApi.useLoaderData();
+
+  // Local state for profile updates (avatar changes, form submissions)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { message, announce } = useLiveRegion();
+
+  // Destructure with defaults for form initialization
+  const { displayName = '', firstName = '', lastName = '', email = '' } = initialProfile || {};
 
   const {
     register,
@@ -38,41 +51,12 @@ export function Account() {
     resolver: zodResolver(userProfileFormSchema),
     mode: 'onBlur', // Validate on blur for better UX
     defaultValues: {
-      displayName: '',
-      firstName: '',
-      lastName: '',
-      email: '',
+      displayName,
+      firstName,
+      lastName,
+      email,
     },
   });
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const data = await userProfileService.getCurrentProfile();
-        setUserProfile(data);
-
-        // Destructure with defaults
-        const { displayName = '', firstName = '', lastName = '', email = '' } = data || {};
-
-        // Reset form with fetched data
-        reset({
-          displayName,
-          firstName,
-          lastName,
-          email,
-        });
-      } catch {
-        // Error already captured by API client (5xx or network errors)
-        const errorMessage = 'Failed to load user profile';
-        setError(errorMessage);
-        announce(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [reset, announce]);
 
   const handleAvatarChange = async (avatarUrl: string) => {
     if (!userProfile) return;
@@ -128,16 +112,6 @@ export function Account() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
   return (
     <AppContainer
       maxWidth="sm"

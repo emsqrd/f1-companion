@@ -9,10 +9,13 @@ import { LeagueList } from '@/components/LeagueList/LeagueList';
 import { Team } from '@/components/Team/Team';
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm';
+import type { UserProfile } from '@/contracts/UserProfile';
 import { requireAuth, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
+import { userProfileService } from '@/services/userProfileService';
 import {
   ErrorComponent,
+  Outlet,
   createRootRouteWithContext,
   createRoute,
   createRouter,
@@ -65,13 +68,46 @@ const signUpRoute = createRoute({
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
-// Protected routes (authentication required)
-const accountRoute = createRoute({
+/**
+ * Authenticated layout route - parent route for all routes requiring authentication.
+ * Uses requireAuth guard in beforeLoad to redirect unauthenticated users.
+ * Child routes automatically inherit auth protection without needing individual guards.
+ * The underscore prefix is TanStack Router convention for pathless layout routes.
+ */
+const authenticatedLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/account',
+  id: '_authenticated',
   beforeLoad: ({ context }) => requireAuth(context),
+  component: () => <Outlet />,
+});
+
+/**
+ * Account route - displays user profile information.
+ * Child of authenticated layout, inherits auth protection.
+ * Uses loader to fetch profile data before component renders.
+ */
+const accountRoute = createRoute({
+  getParentRoute: () => authenticatedLayoutRoute,
+  path: 'account',
+  loader: async (): Promise<{ userProfile: UserProfile | null }> => {
+    const userProfile = await userProfileService.getCurrentProfile();
+    return { userProfile };
+  },
   component: Account,
-  errorComponent: ({ error }) => <ErrorComponent error={error} />,
+  pendingComponent: () => (
+    <div role="status" className="flex w-full items-center justify-center p-8 md:min-h-screen">
+      <div className="text-center">
+        <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
+    </div>
+  ),
+  pendingMs: 200, // Show pending after 200ms to prevent flash for fast loads
+  errorComponent: ({ error }) => (
+    <ErrorBoundary level="page">
+      <ErrorFallback error={error} level="page" onReset={() => window.location.reload()} />
+    </ErrorBoundary>
+  ),
 });
 
 const createTeamRoute = createRoute({
@@ -132,7 +168,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   signInRoute,
   signUpRoute,
-  accountRoute,
+  authenticatedLayoutRoute.addChildren([accountRoute]),
   createTeamRoute,
   leaguesRoute,
   leagueRoute,

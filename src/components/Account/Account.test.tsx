@@ -12,6 +12,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Account } from './Account';
 
+// Use vi.hoisted to ensure mockLoaderData is available before vi.mock hoists
+const { mockLoaderData } = vi.hoisted(() => ({
+  mockLoaderData: vi.fn(),
+}));
+
+// Mock TanStack Router's getRouteApi to provide loader data
+vi.mock('@tanstack/react-router', () => ({
+  getRouteApi: () => ({
+    useLoaderData: mockLoaderData,
+  }),
+}));
+
 // Mock the services and dependencies
 vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
@@ -75,7 +87,8 @@ function renderWithAuth(component: ReactNode, authContext = mockAuthContext) {
 describe('Account', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUserProfileService.getCurrentProfile.mockResolvedValue(mockUserProfile);
+    // Set up default loader data mock - simulates data fetched by route loader
+    mockLoaderData.mockReturnValue({ userProfile: mockUserProfile });
     mockUserProfileService.updateUserProfile.mockResolvedValue(mockUserProfile);
     mockAvatarEvents.emit = vi.fn();
   });
@@ -84,43 +97,31 @@ describe('Account', () => {
     vi.clearAllTimers();
   });
 
-  describe('Loading State', () => {
-    it('displays loading spinner while fetching user profile', async () => {
-      mockUserProfileService.getCurrentProfile.mockImplementation(
-        () => new Promise(() => {}), // Never resolves
-      );
-
+  describe('Data Loading', () => {
+    it('renders with profile data from loader', () => {
       renderWithAuth(<Account />);
 
-      expect(screen.getByText('Loading profile...')).toBeInTheDocument();
-      expect(screen.getByText('Loading profile...')).toBeInTheDocument();
-    });
-
-    it('hides loading state after profile is fetched', async () => {
-      renderWithAuth(<Account />);
-
-      await waitFor(() => {
-        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-      });
-
+      // Component should render immediately with loader data (no loading state)
       expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-    });
-  });
-
-  describe('Form Population', () => {
-    it('populates form fields with user profile data', async () => {
-      renderWithAuth(<Account />);
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
       expect(screen.getByLabelText(/email/i)).toHaveValue(mockUserProfile.email);
       expect(screen.getByLabelText(/first name/i)).toHaveValue(mockUserProfile.firstName);
       expect(screen.getByLabelText(/last name/i)).toHaveValue(mockUserProfile.lastName);
     });
 
-    it('handles empty profile fields gracefully', async () => {
+    it('handles null profile from loader gracefully', () => {
+      // Simulate loader returning null profile (e.g., new user)
+      mockLoaderData.mockReturnValue({ userProfile: null });
+
+      renderWithAuth(<Account />);
+
+      // Form should render with empty defaults
+      expect(screen.getByPlaceholderText('Enter your display name')).toHaveValue('');
+      expect(screen.getByPlaceholderText('Enter your email address')).toHaveValue('');
+    });
+  });
+
+  describe('Form Population', () => {
+    it('handles empty profile fields gracefully', () => {
       const emptyProfile = {
         ...mockUserProfile,
         firstName: '',
@@ -128,14 +129,12 @@ describe('Account', () => {
         displayName: '',
         email: '',
       };
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(emptyProfile);
+      // Set loader data to return empty profile
+      mockLoaderData.mockReturnValue({ userProfile: emptyProfile });
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Enter your display name')).toBeInTheDocument();
-      });
-
+      // Data is pre-loaded, form should show empty values
       expect(screen.getByPlaceholderText('Enter your display name')).toHaveValue('');
       expect(screen.getByPlaceholderText('Enter your first name')).toHaveValue('');
       expect(screen.getByPlaceholderText('Enter your last name')).toHaveValue('');
@@ -144,17 +143,8 @@ describe('Account', () => {
   });
 
   describe('Error Handling', () => {
-    it('displays error message when profile fetch fails', async () => {
-      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-      mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Network error'));
-
-      renderWithAuth(<Account />);
-
-      const errorAlert = await screen.findByRole('alert');
-      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
-
-      consoleError.mockRestore();
-    });
+    // Note: Profile fetch errors are now handled by the route's errorComponent
+    // Component-level tests focus on update/submission errors
 
     it('displays error message when profile update fails', async () => {
       mockUserProfileService.updateUserProfile.mockRejectedValue(new Error('Update failed'));
@@ -162,10 +152,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded, no waiting needed
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -183,10 +170,7 @@ describe('Account', () => {
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-      });
-
+      // Data is pre-loaded, component renders immediately
       const avatarUploadButton = screen.getByTestId('avatar-upload-success');
       await userEvent.click(avatarUploadButton);
 
@@ -196,17 +180,13 @@ describe('Account', () => {
       });
     });
 
-    it('should show fallback error message when saving account throws non-error', async () => {
+    it('shows fallback error message when saving account throws non-error', async () => {
       // Mock updateUserProfile to reject with a string (not an Error instance)
       mockUserProfileService.updateUserProfile.mockRejectedValue('some string error');
 
       renderWithAuth(<Account />);
 
       const user = userEvent.setup();
-
-      await waitFor(() => {
-        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-      });
 
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
@@ -225,10 +205,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.tab(); // Trigger blur validation
@@ -242,10 +219,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/email/i)).toHaveValue(mockUserProfile.email);
-      });
-
+      // Data is pre-loaded by route loader
       const emailInput = screen.getByLabelText(/email/i);
       await user.clear(emailInput);
       await user.type(emailInput, 'invalid-email');
@@ -256,13 +230,10 @@ describe('Account', () => {
       });
     });
 
-    it('keeps save button enabled when form is pristine (ARIA best practice)', async () => {
+    it('keeps save button enabled when form is pristine (ARIA best practice)', () => {
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded, no waiting needed
       // LoadingButton doesn't use disabled attribute - keeps button keyboard accessible
       const saveButton = screen.getByRole('button', { name: /save/i });
       expect(saveButton).not.toBeDisabled();
@@ -273,10 +244,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const saveButton = screen.getByRole('button', { name: /save/i });
       await user.click(saveButton);
 
@@ -292,10 +260,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -313,10 +278,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -342,17 +304,14 @@ describe('Account', () => {
       });
     });
 
-    it('resets form state after successful update', async () => {
+    it('resets form to clean state after successful update', async () => {
       const updatedProfile = { ...mockUserProfile, displayName: 'Updated Name' };
       mockUserProfileService.updateUserProfile.mockResolvedValue(updatedProfile);
 
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -360,27 +319,16 @@ describe('Account', () => {
       const saveButton = screen.getByRole('button', { name: /save/i });
       await user.click(saveButton);
 
+      // Wait for success feedback (multiple elements exist - sr-only and visible)
       await waitFor(() => {
-        // Verify form was reset by checking visible success message (InlineSuccess)
-        const successStatuses = screen.getAllByRole('status');
-        const visibleSuccess = successStatuses.find(
-          (el) =>
-            !el.classList.contains('sr-only') &&
-            el.textContent?.includes('Profile updated successfully'),
-        );
-        expect(visibleSuccess).toBeInTheDocument();
+        expect(screen.getAllByText(/profile updated successfully/i).length).toBeGreaterThan(0);
       });
 
-      // LoadingButton remains enabled (not disabled) per ARIA best practices
-      expect(saveButton).not.toBeDisabled();
-      expect(saveButton).toHaveAttribute('aria-busy', 'false');
+      // Verify form is reset to clean state - clicking save again should not submit
+      await user.click(saveButton);
 
-      // Check for InlineSuccess message (visible one, not sr-only)
-      await waitFor(() => {
-        const successMessages = screen.getAllByText(/profile updated successfully/i);
-        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
-        expect(visibleSuccess).toBeInTheDocument();
-      });
+      // Service should only have been called once (first submit), not twice
+      expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledTimes(1);
     });
 
     it('clears previous feedback before new submission', async () => {
@@ -390,10 +338,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -417,11 +362,9 @@ describe('Account', () => {
       });
 
       // Check for InlineSuccess message (visible one, not sr-only)
-      await waitFor(() => {
-        const successMessages = screen.getAllByText(/profile updated successfully/i);
-        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
-        expect(visibleSuccess).toBeInTheDocument();
-      });
+      const successMessages = screen.getAllByText(/profile updated successfully/i);
+      const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+      expect(visibleSuccess).toBeInTheDocument();
     });
   });
 
@@ -432,10 +375,7 @@ describe('Account', () => {
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const avatarUploadButton = screen.getByTestId('avatar-upload-success');
       await userEvent.click(avatarUploadButton);
 
@@ -455,10 +395,7 @@ describe('Account', () => {
     it('handles avatar upload error', async () => {
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const avatarErrorButton = screen.getByTestId('avatar-upload-error');
       await userEvent.click(avatarErrorButton);
 
@@ -473,10 +410,7 @@ describe('Account', () => {
 
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const avatarUploadButton = screen.getByTestId('avatar-upload-success');
       await userEvent.click(avatarUploadButton);
 
@@ -486,47 +420,40 @@ describe('Account', () => {
       });
     });
 
-    it('passes current avatar URL to AvatarUpload component', async () => {
+    it('passes current avatar URL to AvatarUpload component', () => {
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('current-avatar-url')).toHaveTextContent(
-          mockUserProfile.avatarUrl,
-        );
-      });
+      // Data is pre-loaded by route loader
+      expect(screen.getByTestId('current-avatar-url')).toHaveTextContent(mockUserProfile.avatarUrl);
     });
   });
 
   describe('Accessibility', () => {
-    it('provides proper form labels and structure', async () => {
+    it('provides proper form labels and structure', () => {
       renderWithAuth(<Account />);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
-      });
-
+      // Data is pre-loaded by route loader
+      expect(screen.getByLabelText(/display name/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
     });
 
-    it('displays error feedback via InlineError alert', async () => {
-      mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Test error'));
+    it('renders empty form when profile is null', () => {
+      // Mock loader to return null profile (simulating no profile found)
+      mockLoaderData.mockReturnValue({ userProfile: null });
 
       renderWithAuth(<Account />);
 
-      const errorAlert = await screen.findByRole('alert');
-      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
+      // Form should render with empty values when no profile
+      expect(screen.getByPlaceholderText('Enter your display name')).toHaveValue('');
     });
 
     it('displays success feedback via InlineSuccess status', async () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -539,51 +466,27 @@ describe('Account', () => {
       });
 
       // Check for InlineSuccess message (visible one, not sr-only)
-      await waitFor(() => {
-        const successMessages = screen.getAllByText(/profile updated successfully/i);
-        const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
-        expect(visibleSuccess).toBeInTheDocument();
-      });
+      const successMessages = screen.getAllByText(/profile updated successfully/i);
+      const visibleSuccess = successMessages.find((el) => !el.classList.contains('sr-only'));
+      expect(visibleSuccess).toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles undefined user profile gracefully', async () => {
-      renderWithAuth(<Account />, { ...mockAuthContext, user: null });
-
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('Enter your display name')).toBeInTheDocument();
-      });
-    });
-
-    it('handles missing user ID in auth context', async () => {
+    it('handles missing user ID in auth context', () => {
       renderWithAuth(<Account />, { ...mockAuthContext, user: {} as User });
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
+      // Data is pre-loaded by route loader
+      expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
 
       // Should still pass current avatar URL to AvatarUpload
       expect(screen.getByTestId('current-avatar-url')).toHaveTextContent(mockUserProfile.avatarUrl);
     });
 
-    it('does not attempt avatar update when no user profile is loaded', async () => {
-      // Mock profile fetch to never resolve
-      mockUserProfileService.getCurrentProfile.mockImplementation(() => new Promise(() => {}));
-
-      renderWithAuth(<Account />);
-
-      // Wait for loading state
-      expect(screen.getByText('Loading profile...')).toBeInTheDocument();
-
-      // Avatar upload should not be attempted when profile is still loading
-      expect(mockUserProfileService.updateUserProfile).not.toHaveBeenCalled();
-    });
-
     it('handles form submission when user profile state is stale', async () => {
-      // Simulate a scenario where profile is updated externally
+      // Simulate a scenario where profile loader returned stale data
       const staleProfile = { ...mockUserProfile, displayName: 'Stale Name' };
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(staleProfile);
+      mockLoaderData.mockReturnValue({ userProfile: staleProfile });
 
       const updatedProfile = { ...mockUserProfile, displayName: 'Fresh Name' };
       mockUserProfileService.updateUserProfile.mockResolvedValue(updatedProfile);
@@ -591,9 +494,8 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue('Stale Name');
-      });
+      // Data is pre-loaded by route loader with stale profile
+      expect(screen.getByLabelText(/display name/i)).toHaveValue('Stale Name');
 
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
@@ -621,10 +523,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/email/i)).toHaveValue(mockUserProfile.email);
-      });
-
+      // Data is pre-loaded by route loader
       const emailInput = screen.getByLabelText(/email/i);
 
       // First make it dirty but valid
@@ -652,10 +551,7 @@ describe('Account', () => {
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/display name/i)).toHaveValue(mockUserProfile.displayName);
-      });
-
+      // Data is pre-loaded by route loader
       const displayNameInput = screen.getByLabelText(/display name/i);
       await user.clear(displayNameInput);
       await user.type(displayNameInput, 'Updated Name');
@@ -677,16 +573,14 @@ describe('Account', () => {
       expect(mockUserProfileService.updateUserProfile).toHaveBeenCalledTimes(1);
     });
 
-    it('maintains form state when fetch fails and user tries to edit', async () => {
-      mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Network error'));
+    it('handles form editing when profile is null', async () => {
+      // Mock loader to return null profile (simulating error case)
+      mockLoaderData.mockReturnValue({ userProfile: null });
 
       renderWithAuth(<Account />);
       const user = userEvent.setup();
 
-      const errorAlert = await screen.findByRole('alert');
-      expect(errorAlert).toHaveTextContent(/failed to load user profile/i);
-
-      // Form should still be editable even when initial fetch fails
+      // Form should still be editable even when no profile loaded
       const displayNameInput = screen.getByPlaceholderText('Enter your display name');
       await user.type(displayNameInput, 'Test Name');
 
