@@ -1,7 +1,7 @@
-import type { RouterContext } from '@/lib/router-context';
 import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
-import { redirect } from '@tanstack/react-router';
+import type { RouterContext } from '@/lib/router-context';
 import type { Session, User } from '@supabase/supabase-js';
+import { redirect } from '@tanstack/react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 // Mock the TanStack Router redirect function

@@ -9,8 +9,8 @@ import { LeagueList } from '@/components/LeagueList/LeagueList';
 import { Team } from '@/components/Team/Team';
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm';
-import type { RouterContext } from '@/lib/router-context';
 import { requireAuth, requireTeam } from '@/lib/route-guards';
+import type { RouterContext } from '@/lib/router-context';
 import {
   ErrorComponent,
   createRootRouteWithContext,
