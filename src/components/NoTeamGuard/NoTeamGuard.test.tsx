@@ -1,39 +1,26 @@
 import { useTeam } from '@/hooks/useTeam';
 import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NoTeamGuard } from './NoTeamGuard';
 
 vi.mock('@/hooks/useTeam');
 
+// Mock TanStack Router
+const mockNavigate = vi.fn();
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+  Outlet: () => <div>Create Team Page</div>,
+}));
+
 const mockUseTeam = vi.mocked(useTeam);
 
 const mockTeam = createMockTeam();
 
-// Mock child component that renders when guard allows access
-function CreateTeamPage() {
-  return <div>Create Team Page</div>;
-}
-
-// Mock team page (redirect target)
-function TeamPage() {
-  return <div>Team Page</div>;
-}
-
-// Helper to render NoTeamGuard within routing context
-function renderWithRouter(initialRoute = '/create-team') {
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <Routes>
-        <Route path="/create-team" element={<NoTeamGuard />}>
-          <Route index element={<CreateTeamPage />} />
-        </Route>
-        <Route path="/team/:teamId" element={<TeamPage />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+// Helper to render NoTeamGuard
+function renderWithRouter() {
+  return render(<NoTeamGuard />);
 }
 
 describe('NoTeamGuard', () => {
@@ -69,10 +56,11 @@ describe('NoTeamGuard', () => {
       renderWithRouter();
 
       await waitFor(() => {
-        expect(screen.getByText('Team Page')).toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith({
+          to: `/team/${mockTeam.id}`,
+          replace: true,
+        });
       });
-
-      expect(screen.queryByText('Create Team Page')).not.toBeInTheDocument();
     });
   });
 
@@ -96,17 +84,6 @@ describe('NoTeamGuard', () => {
 
   describe('State Transitions', () => {
     it('transitions from loading to content when user has no team', async () => {
-      const { rerender } = render(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
-
       // Start with loading state
       mockUseTeam.mockReturnValue({
         myTeamId: null,
@@ -115,16 +92,9 @@ describe('NoTeamGuard', () => {
         refreshMyTeam: vi.fn(),
       });
 
-      rerender(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
+      const { rerender } = render(<NoTeamGuard />);
+
+      rerender(<NoTeamGuard />);
 
       expect(screen.getByRole('status')).toBeInTheDocument();
 
@@ -136,16 +106,7 @@ describe('NoTeamGuard', () => {
         refreshMyTeam: vi.fn(),
       });
 
-      rerender(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
+      rerender(<NoTeamGuard />);
 
       await waitFor(() => {
         expect(screen.getByText('Create Team Page')).toBeInTheDocument();
@@ -155,17 +116,6 @@ describe('NoTeamGuard', () => {
     });
 
     it('transitions from loading to redirect when user has team', async () => {
-      const { rerender } = render(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
-
       // Start with loading state
       mockUseTeam.mockReturnValue({
         myTeamId: null,
@@ -174,16 +124,9 @@ describe('NoTeamGuard', () => {
         refreshMyTeam: vi.fn(),
       });
 
-      rerender(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
+      const { rerender } = render(<NoTeamGuard />);
+
+      rerender(<NoTeamGuard />);
 
       expect(screen.getByRole('status')).toBeInTheDocument();
 
@@ -195,19 +138,13 @@ describe('NoTeamGuard', () => {
         refreshMyTeam: vi.fn(),
       });
 
-      rerender(
-        <MemoryRouter initialEntries={['/create-team']}>
-          <Routes>
-            <Route path="/create-team" element={<NoTeamGuard />}>
-              <Route index element={<CreateTeamPage />} />
-            </Route>
-            <Route path="/team/:teamId" element={<TeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
+      rerender(<NoTeamGuard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Team Page')).toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith({
+          to: `/team/${mockTeam.id}`,
+          replace: true,
+        });
       });
     });
   });

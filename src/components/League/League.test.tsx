@@ -11,14 +11,14 @@ vi.mock('../Leaderboard/Leaderboard', () => ({
   Leaderboard: () => <div data-testid="leaderboard">Mocked Leaderboard</div>,
 }));
 
-// Mock React Router hooks
-vi.mock('react-router', () => ({
-  useParams: vi.fn(() => ({ leagueId: '1' })),
-  Link: vi.fn(({ children, to, ...props }) => (
+// Mock TanStack Router hooks
+vi.mock('@tanstack/react-router', () => ({
+  useParams: () => ({ leagueId: '1' }),
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>
       {children}
     </a>
-  )),
+  ),
 }));
 
 // Mock the leagueService to provide mock league data

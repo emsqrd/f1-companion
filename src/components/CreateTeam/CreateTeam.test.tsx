@@ -15,7 +15,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 const mockNavigate = vi.fn();
-vi.mock('react-router', () => ({
+vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -49,7 +49,7 @@ describe('CreateTeam', () => {
     });
 
     // Silent success pattern - navigation is the feedback
-    expect(mockNavigate).toHaveBeenCalledWith('/team/1');
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/team/1' });
   });
 
   it('trims whitespace from team name before submission', async () => {

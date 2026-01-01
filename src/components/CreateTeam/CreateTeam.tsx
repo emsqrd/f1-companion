@@ -3,9 +3,9 @@ import { useTeam } from '@/hooks/useTeam';
 import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useNavigate } from '@tanstack/react-router';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { FormFieldInput } from '../FormField/FormField';
@@ -46,7 +46,7 @@ export function CreateTeam() {
 
       // Navigate using startTransition for non-blocking UI updates
       startTransition(() => {
-        navigate(`/team/${createdTeam.id}`);
+        navigate({ to: `/team/${createdTeam.id}` });
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create team';

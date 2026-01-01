@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveRegion } from '@/hooks/useLiveRegion';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { type FormEvent, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
 
 export function SignInForm() {
   const [email, setEmail] = useState('');
@@ -23,7 +23,7 @@ export function SignInForm() {
   // Redirect authenticated users
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/leagues', { replace: true });
+      navigate({ to: '/leagues', replace: true });
     }
   }, [user, isLoading, navigate]);
 
@@ -34,7 +34,7 @@ export function SignInForm() {
 
     try {
       await signIn(email, password);
-      navigate('/leagues');
+      navigate({ to: '/leagues' });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed';

@@ -1,8 +1,8 @@
 import type { Constructor, Driver } from '@/contracts/Role';
 import type { Team } from '@/contracts/Team';
 import { getTeamById } from '@/services/teamService';
+import { useParams } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 export function Team() {
-  const params = useParams();
+  const params = useParams({ strict: false });
+  const teamId = 'teamId' in params ? params.teamId : undefined;
 
   const [team, setTeam] = useState<Team | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,10 +23,12 @@ export function Team() {
 
   useEffect(() => {
     const fetchTeam = async () => {
+      if (!teamId) return;
+
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getTeamById(Number(params.teamId));
+        const data = await getTeamById(Number(teamId));
         setTeam(data);
       } catch {
         // Error already captured by API client (5xx or network errors)
@@ -36,7 +39,7 @@ export function Team() {
     };
 
     fetchTeam();
-  }, [params.teamId, refetchTrigger]);
+  }, [teamId, refetchTrigger]);
 
   const handleRetry = () => setRefetchTrigger((prev) => prev + 1);
 

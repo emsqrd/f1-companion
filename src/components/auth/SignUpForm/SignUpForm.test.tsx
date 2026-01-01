@@ -1,6 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SignUpForm } from './SignUpForm';
@@ -15,25 +14,24 @@ vi.mock('@/hooks/useAuth', async () => {
   };
 });
 
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual<typeof import('react-router')>('react-router');
-  return {
-    ...actual,
-    useNavigate: vi.fn(),
-  };
-});
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: vi.fn(),
+  Link: ({ to, children }: { to: string; children: React.ReactNode }) => (
+    <a href={to}>{children}</a>
+  ),
+}));
 
 describe('SignUpForm', () => {
   let mockSignUp: ReturnType<typeof vi.fn>;
   let mockNavigate: ReturnType<typeof vi.fn>;
   let useAuth: typeof import('@/hooks/useAuth').useAuth;
-  let useNavigate: typeof import('react-router').useNavigate;
+  let useNavigate: typeof import('@tanstack/react-router').useNavigate;
 
   beforeEach(async () => {
     mockSignUp = vi.fn();
     mockNavigate = vi.fn();
     useAuth = (await import('@/hooks/useAuth')).useAuth;
-    useNavigate = (await import('react-router')).useNavigate;
+    useNavigate = (await import('@tanstack/react-router')).useNavigate;
     vi.mocked(useAuth).mockReturnValue({
       user: null,
       session: null,
@@ -50,11 +48,7 @@ describe('SignUpForm', () => {
   });
 
   const setup = () => {
-    render(
-      <MemoryRouter>
-        <SignUpForm />
-      </MemoryRouter>,
-    );
+    render(<SignUpForm />);
   };
 
   it('renders all form fields and submit button', () => {
@@ -104,7 +98,7 @@ describe('SignUpForm', () => {
       expect(mockSignUp).toHaveBeenCalledWith('test@example.com', 'password123', {
         displayName: 'Test User',
       });
-      expect(mockNavigate).toHaveBeenCalledWith('/create-team', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/create-team', replace: true });
     });
   });
 
@@ -185,6 +179,6 @@ describe('SignUpForm', () => {
     setup();
 
     // Verify navigation was called with correct parameters
-    expect(mockNavigate).toHaveBeenCalledWith('/account', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/account', replace: true });
   });
 });

@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LandingPage } from './LandingPage';
@@ -19,16 +18,12 @@ vi.mock('@/hooks/useAuth', () => ({
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+}));
 
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
+  return render(component);
 };
 
 describe('LandingPage', () => {
@@ -76,7 +71,7 @@ describe('LandingPage', () => {
     const startButton = screen.getByRole('button', { name: /start your journey/i });
     await user.click(startButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/sign-up');
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/sign-up' });
   });
 
   it('should navigate to sign-up page when "Get Started Free" button is clicked', async () => {
@@ -86,7 +81,7 @@ describe('LandingPage', () => {
     const getStartedButton = screen.getByRole('button', { name: /get started free/i });
     await user.click(getStartedButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/sign-up');
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/sign-up' });
   });
 
   it('should scroll to features section when "Learn More" button is clicked', async () => {

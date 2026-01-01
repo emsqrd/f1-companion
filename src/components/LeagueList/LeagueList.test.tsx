@@ -6,9 +6,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LeagueList } from './LeagueList';
 
-// Mock React Router hooks
+// Mock TanStack Router hooks
 const mockNavigate = vi.fn();
-vi.mock('react-router', async () => ({
+vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -103,6 +103,6 @@ describe('Leagues', () => {
     const leagueRow = await screen.findByText('League 1');
     await user.click(leagueRow);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/league/1');
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/league/1' });
   });
 });

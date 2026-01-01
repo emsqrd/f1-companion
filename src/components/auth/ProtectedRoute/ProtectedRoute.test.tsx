@@ -3,7 +3,6 @@ import { AuthContext } from '@/contexts/AuthContext';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { BrowserRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProtectedRoute } from './ProtectedRoute';
@@ -15,13 +14,9 @@ vi.mock('@/components/ui/loading-spinner', () => ({
 
 // Mock react-router navigation
 const mockNavigate = vi.fn();
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+}));
 
 const TestChild = () => <div data-testid="protected-content">Protected Content</div>;
 
@@ -42,9 +37,7 @@ function renderWithAuthAndRouter(component: ReactNode, authContext: Partial<Auth
   };
 
   return render(
-    <BrowserRouter>
-      <AuthContext.Provider value={defaultAuthContext}>{component}</AuthContext.Provider>
-    </BrowserRouter>,
+    <AuthContext.Provider value={defaultAuthContext}>{component}</AuthContext.Provider>,
   );
 }
 
@@ -104,7 +97,7 @@ describe('ProtectedRoute', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/', replace: true });
       });
     });
 
@@ -136,22 +129,20 @@ describe('ProtectedRoute', () => {
 
       // Auth completes with authenticated user
       rerender(
-        <BrowserRouter>
-          <AuthContext.Provider
-            value={{
-              user: mockAuthenticatedUser,
-              session: null,
-              loading: false,
-              signIn: vi.fn(),
-              signUp: vi.fn(),
-              signOut: vi.fn(),
-            }}
-          >
-            <ProtectedRoute>
-              <TestChild />
-            </ProtectedRoute>
-          </AuthContext.Provider>
-        </BrowserRouter>,
+        <AuthContext.Provider
+          value={{
+            user: mockAuthenticatedUser,
+            session: null,
+            loading: false,
+            signIn: vi.fn(),
+            signUp: vi.fn(),
+            signOut: vi.fn(),
+          }}
+        >
+          <ProtectedRoute>
+            <TestChild />
+          </ProtectedRoute>
+        </AuthContext.Provider>,
       );
 
       expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
@@ -172,26 +163,24 @@ describe('ProtectedRoute', () => {
 
       // User logs out
       rerender(
-        <BrowserRouter>
-          <AuthContext.Provider
-            value={{
-              user: null,
-              session: null,
-              loading: false,
-              signIn: vi.fn(),
-              signUp: vi.fn(),
-              signOut: vi.fn(),
-            }}
-          >
-            <ProtectedRoute>
-              <TestChild />
-            </ProtectedRoute>
-          </AuthContext.Provider>
-        </BrowserRouter>,
+        <AuthContext.Provider
+          value={{
+            user: null,
+            session: null,
+            loading: false,
+            signIn: vi.fn(),
+            signUp: vi.fn(),
+            signOut: vi.fn(),
+          }}
+        >
+          <ProtectedRoute>
+            <TestChild />
+          </ProtectedRoute>
+        </AuthContext.Provider>,
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/', replace: true });
       });
 
       expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
@@ -208,7 +197,7 @@ describe('ProtectedRoute', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/', replace: true });
       });
 
       expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
@@ -228,22 +217,20 @@ describe('ProtectedRoute', () => {
 
       // Re-render with same unauthenticated state
       rerender(
-        <BrowserRouter>
-          <AuthContext.Provider
-            value={{
-              user: null,
-              session: null,
-              loading: false,
-              signIn: vi.fn(),
-              signUp: vi.fn(),
-              signOut: vi.fn(),
-            }}
-          >
-            <ProtectedRoute>
-              <TestChild />
-            </ProtectedRoute>
-          </AuthContext.Provider>
-        </BrowserRouter>,
+        <AuthContext.Provider
+          value={{
+            user: null,
+            session: null,
+            loading: false,
+            signIn: vi.fn(),
+            signUp: vi.fn(),
+            signOut: vi.fn(),
+          }}
+        >
+          <ProtectedRoute>
+            <TestChild />
+          </ProtectedRoute>
+        </AuthContext.Provider>,
       );
 
       // Should not navigate again
@@ -270,27 +257,25 @@ describe('ProtectedRoute', () => {
 
       for (const [index, state] of authStates.entries()) {
         rerender(
-          <BrowserRouter>
-            <AuthContext.Provider
-              value={{
-                ...state,
-                session: null,
-                signIn: vi.fn(),
-                signUp: vi.fn(),
-                signOut: vi.fn(),
-              }}
-            >
-              <ProtectedRoute>
-                <TestChild />
-              </ProtectedRoute>
-            </AuthContext.Provider>
-          </BrowserRouter>,
+          <AuthContext.Provider
+            value={{
+              ...state,
+              session: null,
+              signIn: vi.fn(),
+              signUp: vi.fn(),
+              signOut: vi.fn(),
+            }}
+          >
+            <ProtectedRoute>
+              <TestChild />
+            </ProtectedRoute>
+          </AuthContext.Provider>,
         );
 
         if (index === 0 || index === 4) {
           // Should navigate on unauthenticated states
           await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+            expect(mockNavigate).toHaveBeenCalledWith({ to: '/', replace: true });
           });
         }
       }

@@ -1,8 +1,8 @@
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     if (!loading && !user) {
       // Redirect to landing page when user is not authenticated
-      navigate('/', { replace: true });
+      navigate({ to: '/', replace: true });
     }
   }, [user, loading, navigate]);
 

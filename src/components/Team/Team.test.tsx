@@ -7,6 +7,11 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Team } from './Team';
 
+// Mock TanStack Router
+vi.mock('@tanstack/react-router', () => ({
+  useParams: () => ({ teamId: '1' }),
+}));
+
 // Mock Sentry
 vi.mock('@sentry/react', () => ({
   captureException: vi.fn(),
@@ -38,14 +43,14 @@ vi.mock('../ConstructorPicker/ConstructorPicker', () => ({
   )),
 }));
 
-// Mock React Router hooks
-vi.mock('react-router', () => ({
-  useParams: vi.fn(() => ({ teamId: '1' })),
-  Link: vi.fn(({ children, to, ...props }) => (
+// Mock TanStack Router hooks
+vi.mock('@tanstack/react-router', () => ({
+  useParams: () => ({ teamId: '1' }),
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>
       {children}
     </a>
-  )),
+  ),
 }));
 
 vi.mock('@/services/teamService', () => ({

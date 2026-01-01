@@ -1,39 +1,26 @@
 import { useTeam } from '@/hooks/useTeam';
 import { createMockTeam } from '@/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TeamRequiredGuard } from './TeamRequiredGuard';
 
 vi.mock('@/hooks/useTeam');
 
+// Mock TanStack Router
+const mockNavigate = vi.fn();
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+  Outlet: () => <div>Protected Content</div>,
+}));
+
 const mockUseTeam = vi.mocked(useTeam);
 
 const mockTeam = createMockTeam();
 
-// Mock child component that renders when guard allows access
-function ProtectedPage() {
-  return <div>Protected Content</div>;
-}
-
-// Mock create team page
-function CreateTeamPage() {
-  return <div>Create Team Page</div>;
-}
-
-// Helper to render TeamRequiredGuard within routing context
-function renderWithRouter(initialRoute = '/protected') {
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <Routes>
-        <Route path="/protected" element={<TeamRequiredGuard />}>
-          <Route index element={<ProtectedPage />} />
-        </Route>
-        <Route path="/create-team" element={<CreateTeamPage />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+// Helper to render TeamRequiredGuard
+function renderWithRouter() {
+  return render(<TeamRequiredGuard />);
 }
 
 describe('TeamRequiredGuard', () => {
@@ -93,22 +80,11 @@ describe('TeamRequiredGuard', () => {
         refreshMyTeam: vi.fn(),
       });
 
-      rerender(
-        <MemoryRouter initialEntries={['/protected']}>
-          <Routes>
-            <Route path="/protected" element={<TeamRequiredGuard />}>
-              <Route index element={<ProtectedPage />} />
-            </Route>
-            <Route path="/create-team" element={<CreateTeamPage />} />
-          </Routes>
-        </MemoryRouter>,
-      );
+      rerender(<TeamRequiredGuard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Create Team Page')).toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/create-team', replace: true });
       });
-
-      expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
     });
 
     it('hides protected content while redirecting', () => {

@@ -1,6 +1,6 @@
 import { useTeam } from '@/hooks/useTeam';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
-import { Outlet, useNavigate } from 'react-router';
 
 export function TeamRequiredGuard() {
   const { hasTeam, isCheckingTeam, myTeamId } = useTeam();
@@ -22,7 +22,7 @@ export function TeamRequiredGuard() {
     // 2. Loading is complete
     // 3. Team ID is explicitly null (confirmed no team)
     if (hasSeenLoadingState.current && myTeamId === null) {
-      navigate('/create-team', { replace: true });
+      navigate({ to: '/create-team', replace: true });
     }
   }, [myTeamId, isCheckingTeam, navigate]);
 

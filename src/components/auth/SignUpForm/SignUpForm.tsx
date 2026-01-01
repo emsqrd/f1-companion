@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveRegion } from '@/hooks/useLiveRegion';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { type FormEvent, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
 
 export function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -25,7 +25,7 @@ export function SignUpForm() {
   // Redirect authenticated users
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/account', { replace: true });
+      navigate({ to: '/account', replace: true });
     }
   }, [user, isLoading, navigate]);
 
@@ -53,7 +53,7 @@ export function SignUpForm() {
 
     try {
       await signUp(email, password, { displayName });
-      navigate('/create-team', { replace: true });
+      navigate({ to: '/create-team', replace: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
       setError(errorMessage);

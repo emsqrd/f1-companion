@@ -1,6 +1,6 @@
 import { useTeam } from '@/hooks/useTeam';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router';
 
 /**
  * Guard component that redirects users who already have a team.
@@ -15,7 +15,7 @@ export function NoTeamGuard() {
   // with React's render cycle and preventing navigation during state updates
   useEffect(() => {
     if (!isCheckingTeam && hasTeam && myTeamId) {
-      navigate(`/team/${myTeamId}`, { replace: true });
+      navigate({ to: `/team/${myTeamId}`, replace: true });
     }
   }, [myTeamId, hasTeam, isCheckingTeam, navigate]);
 

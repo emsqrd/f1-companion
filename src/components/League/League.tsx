@@ -1,15 +1,16 @@
 import type { League } from '@/contracts/League';
 import { getLeagueById } from '@/services/leagueService';
+import { Link, useParams } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { ErrorState } from '../ErrorState/ErrorState';
 import { Leaderboard } from '../Leaderboard/Leaderboard';
 
 export function League() {
-  const params = useParams();
+  const params = useParams({ strict: false });
+  const leagueId = 'leagueId' in params ? params.leagueId : undefined;
 
   const [league, setLeague] = useState<League | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,10 +19,12 @@ export function League() {
 
   useEffect(() => {
     const fetchLeague = async () => {
+      if (!leagueId) return;
+
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getLeagueById(Number(params.leagueId));
+        const data = await getLeagueById(Number(leagueId));
         setLeague(data);
       } catch {
         // Error already captured by API client (5xx or network errors)
@@ -33,7 +36,7 @@ export function League() {
     };
 
     fetchLeague();
-  }, [params.leagueId, refetchTrigger]);
+  }, [leagueId, refetchTrigger]);
 
   const handleRetry = () => setRefetchTrigger((prev) => prev + 1);
 
