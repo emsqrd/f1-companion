@@ -176,18 +176,18 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task      | Description                                                                              | Completed |
 | --------- | ---------------------------------------------------------------------------------------- | --------- |
-| TASK-031  | Define authenticated layout route in route tree with `requireAuth` guard in `beforeLoad` |           |
-| TASK-032  | Define account route (`/account`) as child of authenticated layout                       |           |
-| TASK-033  | Add loader function to account route to fetch user profile data before rendering         |           |
-| TASK-034  | Update Account component to use `useLoaderData()` hook instead of `useEffect`            |           |
-| TASK-035  | Add pending component to show loading state during profile fetch                         |           |
-| TASK-036  | Add errorComponent to route definition to catch profile fetch errors                     |           |
-| TASK-037  | Update Account form submission to use type-safe navigation                               |           |
-| TASK-038  | Test account page access requires authentication                                         |           |
-| TASK-039  | Test profile data loads before component renders                                         |           |
-| TASK-040  | Update Account component tests to mock `useLoaderData` hook                              |           |
-| TASK-040a | Test errorComponent renders when profile fetch fails                                     |           |
-| TASK-040b | Test pendingComponent displays during profile data load                                  |           |
+| TASK-031  | Define authenticated layout route in route tree with `requireAuth` guard in `beforeLoad` | ✅        |
+| TASK-032  | Define account route (`/account`) as child of authenticated layout                       | ✅        |
+| TASK-033  | Add loader function to account route to fetch user profile data before rendering         | ✅        |
+| TASK-034  | Update Account component to use `useLoaderData()` hook instead of `useEffect`            | ✅        |
+| TASK-035  | Add pending component to show loading state during profile fetch                         | ✅        |
+| TASK-036  | Add errorComponent to route definition to catch profile fetch errors                     | ✅        |
+| TASK-037  | Update Account form submission to use type-safe navigation                               | ✅        |
+| TASK-038  | Test account page access requires authentication                                         | ✅        |
+| TASK-039  | Test profile data loads before component renders                                         | ✅        |
+| TASK-040  | Update Account component tests to mock `useLoaderData` hook                              | ✅        |
+| TASK-040a | Test errorComponent renders when profile fetch fails                                     | ✅        |
+| TASK-040b | Test pendingComponent displays during profile data load                                  | ✅        |
 
 **Testing for Phase 4:**
 
