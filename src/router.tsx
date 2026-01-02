@@ -10,7 +10,7 @@ import { Team } from '@/components/Team/Team';
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm';
 import type { UserProfile } from '@/contracts/UserProfile';
-import { requireAuth, requireTeam } from '@/lib/route-guards';
+import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
 import { userProfileService } from '@/services/userProfileService';
 import {
@@ -110,16 +110,44 @@ const accountRoute = createRoute({
   ),
 });
 
-const createTeamRoute = createRoute({
+/**
+ * No-team layout route - parent route for routes requiring no existing team.
+ * Uses requireNoTeam guard in beforeLoad to redirect users who already have teams.
+ * Child routes automatically inherit this protection.
+ * The underscore prefix is TanStack Router convention for pathless layout routes.
+ */
+const noTeamLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/create-team',
+  id: '_no-team',
   beforeLoad: ({ context }) => {
     requireAuth(context);
-    // Note: Cannot use requireNoTeam guard here due to async team data loading
-    // Component handles redirect after team data loads
+    requireNoTeam(context);
   },
+  component: () => <Outlet />,
+});
+
+/**
+ * Create team route - allows users without teams to create their first team.
+ * Child of no-team layout, inherits protection against users with existing teams.
+ */
+const createTeamRoute = createRoute({
+  getParentRoute: () => noTeamLayoutRoute,
+  path: 'create-team',
   component: CreateTeam,
-  errorComponent: ({ error }) => <ErrorComponent error={error} />,
+  pendingComponent: () => (
+    <div role="status" className="flex w-full items-center justify-center p-8 md:min-h-screen">
+      <div className="text-center">
+        <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+        <p className="text-muted-foreground">Loading team creation...</p>
+      </div>
+    </div>
+  ),
+  pendingMs: 200, // Show pending after 200ms to prevent flash for fast loads
+  errorComponent: ({ error }) => (
+    <ErrorBoundary level="page">
+      <ErrorFallback error={error} level="page" onReset={() => window.location.reload()} />
+    </ErrorBoundary>
+  ),
 });
 
 const leaguesRoute = createRoute({
@@ -169,7 +197,7 @@ const routeTree = rootRoute.addChildren([
   signInRoute,
   signUpRoute,
   authenticatedLayoutRoute.addChildren([accountRoute]),
-  createTeamRoute,
+  noTeamLayoutRoute.addChildren([createTeamRoute]),
   leaguesRoute,
   leagueRoute,
   teamRoute,

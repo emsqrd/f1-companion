@@ -37,11 +37,11 @@ export function AvatarUpload({
 }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImageLoading, setIsImageLoading] = useState(false);
-  const [displayUrl, setDisplayUrl] = useState(currentAvatarUrl);
+  const [displayUrl, setDisplayUrl] = useState<string | undefined>(currentAvatarUrl || undefined);
 
   // Sync displayUrl when currentAvatarUrl changes from parent
   useEffect(() => {
-    setDisplayUrl(currentAvatarUrl);
+    setDisplayUrl(currentAvatarUrl || undefined);
   }, [currentAvatarUrl]);
 
   const { uploadState, uploadAvatar } = useAvatarUpload({

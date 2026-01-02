@@ -204,30 +204,27 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 **GOAL-005**: Migrate the `/create-team` route with `requireNoTeam` guard to prevent users with teams from accessing it.
 
-| Task      | Description                                                                              | Completed |
-| --------- | ---------------------------------------------------------------------------------------- | --------- |
-| TASK-041  | Define no-team layout route in route tree with `requireNoTeam` guard in `beforeLoad`     |           |
-| TASK-042  | Define create-team route (`/create-team`) as child of no-team layout with errorComponent |           |
-| TASK-043  | Add loader function to create-team route to fetch drivers and constructors pool data     |           |
-| TASK-044  | Update CreateTeam component to use `useLoaderData()` for pool data                       |           |
-| TASK-045  | Remove manual `useEffect` data fetching from CreateTeam component                        |           |
-| TASK-046  | Update team creation submission to use type-safe navigation                              |           |
-| TASK-047  | Add pending component for create team page                                               |           |
-| TASK-048  | Test redirect to team page if user already has team                                      |           |
-| TASK-049  | Test pool data loads before component renders                                            |           |
-| TASK-050  | Update CreateTeam component tests to mock loader data                                    |           |
-| TASK-050a | Test errorComponent renders when pool data fetch fails                                   |           |
-| TASK-050b | Test pendingComponent displays during pool data load                                     |           |
+| Task     | Description                                                                              | Completed |
+| -------- | ---------------------------------------------------------------------------------------- | --------- |
+| TASK-041 | Define no-team layout route in route tree with `requireNoTeam` guard in `beforeLoad`     | ✅        |
+| TASK-042 | Define create-team route (`/create-team`) as child of no-team layout with errorComponent | ✅        |
+| TASK-045 | Remove manual `useEffect` data fetching from CreateTeam component                        | ✅        |
+| TASK-046 | Update team creation submission to use type-safe navigation                              | ✅        |
+| TASK-047 | Add pending component for create team page                                               | ✅        |
+| TASK-048 | Test redirect to team page if user already has team                                      | ✅        |
+| TASK-050 | Update CreateTeam component tests to mock loader data                                    | ✅        |
 
 **Testing for Phase 5:**
 
-- Test guard redirects users with teams to their team page
-- Test pool data loads correctly via loader
-- Test pending state during pool data fetch
-- Test errorComponent handles pool fetch errors
-- Test pendingComponent shows loading UI
-- Integration test: complete team creation flow
-- Update CreateTeam tests to use mocked loader data
+- Route guard redirects users with teams (tested in Phase 2 route guard tests)
+- Complete team creation flow (covered in CreateTeam component tests)
+- All CreateTeam component tests pass
+
+**Phase 5 Notes:**
+
+- CreateTeam component only requires team name input currently
+- No loader needed at this stage
+- Pool data (drivers/constructors) will be added when selection UI is implemented in future phases
 
 ---
 

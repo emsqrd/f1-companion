@@ -15,6 +15,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 const mockNavigate = vi.fn();
+
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
@@ -39,9 +40,6 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
-    // Wait for loading state to complete and form to appear
-    await screen.findByLabelText(/team name/i);
-
     await user.type(screen.getByLabelText(/team name/i), 'My Racing Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -59,9 +57,6 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
-    // Wait for loading state to complete and form to appear
-    await screen.findByLabelText(/team name/i);
-
     await user.type(screen.getByLabelText(/team name/i), '  Test Team  ');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -76,8 +71,7 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
-    // Wait for loading state to complete and form to appear
-    const teamNameInput = await screen.findByLabelText(/team name/i);
+    const teamNameInput = screen.getByLabelText(/team name/i);
 
     await user.click(teamNameInput);
     await user.tab();
@@ -91,8 +85,7 @@ describe('CreateTeam', () => {
 
     const longName = 'A'.repeat(51);
 
-    // Wait for loading state to complete and form to appear
-    const teamNameInput = await screen.findByLabelText(/team name/i);
+    const teamNameInput = screen.getByLabelText(/team name/i);
 
     await user.type(teamNameInput, longName);
     await user.tab();
@@ -110,9 +103,6 @@ describe('CreateTeam', () => {
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
 
-    // Wait for loading state to complete and form to appear
-    await screen.findByLabelText(/team name/i);
-
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
@@ -125,9 +115,6 @@ describe('CreateTeam', () => {
 
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
-
-    // Wait for loading state to complete and form to appear
-    await screen.findByLabelText(/team name/i);
 
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));

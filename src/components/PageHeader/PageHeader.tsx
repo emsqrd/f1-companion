@@ -18,7 +18,7 @@ import {
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
   const { hasTeam, myTeamId } = useTeam();
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
@@ -60,7 +60,7 @@ export function PageHeader() {
     const fetchUserProfile = async () => {
       if (!user) {
         if (!isCancelled) {
-          setAvatarUrl('');
+          setAvatarUrl(undefined);
         }
         return;
       }
@@ -71,12 +71,12 @@ export function PageHeader() {
         }
         const profile = await userProfileService.getCurrentProfile();
         if (!isCancelled) {
-          setAvatarUrl(profile?.avatarUrl || '');
+          setAvatarUrl(profile?.avatarUrl || undefined);
         }
       } catch {
         // Error already captured by API client (5xx or network errors)
         if (!isCancelled) {
-          setAvatarUrl('');
+          setAvatarUrl(undefined);
         }
       } finally {
         if (!isCancelled) {
