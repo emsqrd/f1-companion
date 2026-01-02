@@ -108,6 +108,51 @@ describe('Account', () => {
       expect(screen.getByLabelText(/last name/i)).toHaveValue(mockUserProfile.lastName);
     });
 
+    it('updates component when loader data changes (user switches accounts)', () => {
+      // Start with User A's data
+      const userAProfile: UserProfile = {
+        id: 'user-a',
+        email: 'usera@example.com',
+        firstName: 'Alice',
+        lastName: 'Anderson',
+        displayName: 'Alice A',
+        avatarUrl: 'alice.jpg',
+      };
+      mockLoaderData.mockReturnValue({ userProfile: userAProfile });
+
+      const { rerender } = renderWithAuth(<Account />);
+
+      // Verify User A's data is displayed
+      expect(screen.getByLabelText(/display name/i)).toHaveValue('Alice A');
+      expect(screen.getByLabelText(/email/i)).toHaveValue('usera@example.com');
+      expect(screen.getByLabelText(/first name/i)).toHaveValue('Alice');
+      expect(screen.getByLabelText(/last name/i)).toHaveValue('Anderson');
+
+      // Simulate router.invalidate() refetching with User B's data
+      const userBProfile: UserProfile = {
+        id: 'user-b',
+        email: 'userb@example.com',
+        firstName: 'Bob',
+        lastName: 'Brown',
+        displayName: 'Bobby B',
+        avatarUrl: 'bob.jpg',
+      };
+      mockLoaderData.mockReturnValue({ userProfile: userBProfile });
+
+      // Rerender with new loader data (simulates React updating after loader refetch)
+      rerender(
+        <AuthContext.Provider value={mockAuthContext}>
+          <Account />
+        </AuthContext.Provider>,
+      );
+
+      // Verify User B's data is now displayed (not User A's)
+      expect(screen.getByLabelText(/display name/i)).toHaveValue('Bobby B');
+      expect(screen.getByLabelText(/email/i)).toHaveValue('userb@example.com');
+      expect(screen.getByLabelText(/first name/i)).toHaveValue('Bob');
+      expect(screen.getByLabelText(/last name/i)).toHaveValue('Brown');
+    });
+
     it('handles null profile from loader gracefully', () => {
       // Simulate loader returning null profile (e.g., new user)
       mockLoaderData.mockReturnValue({ userProfile: null });

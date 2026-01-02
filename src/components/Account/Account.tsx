@@ -9,7 +9,7 @@ import {
 } from '@/validations/userProfileFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getRouteApi } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -57,6 +57,18 @@ export function Account() {
       email,
     },
   });
+
+  // Sync local state when loader data changes (e.g., user switches accounts)
+  useEffect(() => {
+    setUserProfile(initialProfile);
+    // Reset form with new user's data
+    reset({
+      displayName: initialProfile?.displayName || '',
+      firstName: initialProfile?.firstName || '',
+      lastName: initialProfile?.lastName || '',
+      email: initialProfile?.email || '',
+    });
+  }, [initialProfile, reset]);
 
   const handleAvatarChange = async (avatarUrl: string) => {
     if (!userProfile) return;
