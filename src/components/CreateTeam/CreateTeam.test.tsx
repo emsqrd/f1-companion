@@ -111,7 +111,8 @@ describe('CreateTeam', () => {
   });
 
   it('displays error message when submission fails', async () => {
-    mockTeamService.createTeam.mockRejectedValue(new Error('Network error'));
+    mockTeamService.createTeam.mockReset();
+    mockTeamService.createTeam.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithTeamProvider(<CreateTeam />);
     const user = userEvent.setup();
@@ -119,17 +120,20 @@ describe('CreateTeam', () => {
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
-    // Wait for error to appear (this ensures all async operations complete)
+    // Wait for error to appear - findByRole automatically waits
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toHaveTextContent(/network error/i);
 
-    // Navigation should not happen on error (synchronous check)
+    // Verify navigation didn't happen
     expect(mockNavigate).not.toHaveBeenCalled();
 
-    // Wait for all React state updates to complete
-    // This prevents "window is not defined" errors from async setState after test teardown
+    // Wait for button to return to normal state (ensures all async work is done)
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /create team/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /create team/i })).toHaveAttribute(
+        'aria-busy',
+        'false',
+      );
     });
   });
 });

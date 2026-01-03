@@ -4,7 +4,7 @@ import { createTeam } from '@/services/teamService';
 import { type CreateTeamFormData, createTeamFormSchema } from '@/validations/teamSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { AppContainer } from '../AppContainer/AppContainer';
@@ -17,7 +17,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 export function CreateTeam() {
   const navigate = useNavigate();
   const { refreshMyTeam } = useTeam();
-  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const { message, announce } = useLiveRegion();
 
@@ -44,10 +43,8 @@ export function CreateTeam() {
       // Refresh context to update myTeamId
       await refreshMyTeam();
 
-      // Navigate using startTransition for non-blocking UI updates
-      startTransition(() => {
-        navigate({ to: `/team/${createdTeam.id}` });
-      });
+      // Navigate - TanStack Router handles navigation transitions
+      navigate({ to: `/team/${createdTeam.id}` });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create team';
       setError(errorMessage);
@@ -81,10 +78,10 @@ export function CreateTeam() {
 
               <div className="flex justify-end pt-2">
                 <LoadingButton
-                  isLoading={isSubmitting || isPending}
+                  isLoading={isSubmitting}
                   className="min-w-32"
                   type="submit"
-                  loadingText={isSubmitting ? 'Creating...' : 'Redirecting...'}
+                  loadingText="Creating..."
                 >
                   Create Team
                 </LoadingButton>

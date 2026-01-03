@@ -1,8 +1,9 @@
 import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
+import { getMyTeam } from '@/services/teamService';
 import type { Session, User } from '@supabase/supabase-js';
 import { redirect } from '@tanstack/react-router';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the TanStack Router redirect function
 vi.mock('@tanstack/react-router', async () => {
@@ -12,10 +13,15 @@ vi.mock('@tanstack/react-router', async () => {
     redirect: vi.fn((options) => {
       const error = new Error('Redirect') as Error & { redirect: typeof options };
       error.redirect = options;
-      return error;
+      throw error;
     }),
   };
 });
+
+// Mock teamService
+vi.mock('@/services/teamService', () => ({
+  getMyTeam: vi.fn(),
+}));
 
 // Helper to create a mock user
 const createMockUser = (): User => ({
@@ -38,8 +44,12 @@ const createMockSession = (): Session => ({
 });
 
 describe('route-guards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('requireAuth', () => {
-    it('throws redirect when user is not authenticated', () => {
+    it('throws redirect when user is not authenticated', async () => {
       const context: RouterContext = {
         auth: {
           user: null,
@@ -57,14 +67,14 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireAuth(context)).toThrow();
+      await expect(() => requireAuth(context)).rejects.toThrow();
       expect(redirect).toHaveBeenCalledWith({
         to: '/',
         replace: true,
       });
     });
 
-    it('does not throw when user is authenticated', () => {
+    it('does not throw when user is authenticated', async () => {
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -82,31 +92,10 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireAuth(context)).not.toThrow();
+      await expect(requireAuth(context)).resolves.not.toThrow();
     });
 
-    it('does not throw when auth is loading', () => {
-      const context: RouterContext = {
-        auth: {
-          user: null,
-          session: null,
-          loading: true,
-          signIn: vi.fn(),
-          signUp: vi.fn(),
-          signOut: vi.fn(),
-        },
-        team: {
-          myTeamId: null,
-          hasTeam: false,
-          isCheckingTeam: false,
-          refreshMyTeam: vi.fn(),
-        },
-      };
-
-      expect(() => requireAuth(context)).not.toThrow();
-    });
-
-    it('redirects to landing page with replace option', () => {
+    it('redirects to landing page with replace option', async () => {
       const context: RouterContext = {
         auth: {
           user: null,
@@ -125,7 +114,7 @@ describe('route-guards', () => {
       };
 
       try {
-        requireAuth(context);
+        await requireAuth(context);
       } catch (error) {
         expect((error as Error & { redirect: unknown }).redirect).toEqual({
           to: '/',
@@ -136,7 +125,8 @@ describe('route-guards', () => {
   });
 
   describe('requireTeam', () => {
-    it('throws redirect when user does not have a team', () => {
+    it('throws redirect when user does not have a team', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue(null);
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -154,14 +144,15 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireTeam(context)).toThrow();
+      await expect(() => requireTeam(context)).rejects.toThrow();
       expect(redirect).toHaveBeenCalledWith({
         to: '/create-team',
         replace: true,
       });
     });
 
-    it('does not throw when user has a team', () => {
+    it('does not throw when user has a team', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -179,52 +170,10 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireTeam(context)).not.toThrow();
+      await expect(requireTeam(context)).resolves.not.toThrow();
     });
 
-    it('does not throw when auth is loading', () => {
-      const context: RouterContext = {
-        auth: {
-          user: null,
-          session: null,
-          loading: true,
-          signIn: vi.fn(),
-          signUp: vi.fn(),
-          signOut: vi.fn(),
-        },
-        team: {
-          myTeamId: null,
-          hasTeam: false,
-          isCheckingTeam: false,
-          refreshMyTeam: vi.fn(),
-        },
-      };
-
-      expect(() => requireTeam(context)).not.toThrow();
-    });
-
-    it('does not throw when team is checking', () => {
-      const context: RouterContext = {
-        auth: {
-          user: createMockUser(),
-          session: createMockSession(),
-          loading: false,
-          signIn: vi.fn(),
-          signUp: vi.fn(),
-          signOut: vi.fn(),
-        },
-        team: {
-          myTeamId: null,
-          hasTeam: false,
-          isCheckingTeam: true,
-          refreshMyTeam: vi.fn(),
-        },
-      };
-
-      expect(() => requireTeam(context)).not.toThrow();
-    });
-
-    it('does not throw when user is not authenticated', () => {
+    it('does not throw when user is not authenticated', async () => {
       const context: RouterContext = {
         auth: {
           user: null,
@@ -242,11 +191,12 @@ describe('route-guards', () => {
         },
       };
 
-      // Should not throw because requireAuth should be called first
-      expect(() => requireTeam(context)).not.toThrow();
+      // Should throw redirect because requireAuth is called first and user is not authenticated
+      await expect(() => requireTeam(context)).rejects.toThrow();
     });
 
-    it('redirects to create-team page with replace option', () => {
+    it('redirects to create-team page with replace option', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue(null);
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -265,7 +215,7 @@ describe('route-guards', () => {
       };
 
       try {
-        requireTeam(context);
+        await requireTeam(context);
       } catch (error) {
         expect((error as Error & { redirect: unknown }).redirect).toEqual({
           to: '/create-team',
@@ -276,7 +226,8 @@ describe('route-guards', () => {
   });
 
   describe('requireNoTeam', () => {
-    it('throws redirect when user already has a team', () => {
+    it('throws redirect when user already has a team', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -294,14 +245,15 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireNoTeam(context)).toThrow();
+      await expect(() => requireNoTeam(context)).rejects.toThrow();
       expect(redirect).toHaveBeenCalledWith({
         to: '/leagues',
         replace: true,
       });
     });
 
-    it('does not throw when user does not have a team', () => {
+    it('does not throw when user does not have a team', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue(null);
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -319,52 +271,10 @@ describe('route-guards', () => {
         },
       };
 
-      expect(() => requireNoTeam(context)).not.toThrow();
+      await expect(requireNoTeam(context)).resolves.not.toThrow();
     });
 
-    it('does not throw when auth is loading', () => {
-      const context: RouterContext = {
-        auth: {
-          user: null,
-          session: null,
-          loading: true,
-          signIn: vi.fn(),
-          signUp: vi.fn(),
-          signOut: vi.fn(),
-        },
-        team: {
-          myTeamId: 1,
-          hasTeam: true,
-          isCheckingTeam: false,
-          refreshMyTeam: vi.fn(),
-        },
-      };
-
-      expect(() => requireNoTeam(context)).not.toThrow();
-    });
-
-    it('does not throw when team is checking', () => {
-      const context: RouterContext = {
-        auth: {
-          user: createMockUser(),
-          session: createMockSession(),
-          loading: false,
-          signIn: vi.fn(),
-          signUp: vi.fn(),
-          signOut: vi.fn(),
-        },
-        team: {
-          myTeamId: 1,
-          hasTeam: true,
-          isCheckingTeam: true,
-          refreshMyTeam: vi.fn(),
-        },
-      };
-
-      expect(() => requireNoTeam(context)).not.toThrow();
-    });
-
-    it('does not throw when user is not authenticated', () => {
+    it('does not throw when user is not authenticated', async () => {
       const context: RouterContext = {
         auth: {
           user: null,
@@ -382,11 +292,12 @@ describe('route-guards', () => {
         },
       };
 
-      // Should not throw because requireAuth should be called first
-      expect(() => requireNoTeam(context)).not.toThrow();
+      // Should throw redirect because requireAuth is called first and user is not authenticated
+      await expect(() => requireNoTeam(context)).rejects.toThrow();
     });
 
-    it('redirects to leagues page with replace option', () => {
+    it('redirects to leagues page with replace option', async () => {
+      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -405,7 +316,7 @@ describe('route-guards', () => {
       };
 
       try {
-        requireNoTeam(context);
+        await requireNoTeam(context);
       } catch (error) {
         expect((error as Error & { redirect: unknown }).redirect).toEqual({
           to: '/leagues',

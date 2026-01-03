@@ -1,35 +1,35 @@
 import type { RouterContext } from '@/lib/router-context';
+import { getMyTeam } from '@/services/teamService';
 import { redirect } from '@tanstack/react-router';
 
 /**
  * Route guard that requires user authentication.
  *
- * Use this guard in the `beforeLoad` function of any route that requires
- * the user to be authenticated. If the user is not authenticated, they will
- * be redirected to the sign-in page.
+ * Use this guard in the {@link https://tanstack.com/router/latest/docs/framework/react/api/router/RouteOptionsType#beforeload-method | beforeLoad}
+ * function of any route that requires the user to be authenticated. If the user is not
+ * authenticated, they will be redirected to the sign-in page.
+ *
+ * **Important:** This guard assumes auth has finished loading. The `RouterProvider` should
+ * only be rendered after auth is ready (handled in `InnerApp`).
+ *
+ * @param context - The router context containing auth state
+ * @returns A promise that resolves when the auth check is complete
+ * @throws Redirects to `/` (landing page with sign-in) if not authenticated
  *
  * @example
  * ```typescript
  * const accountRoute = createRoute({
  *   getParentRoute: () => rootRoute,
  *   path: '/account',
- *   beforeLoad: ({ context }) => requireAuth(context),
+ *   beforeLoad: async ({ context }) => await requireAuth(context),
  *   component: Account,
  * });
  * ```
  *
- * @param context - The router context containing auth state
- * @throws {redirect} Redirects to '/' (landing page with sign-in) if not authenticated
- * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes TanStack Router Authentication Guide}
+ * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes | TanStack Router Authentication Guide}
  */
-export function requireAuth(context: RouterContext): void {
-  // Wait for auth to load before checking authentication
-  if (context.auth.loading) {
-    return;
-  }
-
+export async function requireAuth(context: RouterContext): Promise<void> {
   // Throw redirect if user is not authenticated
-  // Note: TanStack Router requires throwing redirect, not returning it
   if (!context.auth.user) {
     throw redirect({
       to: '/',
@@ -41,45 +41,44 @@ export function requireAuth(context: RouterContext): void {
 /**
  * Route guard that requires the authenticated user to have a team.
  *
- * Use this guard in combination with `requireAuth` for routes that require
- * both authentication and team ownership. If the user doesn't have a team,
- * they will be redirected to the create team page.
+ * Use this guard in combination with {@link requireAuth} for routes that require both
+ * authentication and team ownership. If the user doesn't have a team, they will be
+ * redirected to the create team page.
  *
- * NOTE: This guard will prevent navigation while team data is loading to ensure
- * accurate routing decisions. The route will wait until team state is determined.
+ * This guard fetches team data directly from the API, following TanStack Router best
+ * practice: {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes#the-routebeforeload-option | beforeLoad should fetch required data}
+ * rather than relying on async React context state.
+ *
+ * @param context - The router context containing auth and team state
+ * @returns A promise that resolves when the team check is complete
+ * @throws Redirects to `/create-team` if user doesn't have a team
  *
  * @example
  * ```typescript
  * const leaguesRoute = createRoute({
  *   getParentRoute: () => rootRoute,
  *   path: '/leagues',
- *   beforeLoad: ({ context }) => {
- *     requireAuth(context);
- *     requireTeam(context);
+ *   beforeLoad: async ({ context }) => {
+ *     await requireAuth(context);
+ *     await requireTeam(context);
  *   },
  *   component: LeagueList,
  * });
  * ```
  *
- * @param context - The router context containing auth and team state
- * @throws {redirect} Redirects to '/create-team' if user doesn't have a team
+ * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes | TanStack Router Authentication Guide}
  */
-export function requireTeam(context: RouterContext): void {
-  // Don't check team if auth is still loading or user is not authenticated
-  // requireAuth should be called first to handle authentication
-  if (context.auth.loading || !context.auth.user) {
-    return;
-  }
+export async function requireTeam(context: RouterContext): Promise<void> {
+  // Ensure auth is ready first
+  await requireAuth(context);
 
-  // Wait for team check to complete before evaluating
-  // NOTE: This guard won't work perfectly until Phase 4/5 when loaders are implemented
-  // For now, it relies on context data which loads asynchronously
-  if (context.team.isCheckingTeam) {
-    return;
-  }
+  // Fetch team data directly to ensure we have the most current state
+  // This follows TanStack Router best practice: beforeLoad should fetch
+  // required data rather than relying on async React context state
+  const team = await getMyTeam();
 
   // Throw redirect if user doesn't have a team
-  if (!context.team.hasTeam) {
+  if (!team) {
     throw redirect({
       to: '/create-team',
       replace: true,
@@ -90,45 +89,45 @@ export function requireTeam(context: RouterContext): void {
 /**
  * Route guard that requires the authenticated user to NOT have a team.
  *
- * Use this guard for routes like "create team" where users who already have
- * a team should not be able to access the page. If the user has a team,
- * they will be redirected to the leagues page.
+ * Use this guard for routes like "create team" where users who already have a team
+ * should not be able to access the page. If the user has a team, they will be
+ * redirected to the leagues page.
  *
- * NOTE: This guard will prevent navigation while team data is loading to ensure
- * accurate routing decisions. The route will wait until team state is determined.
+ * This guard fetches team data directly from the API, following TanStack Router best
+ * practice: {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes#the-routebeforeload-option | beforeLoad should fetch required data}
+ * rather than relying on async React context state. This prevents users with teams
+ * from accessing the create-team page, avoiding the
+ * {@link https://tanstack.com/router/latest/docs/framework/react/how-to/setup-authentication#protected-route-flashing-before-redirect | protected route flashing}
+ * problem.
+ *
+ * @param context - The router context containing auth and team state
+ * @returns A promise that resolves when the team check is complete
+ * @throws Redirects to `/leagues` if user already has a team
  *
  * @example
  * ```typescript
  * const createTeamRoute = createRoute({
  *   getParentRoute: () => rootRoute,
  *   path: '/create-team',
- *   beforeLoad: ({ context }) => {
- *     requireAuth(context);
- *     requireNoTeam(context);
+ *   beforeLoad: async ({ context }) => {
+ *     await requireAuth(context);
+ *     await requireNoTeam(context);
  *   },
  *   component: CreateTeam,
  * });
  * ```
  *
- * @param context - The router context containing auth and team state
- * @throws {redirect} Redirects to '/leagues' if user already has a team
+ * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes | TanStack Router Authentication Guide}
  */
-export function requireNoTeam(context: RouterContext): void {
-  // Don't check team if auth is still loading or user is not authenticated
-  // requireAuth should be called first to handle authentication
-  if (context.auth.loading || !context.auth.user) {
-    return;
-  }
+export async function requireNoTeam(context: RouterContext): Promise<void> {
+  // Ensure auth is ready first
+  await requireAuth(context);
 
-  // Wait for team check to complete before evaluating
-  // NOTE: This guard won't work perfectly until Phase 4/5 when loaders are implemented
-  // For now, component-level checks in CreateTeam handle the redirect after team loads
-  if (context.team.isCheckingTeam) {
-    return;
-  }
+  // Fetch team data directly to ensure we have the most current state
+  const team = await getMyTeam();
 
   // Throw redirect if user already has a team
-  if (context.team.hasTeam) {
+  if (team) {
     throw redirect({
       to: '/leagues',
       replace: true,

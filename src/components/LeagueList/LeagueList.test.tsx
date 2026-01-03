@@ -1,20 +1,30 @@
 import type { League } from '@/contracts/League';
-import { getMyLeagues } from '@/services/leagueService';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LeagueList } from './LeagueList';
 
 // Mock TanStack Router hooks
 const mockNavigate = vi.fn();
+const mockUseLoaderData = vi.fn();
+
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
-}));
-
-// Mock leagueService to mock league data
-vi.mock('@/services/leagueService', () => ({
-  getMyLeagues: vi.fn(),
+  useLoaderData: (opts: { from: string }) => mockUseLoaderData(opts),
+  Link: ({
+    children,
+    to,
+    params,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+    params?: Record<string, string>;
+  }) => (
+    <a href={`${to}/${params?.leagueId || ''}`} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 const leaguesMock: League[] = [
@@ -34,75 +44,46 @@ const leaguesMock: League[] = [
   },
 ];
 
-describe('Leagues', () => {
+describe('LeagueList', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Default: mock loader data with leagues
+    mockUseLoaderData.mockReturnValue({
+      leagues: leaguesMock,
+    });
   });
 
-  it('should display leagues', async () => {
-    vi.mocked(getMyLeagues).mockResolvedValue(leaguesMock);
-
+  it('displays leagues from loader data', () => {
     render(<LeagueList />);
 
-    // Wait for loading to complete and content to render
-    expect(await screen.findByText('League 1')).toBeInTheDocument();
-    expect(await screen.findByText('League 2')).toBeInTheDocument();
+    // Leagues should be displayed immediately (no loading state)
+    expect(screen.getByText('League 1')).toBeInTheDocument();
+    expect(screen.getByText('League 2')).toBeInTheDocument();
 
     // There should be an accessible heading for the component
-    expect(screen.getByRole('heading', { level: 2, name: 'Joined Leagues' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Joined Leagues' })).toBeInTheDocument();
   });
 
-  it('should display loader while fetching leagues data', async () => {
-    // Create a deferred promise to control when the API call resolves
-    let resolveLeaguesFetch: (value: League[]) => void;
-    const leaguesFetchPromise = new Promise<League[]>((resolve) => {
-      resolveLeaguesFetch = resolve;
+  it('displays empty league list when no leagues exist', () => {
+    mockUseLoaderData.mockReturnValue({
+      leagues: [],
     });
 
-    // Mock getLeagues to return controlled promise
-    vi.mocked(getMyLeagues).mockReturnValueOnce(leaguesFetchPromise);
-
     render(<LeagueList />);
 
-    // Verify loading state is displayed properly
-    expect(screen.getByText('Loading Leagues...')).toBeInTheDocument();
+    // Heading should still be visible
+    expect(screen.getByRole('heading', { level: 2, name: 'Joined Leagues' })).toBeInTheDocument();
 
-    // Verify loading spinner is present
-    const spinner = screen.getByRole('status', { hidden: true });
-    expect(spinner).toBeInTheDocument();
-    expect(spinner).toHaveClass('animate-spin');
-
-    // Verify main content is not rendered during loading
-    expect(screen.queryByText('league-list')).not.toBeInTheDocument();
-
-    resolveLeaguesFetch!(leaguesMock);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText('Loading Leagues...')).not.toBeInTheDocument();
-    });
-
-    expect(getMyLeagues).toHaveBeenCalledOnce();
+    // But no league items should be present
+    expect(screen.queryByText('League 1')).not.toBeInTheDocument();
   });
 
-  it('should display error when getting leagues fails', async () => {
-    vi.mocked(getMyLeagues).mockRejectedValueOnce({ error: 'Failed to load leagues' });
-
+  it('renders league links with type-safe navigation', () => {
     render(<LeagueList />);
 
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-
-    expect(screen.queryByText('league-list')).not.toBeInTheDocument();
-  });
-
-  it('should navigate to league component when league is clicked', async () => {
-    const user = userEvent.setup();
-
-    render(<LeagueList />);
-
-    const leagueRow = await screen.findByText('League 1');
-    await user.click(leagueRow);
-
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/league/1' });
+    const leagueLink = screen.getByRole('link', { name: /view league: league 1/i });
+    expect(leagueLink).toBeInTheDocument();
+    expect(leagueLink).toHaveAttribute('href', '/league/$leagueId/1');
   });
 });

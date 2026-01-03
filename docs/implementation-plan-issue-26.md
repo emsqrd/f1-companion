@@ -234,20 +234,20 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task      | Description                                                                                     | Completed |
 | --------- | ----------------------------------------------------------------------------------------------- | --------- |
-| TASK-051  | Define team-required layout route in route tree with `requireTeam` guard in `beforeLoad`        |           |
-| TASK-052  | Define leagues route (`/leagues`) as child of team-required layout with errorComponent          |           |
-| TASK-053  | Add loader function to leagues route to fetch user's leagues before rendering                   |           |
-| TASK-054  | Update LeagueList component to use `useLoaderData()` instead of `useAsyncData` hook             |           |
-| TASK-055  | Define league detail route (`/league/$leagueId`) with typed params using Zod and errorComponent |           |
-| TASK-056  | Add loader function to league detail route to fetch league by ID with automatic type conversion |           |
-| TASK-057  | Update League component to use `useLoaderData()` and `useParams()` with types                   |           |
-| TASK-058  | Remove manual `Number(params.leagueId)` conversions (now type-safe)                             |           |
-| TASK-059  | Add pending components for league list and league detail routes                                 |           |
-| TASK-060  | Update navigation links to use type-safe `Link` component with typed params                     |           |
-| TASK-061  | Test redirect to `/create-team` if user has no team                                             |           |
-| TASK-062  | Test league list loader fetches all user leagues                                                |           |
-| TASK-063  | Test league detail loader with invalid league ID returns 404                                    |           |
-| TASK-064  | Update LeagueList and League component tests to mock loader data                                |           |
+| TASK-051  | Define team-required layout route in route tree with `requireTeam` guard in `beforeLoad`        | ✅        |
+| TASK-052  | Define leagues route (`/leagues`) as child of team-required layout with errorComponent          | ✅        |
+| TASK-053  | Add loader function to leagues route to fetch user's leagues before rendering                   | ✅        |
+| TASK-054  | Update LeagueList component to use `useLoaderData()` instead of `useAsyncData` hook             | ✅        |
+| TASK-055  | Define league detail route (`/league/$leagueId`) with typed params using Zod and errorComponent | ✅        |
+| TASK-056  | Add loader function to league detail route to fetch league by ID with automatic type conversion | ✅        |
+| TASK-057  | Update League component to use `useLoaderData()` and `useParams()` with types                   | ✅        |
+| TASK-058  | Remove manual `Number(params.leagueId)` conversions (now type-safe)                             | ✅        |
+| TASK-059  | Add pending components for league list and league detail routes                                 | ✅        |
+| TASK-060  | Update navigation links to use type-safe `Link` component with typed params                     | ✅        |
+| TASK-061  | Test redirect to `/create-team` if user has no team                                             | ✅        |
+| TASK-062  | Test league list loader fetches all user leagues                                                | ✅        |
+| TASK-063  | Test league detail loader with invalid league ID returns 404                                    | ⚠️        |
+| TASK-064  | Update LeagueList and League component tests to mock loader data                                | ✅        |
 | TASK-064a | Test errorComponent renders for league list fetch failures                                      |           |
 | TASK-064b | Test errorComponent renders for league detail fetch failures                                    |           |
 | TASK-064c | Test pendingComponent displays during league data loads                                         |           |

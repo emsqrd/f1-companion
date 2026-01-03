@@ -44,5 +44,18 @@ export function InnerApp() {
 
   useInvalidateOnUserChange(auth.user?.id, auth.loading);
 
+  // Wait for auth to finish loading before rendering the router
+  // This ensures beforeLoad guards receive accurate auth state
+  if (auth.loading) {
+    return (
+      <div role="status" className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return <RouterProvider router={router} context={{ auth, team }} />;
 }
