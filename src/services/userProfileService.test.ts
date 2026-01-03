@@ -43,7 +43,11 @@ describe('userProfileService', () => {
 
       expect(result).toEqual(mockUserProfile);
       expect(mockApiClient.post).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.post).toHaveBeenCalledWith('/me/register', mockCreateProfileData);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/me/register',
+        mockCreateProfileData,
+        'register user',
+      );
     });
 
     it('should successfully register a user without display name', async () => {
@@ -59,7 +63,11 @@ describe('userProfileService', () => {
 
       expect(result).toEqual(expectedProfile);
       expect(mockApiClient.post).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.post).toHaveBeenCalledWith('/me/register', emptyProfileData);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/me/register',
+        emptyProfileData,
+        'register user',
+      );
     });
 
     it('should handle registration with special characters in display name', async () => {
@@ -76,7 +84,11 @@ describe('userProfileService', () => {
       const result = await userProfileService.registerUser(specialProfileData);
 
       expect(result).toEqual(expectedProfile);
-      expect(mockApiClient.post).toHaveBeenCalledWith('/me/register', specialProfileData);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/me/register',
+        specialProfileData,
+        'register user',
+      );
     });
 
     it('should return profile with all required fields after registration', async () => {
@@ -140,7 +152,7 @@ describe('userProfileService', () => {
 
       expect(result).toEqual(mockUserProfile);
       expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/me/profile');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/profile', 'get your profile');
     });
 
     it('should return profile with all required fields', async () => {
@@ -222,7 +234,11 @@ describe('userProfileService', () => {
 
       expect(result).toEqual(updatedProfile);
       expect(mockApiClient.patch).toHaveBeenCalledTimes(1);
-      expect(mockApiClient.patch).toHaveBeenCalledWith('/me/profile', updatedProfile);
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/me/profile',
+        updatedProfile,
+        'update your profile',
+      );
     });
 
     it('should successfully update only display name', async () => {
@@ -239,7 +255,11 @@ describe('userProfileService', () => {
       const result = await userProfileService.updateUserProfile(partialUpdate as UserProfile);
 
       expect(result).toEqual(expectedResponse);
-      expect(mockApiClient.patch).toHaveBeenCalledWith('/me/profile', partialUpdate);
+      expect(mockApiClient.patch).toHaveBeenCalledWith(
+        '/me/profile',
+        partialUpdate,
+        'update your profile',
+      );
     });
 
     it('should successfully update avatar URL', async () => {

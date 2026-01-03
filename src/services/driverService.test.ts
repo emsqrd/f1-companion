@@ -40,7 +40,7 @@ describe('driverService', () => {
 
       const result = await getActiveDrivers();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true', 'get drivers');
       expect(result).toEqual(mockDrivers);
     });
 
@@ -50,7 +50,7 @@ describe('driverService', () => {
       const result = await getActiveDrivers();
 
       expect(result).toEqual([]);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true', 'get drivers');
     });
 
     it('propagates API errors during driver retrieval', async () => {
@@ -59,7 +59,7 @@ describe('driverService', () => {
       mockApiClient.get.mockRejectedValue(mockError);
 
       await expect(getActiveDrivers()).rejects.toThrow('Failed to fetch drivers');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/drivers?activeOnly=true', 'get drivers');
     });
   });
 });

@@ -49,7 +49,11 @@ describe('leagueService', () => {
 
       const result = await createLeague(mockLeagueRequest);
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/leagues',
+        mockLeagueRequest,
+        'create league',
+      );
       expect(result).toEqual(mockLeagueResponse);
     });
 
@@ -89,7 +93,11 @@ describe('leagueService', () => {
       mockApiClient.post.mockRejectedValue(mockError);
 
       await expect(createLeague(mockLeagueRequest)).rejects.toThrow('Network error');
-      expect(mockApiClient.post).toHaveBeenCalledWith('/leagues', mockLeagueRequest);
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        '/leagues',
+        mockLeagueRequest,
+        'create league',
+      );
     });
   });
 
@@ -116,7 +124,7 @@ describe('leagueService', () => {
 
       const result = await getLeagues();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues', 'get leagues');
       expect(result).toEqual(mockLeagues);
     });
 
@@ -126,7 +134,7 @@ describe('leagueService', () => {
       const result = await getLeagues();
 
       expect(result).toEqual([]);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues', 'get leagues');
     });
 
     it('propagates API errors during league retrieval', async () => {
@@ -135,7 +143,7 @@ describe('leagueService', () => {
       mockApiClient.get.mockRejectedValue(mockError);
 
       await expect(getLeagues()).rejects.toThrow('Server error');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues', 'get leagues');
     });
   });
 
@@ -155,7 +163,7 @@ describe('leagueService', () => {
 
       const result = await getMyLeagues();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues', 'get your leagues');
       expect(result).toEqual(mockLeagues);
     });
 
@@ -165,7 +173,7 @@ describe('leagueService', () => {
       const result = await getMyLeagues();
 
       expect(result).toEqual([]);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues', 'get your leagues');
     });
 
     it('propagates API errors during user leagues retrieval', async () => {
@@ -174,7 +182,7 @@ describe('leagueService', () => {
       mockApiClient.get.mockRejectedValue(mockError);
 
       await expect(getMyLeagues()).rejects.toThrow('Unauthorized');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/me/leagues', 'get your leagues');
     });
   });
 
@@ -192,7 +200,7 @@ describe('leagueService', () => {
 
       const result = await getLeagueById(42);
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/42');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/42', 'get league');
       expect(result).toEqual(mockLeague);
     });
 
@@ -206,7 +214,7 @@ describe('leagueService', () => {
       const result = await getLeagueById(999);
 
       expect(result).toBeNull();
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/999');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/999', 'get league');
     });
 
     it('propagates non-404 errors during league retrieval', async () => {
@@ -220,7 +228,7 @@ describe('leagueService', () => {
         message: 'Server error',
         status: 500,
       });
-      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/1');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/leagues/1', 'get league');
     });
   });
 });

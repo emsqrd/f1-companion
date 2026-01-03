@@ -20,7 +20,13 @@ describe('constructorService', () => {
   describe('getActiveConstructors', () => {
     it('calls apiClient.get with correct endpoint and query parameter', async () => {
       const mockConstructors: Constructor[] = [
-        { id: 1, type: 'constructor', name: 'Red Bull', fullName: 'Oracle Red Bull Racing', countryAbbreviation: 'AT' },
+        {
+          id: 1,
+          type: 'constructor',
+          name: 'Red Bull',
+          fullName: 'Oracle Red Bull Racing',
+          countryAbbreviation: 'AT',
+        },
         {
           id: 2,
           type: 'constructor',
@@ -34,7 +40,10 @@ describe('constructorService', () => {
 
       const result = await getActiveConstructors();
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/constructors?activeOnly=true',
+        'get constructors',
+      );
       expect(result).toEqual(mockConstructors);
     });
 
@@ -44,7 +53,10 @@ describe('constructorService', () => {
       const result = await getActiveConstructors();
 
       expect(result).toEqual([]);
-      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/constructors?activeOnly=true',
+        'get constructors',
+      );
     });
 
     it('propagates API errors during constructor retrieval', async () => {
@@ -53,7 +65,10 @@ describe('constructorService', () => {
       mockApiClient.get.mockRejectedValue(mockError);
 
       await expect(getActiveConstructors()).rejects.toThrow('Failed to fetch constructors');
-      expect(mockApiClient.get).toHaveBeenCalledWith('/constructors?activeOnly=true');
+      expect(mockApiClient.get).toHaveBeenCalledWith(
+        '/constructors?activeOnly=true',
+        'get constructors',
+      );
     });
   });
 });

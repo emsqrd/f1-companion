@@ -152,7 +152,13 @@ describe('route-guards', () => {
     });
 
     it('does not throw when user has a team', async () => {
-      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
+      vi.mocked(getMyTeam).mockResolvedValue({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+        drivers: [],
+        constructors: [],
+      });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -227,7 +233,13 @@ describe('route-guards', () => {
 
   describe('requireNoTeam', () => {
     it('throws redirect when user already has a team', async () => {
-      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
+      vi.mocked(getMyTeam).mockResolvedValue({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+        drivers: [],
+        constructors: [],
+      });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),
@@ -297,7 +309,13 @@ describe('route-guards', () => {
     });
 
     it('redirects to leagues page with replace option', async () => {
-      vi.mocked(getMyTeam).mockResolvedValue({ id: 1, name: 'Test Team', ownerName: 'Test Owner', drivers: [], constructors: [] });
+      vi.mocked(getMyTeam).mockResolvedValue({
+        id: 1,
+        name: 'Test Team',
+        ownerName: 'Test Owner',
+        drivers: [],
+        constructors: [],
+      });
       const context: RouterContext = {
         auth: {
           user: createMockUser(),

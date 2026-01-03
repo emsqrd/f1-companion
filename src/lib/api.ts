@@ -7,6 +7,7 @@ type RequestConfig<D = unknown> = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
   data?: D;
   headers?: HeadersInit;
+  errorContext?: string; // Optional context for error messages (e.g., "get leagues", "create team")
 };
 
 class ApiClient {
@@ -39,7 +40,7 @@ class ApiClient {
     endpoint: string,
     config: RequestConfig<D> = {},
   ): Promise<T> {
-    const { method = 'GET', data, headers: customHeaders } = config;
+    const { method = 'GET', data, headers: customHeaders, errorContext } = config;
     const baseHeaders = await this.getBaseHeaders();
 
     try {
@@ -116,40 +117,63 @@ class ApiClient {
     } catch (error) {
       // Capture network errors and other exceptions
       if (error instanceof Error && !('status' in error)) {
+        // Create a more user-friendly error message
+        const userMessage = errorContext
+          ? `Failed to ${errorContext}`
+          : `Failed to ${method.toLowerCase()} ${endpoint}`;
+
+        const enhancedError = new Error(userMessage);
+        // Preserve original error as cause for debugging
+        enhancedError.cause = error;
+
         Sentry.withScope((scope) => {
           scope.setTag('api.endpoint', endpoint);
           scope.setTag('api.method', method);
           scope.setTag('error.type', 'network');
+          if (errorContext) {
+            scope.setTag('error.context', errorContext);
+          }
 
           // Structured log for network errors
           Sentry.logger.error(Sentry.logger.fmt`API network error: ${method} ${endpoint}`, {
             error: error.message,
             endpoint,
             method,
+            errorContext,
           });
 
-          Sentry.captureException(error);
+          Sentry.captureException(enhancedError);
         });
+
+        throw enhancedError;
       }
 
       throw error;
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.makeRequest<T>(endpoint);
+  async get<T>(endpoint: string, errorContext?: string): Promise<T> {
+    return this.makeRequest<T>(endpoint, { errorContext });
   }
 
-  async post<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    return this.makeRequest<T, D>(endpoint, { method: 'POST', data });
+  async post<T, D = Record<string, unknown>>(
+    endpoint: string,
+    data: D,
+    errorContext?: string,
+  ): Promise<T> {
+    return this.makeRequest<T, D>(endpoint, { method: 'POST', data, errorContext });
   }
 
-  async patch<T, D = Record<string, unknown>>(endpoint: string, data: D): Promise<T> {
-    return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data });
+  async patch<T, D = Record<string, unknown>>(
+    endpoint: string,
+    data: D,
+    errorContext?: string,
+  ): Promise<T> {
+    return this.makeRequest<T, D>(endpoint, { method: 'PATCH', data, errorContext });
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.makeRequest<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, errorContext?: string): Promise<T> {
+    return this.makeRequest<T>(endpoint, { method: 'DELETE', errorContext });
   }
 }
 
