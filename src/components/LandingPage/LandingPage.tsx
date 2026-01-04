@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from '@tanstack/react-router';
 import {
   ArrowRight,
   BarChart3,
@@ -13,7 +14,6 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export function LandingPage() {
               every race weekend like never before.
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
-              <Button size="lg" onClick={() => navigate('/sign-up')} className="text-lg">
+              <Button size="lg" onClick={() => navigate({ to: '/sign-up' })} className="text-lg">
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -204,7 +204,7 @@ export function LandingPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-8 flex flex-col justify-center gap-4 sm:flex-row">
-                <Button size="lg" onClick={() => navigate('/sign-up')} className="text-lg">
+                <Button size="lg" onClick={() => navigate({ to: '/sign-up' })} className="text-lg">
                   Get Started Free
                   <Star className="ml-2 h-5 w-5" />
                 </Button>

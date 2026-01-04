@@ -46,7 +46,7 @@ interface RolePickerContentProps<T extends BaseRole> {
   /** Number of positions in the lineup */
   lineupSize: number;
   /** Initially selected items */
-  initialItems?: T[];
+  initialItems?: (T | null)[];
   /** Component to render each card in the grid */
   CardComponent: React.ComponentType<RoleCardProps<T>>;
   /** Component to render each item in the selection list */
@@ -168,7 +168,7 @@ export interface RolePickerProps<T extends BaseRole> {
   /** Number of positions in the lineup (e.g., 5 for drivers, 2 for constructors) */
   lineupSize?: number;
   /** Initially selected items */
-  initialItems?: T[];
+  initialItems?: (T | null)[];
   /** Component to render each card in the grid */
   CardComponent: React.ComponentType<RoleCardProps<T>>;
   /** Component to render each item in the selection list */

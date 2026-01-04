@@ -1,11 +1,23 @@
 import type { Team as TeamType } from '@/contracts/Team';
-import { getTeamById } from '@/services/teamService';
 import { createMockTeam } from '@/test-utils';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Team } from './Team';
+
+// Mock TanStack Router's useLoaderData hook
+// The loader is tested separately - component tests focus on rendering with loaded data
+const mockLoaderData = vi.fn<() => { team: TeamType }>();
+
+vi.mock('@tanstack/react-router', () => ({
+  useLoaderData: () => mockLoaderData(),
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
+}));
 
 // Mock Sentry
 vi.mock('@sentry/react', () => ({
@@ -38,115 +50,45 @@ vi.mock('../ConstructorPicker/ConstructorPicker', () => ({
   )),
 }));
 
-// Mock React Router hooks
-vi.mock('react-router', () => ({
-  useParams: vi.fn(() => ({ teamId: '1' })),
-  Link: vi.fn(({ children, to, ...props }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  )),
-}));
-
-vi.mock('@/services/teamService', () => ({
-  getTeamById: vi.fn(() =>
-    createMockTeam({
-      id: 1,
-      name: 'Team 1',
-      ownerName: 'Test Owner',
-    }),
-  ),
-}));
-
-describe('Loading State', () => {
-  it('displays loading spinner and message while fetching team data', async () => {
-    // Create a deferred promise to control when the API call resolves
-    let resolveTeamFetch: (value: TeamType) => void;
-    const teamFetchPromise = new Promise<TeamType>((resolve) => {
-      resolveTeamFetch = resolve;
-    });
-
-    // Mock getTeamById to return our controlled promise
-    vi.mocked(getTeamById).mockReturnValueOnce(teamFetchPromise);
-
-    render(<Team />);
-
-    // Verify loading state is displayed immediately
-    expect(screen.getByText('Loading Team...')).toBeInTheDocument();
-
-    // Verify loading spinner is present
-    const spinner = screen.getByRole('status', { hidden: true });
-    expect(spinner).toBeInTheDocument();
-    expect(spinner).toHaveClass('animate-spin');
-
-    // Verify main content is not rendered during loading
-    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: /constructors/i })).not.toBeInTheDocument();
-    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
-
-    // Resolve the API call
-    resolveTeamFetch!(
-      createMockTeam({
+describe('Team Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Default mock returns a valid team
+    mockLoaderData.mockReturnValue({
+      team: createMockTeam({
         id: 1,
         name: 'Test Team',
         ownerName: 'Test Owner',
       }),
-    );
-
-    // Wait for loading to complete and content to render
-    await waitFor(() => {
-      expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
-    });
-
-    // Verify main content is now rendered
-    expect(screen.getByText('Test Team')).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
-    expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
-
-    // Verify getTeamById was called with correct team ID
-    expect(getTeamById).toHaveBeenCalledWith(1);
-  });
-});
-
-describe('Loaded State', () => {
-  beforeEach(async () => {
-    vi.clearAllMocks();
-
-    render(<Team />);
-
-    vi.mocked(getTeamById);
-
-    await waitFor(() => {
-      expect(getTeamById).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Initial State', () => {
+    it('renders team name from loader data', () => {
+      render(<Team />);
+
+      expect(screen.getByText('Test Team')).toBeInTheDocument();
+    });
+
     it('renders with drivers tab selected by default', () => {
-      // Check that the drivers tab is active by default
+      render(<Team />);
+
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       expect(driversTab).toHaveAttribute('aria-selected', 'true');
 
-      // Check that constructors tab is not active
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
       expect(constructorsTab).toHaveAttribute('aria-selected', 'false');
     });
 
     it('displays drivers content by default', () => {
-      // Drivers content should be visible
+      render(<Team />);
+
       expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
-
-      // Check for card title specifically (not the tab text)
-      const cardTitles = screen.getAllByText('Drivers');
-      expect(cardTitles.length).toBeGreaterThan(0);
-
-      // Constructors content should not be visible
       expect(screen.queryByTestId('constructor-picker')).not.toBeInTheDocument();
     });
 
-    it('renders both tab options', async () => {
-      // Wait for the data to actually load first
-      expect(await screen.findByText('Team 1')).toBeInTheDocument();
+    it('renders both tab options', () => {
+      render(<Team />);
 
       expect(screen.getByRole('tab', { name: /drivers/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /constructors/i })).toBeInTheDocument();
@@ -156,36 +98,31 @@ describe('Loaded State', () => {
   describe('Tab Navigation', () => {
     it('switches to constructors tab when clicked', async () => {
       const user = userEvent.setup();
+      render(<Team />);
 
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
       await user.click(constructorsTab);
 
-      // Constructors tab should now be active
       expect(constructorsTab).toHaveAttribute('aria-selected', 'true');
 
-      // Drivers tab should no longer be active
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       expect(driversTab).toHaveAttribute('aria-selected', 'false');
     });
 
     it('displays constructors content when constructors tab is selected', async () => {
       const user = userEvent.setup();
+      render(<Team />);
+
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
       await user.click(constructorsTab);
 
-      // Constructors content should be visible
       expect(screen.getByTestId('constructor-picker')).toBeInTheDocument();
-
-      // Check for card title specifically (not the tab text)
-      const cardTitles = screen.getAllByText('Constructors');
-      expect(cardTitles.length).toBeGreaterThan(0);
-
-      // Drivers content should not be visible
       expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
     });
 
     it('switches back to drivers tab when clicked', async () => {
       const user = userEvent.setup();
+      render(<Team />);
 
       // First switch to constructors
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -195,11 +132,9 @@ describe('Loaded State', () => {
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       await user.click(driversTab);
 
-      // Drivers tab should be active again
       expect(driversTab).toHaveAttribute('aria-selected', 'true');
       expect(constructorsTab).toHaveAttribute('aria-selected', 'false');
 
-      // Drivers content should be visible
       expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
       expect(screen.queryByTestId('constructor-picker')).not.toBeInTheDocument();
     });
@@ -207,12 +142,15 @@ describe('Loaded State', () => {
 
   describe('Content Delivery', () => {
     it('passes correct lineupSize to DriverPicker', () => {
+      render(<Team />);
+
       const driverPicker = screen.getByTestId('driver-picker');
       expect(driverPicker).toHaveAttribute('data-lineup-size', '5');
     });
 
     it('passes correct lineupSize to ConstructorPicker', async () => {
       const user = userEvent.setup();
+      render(<Team />);
 
       // Switch to constructors tab
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -224,6 +162,7 @@ describe('Loaded State', () => {
 
     it('ensures only one tab content is visible at a time', async () => {
       const user = userEvent.setup();
+      render(<Team />);
 
       // Initially only drivers content should be visible
       expect(screen.getByTestId('driver-picker')).toBeInTheDocument();
@@ -250,6 +189,7 @@ describe('Loaded State', () => {
   describe('User Experience', () => {
     it('maintains state consistency throughout interaction', async () => {
       const user = userEvent.setup();
+      render(<Team />);
 
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
@@ -268,6 +208,8 @@ describe('Loaded State', () => {
     });
 
     it('provides clear indication of current tab selection', () => {
+      render(<Team />);
+
       const driversTab = screen.getByRole('tab', { name: /drivers/i });
       const constructorsTab = screen.getByRole('tab', { name: /constructors/i });
 
@@ -275,92 +217,5 @@ describe('Loaded State', () => {
       expect(driversTab).toHaveAttribute('aria-selected', 'true');
       expect(constructorsTab).toHaveAttribute('aria-selected', 'false');
     });
-  });
-});
-
-describe('Error Handling', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should display error message when team fetch fails', async () => {
-    const { captureException } = await import('@sentry/react');
-
-    // Mock the service to reject with an error
-    vi.mocked(getTeamById).mockRejectedValue(new Error('Network error'));
-
-    render(<Team />);
-
-    // Wait for error state to be displayed
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
-
-    // Verify loading state is no longer displayed
-    expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
-
-    // Verify main content is not rendered
-    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
-    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
-
-    // Components no longer capture exceptions - API client handles it
-    expect(captureException).not.toHaveBeenCalled();
-  });
-
-  it('refetches data when retry button is clicked', async () => {
-    const user = userEvent.setup();
-
-    // First call fails
-    vi.mocked(getTeamById).mockRejectedValueOnce(new Error('Network error'));
-
-    render(<Team />);
-
-    // Wait for error state
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Failed to load team. Please try again later.')).toBeInTheDocument();
-
-    // Mock successful response for retry
-    vi.mocked(getTeamById).mockResolvedValueOnce(
-      createMockTeam({
-        id: 1,
-        name: 'Test Team',
-        ownerName: 'Test Owner',
-      }),
-    );
-
-    // Click retry button
-    await user.click(screen.getByRole('button', { name: /try again/i }));
-
-    // Wait for loading state to clear and data to appear
-    expect(await screen.findByText('Test Team')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
-    // Verify getTeamById was called twice (initial + retry)
-    expect(getTeamById).toHaveBeenCalledTimes(2);
-  });
-
-  it('should display team not found message when team is not found', async () => {
-    // Mock the service to return null (team not found)
-    vi.mocked(getTeamById).mockResolvedValue(null);
-
-    render(<Team />);
-
-    // Wait for the "not found" message to appear
-    await waitFor(() => {
-      expect(screen.getByText('Team not found')).toBeInTheDocument();
-    });
-
-    // Verify loading state is no longer displayed
-    expect(screen.queryByText('Loading Team...')).not.toBeInTheDocument();
-
-    // Verify main content is not rendered
-    expect(screen.queryByRole('tab', { name: /drivers/i })).not.toBeInTheDocument();
-    expect(screen.queryByTestId('driver-picker')).not.toBeInTheDocument();
-
-    // Verify the service was called with correct team ID
-    expect(getTeamById).toHaveBeenCalledWith(1);
   });
 });

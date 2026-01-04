@@ -2,7 +2,6 @@ import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
 import { createMockTeam } from '@/test-utils';
 import { render, screen, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from './Leaderboard';
@@ -19,13 +18,9 @@ vi.mock('@/services/teamService', () => ({
 
 const mockNavigate = vi.fn();
 
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+}));
 
 describe('Leaderboard', () => {
   beforeEach(() => {
@@ -36,11 +31,7 @@ describe('Leaderboard', () => {
     it('should render correct number of team rows', async () => {
       vi.mocked(getTeams).mockResolvedValue(mockTeams);
 
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
+      render(<Leaderboard />);
 
       await screen.findByText('Team 1');
 
@@ -51,11 +42,7 @@ describe('Leaderboard', () => {
     it('should display complete leaderboard with all team information', async () => {
       vi.mocked(getTeams).mockResolvedValue(mockTeams);
 
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
+      render(<Leaderboard />);
 
       // Verify all teams are present with complete information
       for (const team of mockTeams) {
@@ -67,11 +54,7 @@ describe('Leaderboard', () => {
     it('should handle empty teams list gracefully', async () => {
       vi.mocked(getTeams).mockResolvedValueOnce([]);
 
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
+      render(<Leaderboard />);
 
       // User should see table headers but no team data
       expect(await screen.findByText('Rank')).toBeInTheDocument();
@@ -88,11 +71,7 @@ describe('Leaderboard', () => {
         createMockTeam({ id: 3, name: 'Team Only', ownerName: '' }), // Missing owner
       ]);
 
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
+      render(<Leaderboard />);
 
       // User should see all teams are listed (even with missing data)
       expect(await screen.findByText('Complete Team')).toBeInTheDocument();
@@ -117,11 +96,7 @@ describe('Leaderboard', () => {
 
       vi.mocked(getTeams).mockResolvedValueOnce(manyTeams);
 
-      render(
-        <MemoryRouter>
-          <Leaderboard />
-        </MemoryRouter>,
-      );
+      render(<Leaderboard />);
 
       // Wait for the data to actually load first
       expect(await screen.findByText('Team 1')).toBeInTheDocument();

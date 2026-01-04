@@ -172,9 +172,14 @@ describe('ApiClient', () => {
       const networkError = new Error('Network connection failed');
       mockFetch.mockRejectedValueOnce(networkError);
 
-      await expect(apiClient.get('/network-error')).rejects.toThrow('Network connection failed');
+      await expect(apiClient.get('/network-error')).rejects.toThrow('Failed to get /network-error');
 
-      expect(Sentry.captureException).toHaveBeenCalledWith(networkError);
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Failed to get /network-error',
+          cause: networkError,
+        }),
+      );
       expect(Sentry.logger.error).toHaveBeenCalledWith(
         expect.stringContaining('API network error'),
         expect.objectContaining({

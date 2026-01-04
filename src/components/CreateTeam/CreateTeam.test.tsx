@@ -15,7 +15,8 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 const mockNavigate = vi.fn();
-vi.mock('react-router', () => ({
+
+vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -49,7 +50,10 @@ describe('CreateTeam', () => {
     });
 
     // Silent success pattern - navigation is the feedback
-    expect(mockNavigate).toHaveBeenCalledWith('/team/1');
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: '/team/$teamId',
+      params: { teamId: '1' },
+    });
   });
 
   it('trims whitespace from team name before submission', async () => {
@@ -71,6 +75,7 @@ describe('CreateTeam', () => {
     const user = userEvent.setup();
 
     const teamNameInput = screen.getByLabelText(/team name/i);
+
     await user.click(teamNameInput);
     await user.tab();
 
@@ -82,6 +87,7 @@ describe('CreateTeam', () => {
     const user = userEvent.setup();
 
     const longName = 'A'.repeat(51);
+
     const teamNameInput = screen.getByLabelText(/team name/i);
 
     await user.type(teamNameInput, longName);
@@ -108,6 +114,7 @@ describe('CreateTeam', () => {
   });
 
   it('displays error message when submission fails', async () => {
+    mockTeamService.createTeam.mockReset();
     mockTeamService.createTeam.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithTeamProvider(<CreateTeam />);
@@ -116,10 +123,20 @@ describe('CreateTeam', () => {
     await user.type(screen.getByLabelText(/team name/i), 'Test Team');
     await user.click(screen.getByRole('button', { name: /create team/i }));
 
+    // Wait for error to appear - findByRole automatically waits
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toHaveTextContent(/network error/i);
 
-    // Navigation should not happen on error (synchronous check)
+    // Verify navigation didn't happen
     expect(mockNavigate).not.toHaveBeenCalled();
+
+    // Wait for button to return to normal state (ensures all async work is done)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /create team/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /create team/i })).toHaveAttribute(
+        'aria-busy',
+        'false',
+      );
+    });
   });
 });

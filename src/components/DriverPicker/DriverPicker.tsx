@@ -19,7 +19,7 @@ const DriverListItemAdapter: ComponentType<RoleListItemProps<Driver>> = ({ item,
 
 interface DriverPickerProps {
   lineupSize?: number;
-  initialDrivers?: Driver[];
+  initialDrivers?: (Driver | null)[];
 }
 
 export function DriverPicker({ lineupSize = 5, initialDrivers }: DriverPickerProps) {

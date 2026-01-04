@@ -1,4 +1,9 @@
-# F1 Fantasy Sports - AI Coding Agent Instructions
+---
+description: 'Main instructions for React 19 + TypeScript Vite application with Supabase authentication. Component-driven architecture with UI, business logic, and data services separation.'
+applyTo: '**/*.{ts,tsx,jsx,js,json,css,html}'
+---
+
+# F1 Fantasy Sports
 
 ## Overview
 
@@ -17,7 +22,7 @@ For detailed guidance on specific topics, refer to these specialized instruction
 ### Core Technologies
 
 - React 19 with TypeScript
-- React Router v7
+- TanStack Router (type-safe routing)
 - Supabase (authentication)
 - Tailwind CSS v4
 - Vitest + React Testing Library

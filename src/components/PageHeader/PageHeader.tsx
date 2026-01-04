@@ -2,9 +2,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTeam } from '@/hooks/useTeam';
 import { avatarEvents } from '@/lib/avatarEvents';
 import { userProfileService } from '@/services/userProfileService';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { CircleUser, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -18,7 +18,7 @@ import {
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
   const { hasTeam, myTeamId } = useTeam();
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
   const location = useLocation();
@@ -26,32 +26,32 @@ export function PageHeader() {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
-    navigate('/');
+    navigate({ to: '/' });
   };
 
   const handleAccountClick = () => {
-    navigate('/account');
+    navigate({ to: '/account' });
   };
 
   const handleLeagues = () => {
-    navigate('/leagues');
+    navigate({ to: '/leagues' });
   };
 
   const handleMyTeam = () => {
-    navigate(`/team/${myTeamId}`);
+    navigate({ to: '/team/$teamId', params: { teamId: String(myTeamId) } });
   };
 
   const handleCreateTeam = () => {
-    navigate('/create-team');
+    navigate({ to: '/create-team' });
   };
 
   const handleSignOut = () => {
     signOut();
-    navigate('/');
+    navigate({ to: '/' });
   };
 
   const handleSignIn = () => {
-    navigate('/sign-in');
+    navigate({ to: '/sign-in' });
   };
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export function PageHeader() {
     const fetchUserProfile = async () => {
       if (!user) {
         if (!isCancelled) {
-          setAvatarUrl('');
+          setAvatarUrl(undefined);
         }
         return;
       }
@@ -71,12 +71,12 @@ export function PageHeader() {
         }
         const profile = await userProfileService.getCurrentProfile();
         if (!isCancelled) {
-          setAvatarUrl(profile?.avatarUrl || '');
+          setAvatarUrl(profile?.avatarUrl || undefined);
         }
       } catch {
         // Error already captured by API client (5xx or network errors)
         if (!isCancelled) {
-          setAvatarUrl('');
+          setAvatarUrl(undefined);
         }
       } finally {
         if (!isCancelled) {

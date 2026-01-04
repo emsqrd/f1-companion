@@ -10,10 +10,17 @@ import { createMockTeam } from '@/test-utils';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PageHeader } from './PageHeader';
+
+// Mock router hooks
+const mockNavigate = vi.fn();
+const mockUseLocation = vi.fn();
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => mockNavigate,
+  useLocation: () => mockUseLocation(),
+}));
 
 // Mock dependencies
 vi.mock('@/hooks/useAuth');
@@ -32,22 +39,10 @@ vi.mock('@sentry/react', () => ({
       strings.reduce((acc, str, i) => acc + str + (values[i] || ''), ''),
   },
 }));
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: vi.fn(),
-    useLocation: vi.fn(),
-  };
-});
 
 const mockUseAuth = vi.mocked(useAuth);
 const mockUserProfileService = vi.mocked(userProfileService);
 const mockAvatarEvents = vi.mocked(avatarEvents);
-const mockUseNavigate = vi.mocked(useNavigate);
-const mockUseLocation = vi.mocked(useLocation);
-
-const mockNavigate = vi.fn();
 
 const createMockUser = (): User => ({
   id: '1',
@@ -81,7 +76,6 @@ const createMockUserProfile = (avatarUrl = ''): UserProfile => ({
 describe('PageHeader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseNavigate.mockReturnValue(mockNavigate);
     mockUseLocation.mockReturnValue({
       pathname: '/dashboard',
       search: '',
@@ -92,13 +86,11 @@ describe('PageHeader', () => {
     mockAvatarEvents.subscribe.mockReturnValue(vi.fn()); // Return unsubscribe function
   });
 
-  const renderWithRouter = (initialEntries = ['/']) => {
+  const renderWithRouter = () => {
     return render(
-      <MemoryRouter initialEntries={initialEntries}>
-        <TeamProvider>
-          <PageHeader />
-        </TeamProvider>
-      </MemoryRouter>,
+      <TeamProvider>
+        <PageHeader />
+      </TeamProvider>,
     );
   };
 
@@ -122,7 +114,7 @@ describe('PageHeader', () => {
 
       await user.click(getLogoButton());
 
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' });
     });
 
     it('should navigate to home page when logo is activated with keyboard', async () => {
@@ -135,7 +127,7 @@ describe('PageHeader', () => {
       logoButton.focus();
       await user.keyboard('{Enter}');
 
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' });
     });
   });
 
@@ -211,7 +203,7 @@ describe('PageHeader', () => {
         key: 'default',
       });
 
-      renderWithRouter(['/sign-in']);
+      renderWithRouter();
 
       // Should only have the logo button, no dropdown
       const buttons = screen.getAllByRole('button');
@@ -251,7 +243,7 @@ describe('PageHeader', () => {
       const accountMenuItem = screen.getByRole('menuitem', { name: 'My Account' });
       await user.click(accountMenuItem);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/account');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/account' });
     });
 
     it('should navigate to dashboard when Dashboard is clicked', async () => {
@@ -274,7 +266,7 @@ describe('PageHeader', () => {
       const dashboardMenuItem = screen.getByRole('menuitem', { name: 'My Leagues' });
       await user.click(dashboardMenuItem);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/leagues');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/leagues' });
     });
 
     it('should navigate to sign-in page when Sign In is clicked', async () => {
@@ -292,7 +284,7 @@ describe('PageHeader', () => {
       const signInMenuItem = screen.getByRole('menuitem', { name: 'Sign In' });
       await user.click(signInMenuItem);
 
-      expect(mockNavigate).toHaveBeenCalledWith('/sign-in');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/sign-in' });
     });
 
     it('should sign out and navigate to home when Sign Out is clicked', async () => {
@@ -316,7 +308,7 @@ describe('PageHeader', () => {
       await user.click(signOutMenuItem);
 
       expect(mockSignOut).toHaveBeenCalledOnce();
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' });
     });
   });
 
@@ -393,11 +385,9 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
 
       rerender(
-        <MemoryRouter initialEntries={['/']}>
-          <TeamProvider>
-            <PageHeader />
-          </TeamProvider>
-        </MemoryRouter>,
+        <TeamProvider>
+          <PageHeader />
+        </TeamProvider>,
       );
 
       // After logout, dropdown menu should no longer be available
@@ -438,7 +428,7 @@ describe('PageHeader', () => {
         key: 'default',
       });
 
-      renderWithRouter(['/sign-up']);
+      renderWithRouter();
 
       // Should only have logo button
       const buttons = screen.getAllByRole('button');
@@ -456,7 +446,7 @@ describe('PageHeader', () => {
         key: 'default',
       });
 
-      renderWithRouter(['/dashboard']);
+      renderWithRouter();
 
       // Should have both logo and dropdown buttons
       const buttons = screen.getAllByRole('button');
@@ -523,11 +513,9 @@ describe('PageHeader', () => {
       );
 
       rerender(
-        <MemoryRouter initialEntries={['/']}>
-          <TeamProvider>
-            <PageHeader />
-          </TeamProvider>
-        </MemoryRouter>,
+        <TeamProvider>
+          <PageHeader />
+        </TeamProvider>,
       );
 
       // Now resolve the first profile - should be ignored

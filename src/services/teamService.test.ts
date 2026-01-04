@@ -53,7 +53,7 @@ describe('teamService', () => {
 
       const result = await createTeam(mockRequest);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/teams', mockRequest);
+      expect(apiClient.post).toHaveBeenCalledWith('/teams', mockRequest, 'create team');
       expect(result).toEqual(mockResponse);
     });
 
@@ -82,7 +82,7 @@ describe('teamService', () => {
 
       const result = await getMyTeam();
 
-      expect(apiClient.get).toHaveBeenCalledWith('/me/team');
+      expect(apiClient.get).toHaveBeenCalledWith('/me/team', 'get your team');
       expect(result).toEqual(mockTeam);
     });
 
@@ -124,7 +124,7 @@ describe('teamService', () => {
 
       const result = await getTeams();
 
-      expect(apiClient.get).toHaveBeenCalledWith('/teams');
+      expect(apiClient.get).toHaveBeenCalledWith('/teams', 'get teams');
       expect(result).toEqual(mockTeams);
     });
 
@@ -134,7 +134,7 @@ describe('teamService', () => {
       const result = await getTeams();
 
       expect(result).toEqual([]);
-      expect(apiClient.get).toHaveBeenCalledWith('/teams');
+      expect(apiClient.get).toHaveBeenCalledWith('/teams', 'get teams');
     });
 
     it('propagates API errors during team retrieval', async () => {
@@ -143,7 +143,7 @@ describe('teamService', () => {
       vi.mocked(apiClient.get).mockRejectedValue(mockError);
 
       await expect(getTeams()).rejects.toThrow('Failed to fetch teams');
-      expect(apiClient.get).toHaveBeenCalledWith('/teams');
+      expect(apiClient.get).toHaveBeenCalledWith('/teams', 'get teams');
     });
   });
 
@@ -159,7 +159,7 @@ describe('teamService', () => {
 
       const result = await getTeamById(99);
 
-      expect(apiClient.get).toHaveBeenCalledWith('/teams/99');
+      expect(apiClient.get).toHaveBeenCalledWith('/teams/99', 'get team');
       expect(result).toEqual(mockTeam);
     });
   });
@@ -178,7 +178,11 @@ describe('teamService', () => {
         SlotPosition: slotPosition,
       };
 
-      expect(apiClient.post).toHaveBeenCalledWith('/me/team/drivers', expectedRequest);
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/me/team/drivers',
+        expectedRequest,
+        'add driver to team',
+      );
     });
 
     it('propagates API errors when adding driver fails', async () => {
@@ -200,7 +204,10 @@ describe('teamService', () => {
 
       await removeDriverFromTeam(slotPosition);
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/me/team/drivers/2');
+      expect(apiClient.delete).toHaveBeenCalledWith(
+        '/me/team/drivers/2',
+        'remove driver from team',
+      );
     });
 
     it('propagates API errors when removing driver fails', async () => {
@@ -227,7 +234,11 @@ describe('teamService', () => {
         SlotPosition: slotPosition,
       };
 
-      expect(apiClient.post).toHaveBeenCalledWith('/me/team/constructors', expectedRequest);
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/me/team/constructors',
+        expectedRequest,
+        'add constructor to team',
+      );
     });
 
     it('propagates API errors when adding constructor fails', async () => {
@@ -251,7 +262,10 @@ describe('teamService', () => {
 
       await removeConstructorFromTeam(slotPosition);
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/me/team/constructors/1');
+      expect(apiClient.delete).toHaveBeenCalledWith(
+        '/me/team/constructors/1',
+        'remove constructor from team',
+      );
     });
 
     it('propagates API errors when removing constructor fails', async () => {

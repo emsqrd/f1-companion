@@ -1,7 +1,5 @@
 import type { League as LeagueType } from '@/contracts/League';
-import { getLeagueById } from '@/services/leagueService';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { League } from './League';
@@ -11,129 +9,78 @@ vi.mock('../Leaderboard/Leaderboard', () => ({
   Leaderboard: () => <div data-testid="leaderboard">Mocked Leaderboard</div>,
 }));
 
-// Mock React Router hooks
-vi.mock('react-router', () => ({
-  useParams: vi.fn(() => ({ leagueId: '1' })),
-  Link: vi.fn(({ children, to, ...props }) => (
+// Mock TanStack Router hooks
+const mockUseLoaderData = vi.fn();
+
+vi.mock('@tanstack/react-router', () => ({
+  useLoaderData: (opts: { from: string }) => mockUseLoaderData(opts),
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string }) => (
     <a href={to} {...props}>
       {children}
     </a>
-  )),
+  ),
 }));
 
-// Mock the leagueService to provide mock league data
-vi.mock('@/services/leagueService', () => ({
-  getLeagueById: vi.fn().mockResolvedValue({
-    id: 1,
-    name: 'League 1',
-    ownerName: 'Test Owner',
-  }),
-}));
+const leagueMock: LeagueType = {
+  id: 1,
+  name: 'League 1',
+  ownerName: 'Test Owner',
+  description: 'Test Description',
+  isPrivate: false,
+};
 
 describe('League', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Default: mock loader data with league
+    mockUseLoaderData.mockReturnValue({
+      league: leagueMock,
+    });
   });
 
-  it('should display league information when loaded', async () => {
+  it('displays league information from loader data', () => {
     render(<League />);
 
-    // User should see they are viewing the league
-    expect(await screen.findByRole('heading', { level: 2, name: 'League 1' })).toBeInTheDocument();
+    // League name should be displayed immediately (no loading state)
+    expect(screen.getByRole('heading', { level: 2, name: 'League 1' })).toBeInTheDocument();
 
     // User should see the main content: the leaderboard
     expect(screen.getByTestId('leaderboard')).toBeInTheDocument();
   });
 
-  it('should have accessible heading structure for screen readers', async () => {
+  it('has accessible heading structure for screen readers', () => {
     render(<League />);
 
     // Screen reader users should be able to navigate by headings
-    const heading = await screen.findByRole('heading', { level: 2 });
+    const heading = screen.getByRole('heading', { level: 2 });
     expect(heading).toHaveTextContent('League 1');
     expect(heading).toBeInTheDocument();
   });
 
-  it('should display loader while fetching league data', async () => {
-    // Create a deferred promise to control when the API call resolves
-    let resolveLeagueFetch: (value: LeagueType) => void;
-    const leagueFetchPromise = new Promise<LeagueType>((resolve) => {
-      resolveLeagueFetch = resolve;
-    });
-
-    // Mock getLeagueById to return controlled promise
-    vi.mocked(getLeagueById).mockReturnValueOnce(leagueFetchPromise);
-
+  it('displays back to leagues navigation link', () => {
     render(<League />);
 
-    // Verify loading state is displayed properly
-    expect(screen.getByText('Loading League...')).toBeInTheDocument();
-
-    // Verify loading spinner is present
-    const spinner = screen.getByRole('status', { hidden: true });
-    expect(spinner).toBeInTheDocument();
-    expect(spinner).toHaveClass('animate-spin');
-
-    // Verify main content is not rendered during loading
-    expect(screen.queryByTestId('leaderboard')).not.toBeInTheDocument();
-
-    resolveLeagueFetch!({
-      id: 1,
-      name: 'League 1',
-      ownerName: 'Test Owner',
-      description: 'Desc for league 1',
-      isPrivate: true,
-    });
-
-    // Wait for loading to complete and content to render
-    await waitFor(() => {
-      expect(screen.queryByText('Loading League...')).not.toBeInTheDocument();
-    });
-
-    expect(getLeagueById).toHaveBeenCalledWith(1);
+    const backLink = screen.getByRole('link', { name: /back to leagues/i });
+    expect(backLink).toBeInTheDocument();
+    expect(backLink).toHaveAttribute('href', '/leagues');
   });
 
-  it('should display error when loading league fails', async () => {
-    vi.mocked(getLeagueById).mockRejectedValueOnce({ error: 'Failed to load league' });
-
-    render(<League />);
-
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Failed to load league')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
-
-    expect(screen.queryByTestId('leaderboard')).not.toBeInTheDocument();
-  });
-
-  it('refetches data when retry button is clicked', async () => {
-    const user = userEvent.setup();
-
-    // First call fails
-    vi.mocked(getLeagueById).mockRejectedValueOnce({ error: 'Failed to load league' });
-
-    render(<League />);
-
-    // Wait for error state
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Failed to load league')).toBeInTheDocument();
-
-    // Mock successful response for retry
-    vi.mocked(getLeagueById).mockResolvedValueOnce({
-      id: 1,
-      name: 'Test League',
-      description: 'Test Description',
-      ownerName: 'Test Owner',
-      isPrivate: false,
+  it('renders different league data correctly', () => {
+    mockUseLoaderData.mockReturnValue({
+      league: {
+        ...leagueMock,
+        id: 999,
+        name: 'Formula 1 Champions League',
+        ownerName: 'Max Verstappen',
+      },
     });
 
-    // Click retry button
-    await user.click(screen.getByRole('button', { name: /try again/i }));
+    render(<League />);
 
-    // Wait for loading state to clear and data to appear
-    expect(await screen.findByText('Test League')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-
-    // Verify getLeagueById was called twice (initial + retry)
-    expect(getLeagueById).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Formula 1 Champions League' }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('leaderboard')).toBeInTheDocument();
   });
 });

@@ -7,7 +7,7 @@ import { isApiError } from '@/utils/errors';
 import * as Sentry from '@sentry/react';
 
 export async function createTeam(data: CreateTeamRequest): Promise<Team> {
-  const team = await apiClient.post<Team, CreateTeamRequest>('/teams', data);
+  const team = await apiClient.post<Team, CreateTeamRequest>('/teams', data, 'create team');
 
   // INFO - significant business event
   Sentry.logger.info('Team created', {
@@ -20,7 +20,7 @@ export async function createTeam(data: CreateTeamRequest): Promise<Team> {
 
 export async function getMyTeam(): Promise<Team | null> {
   try {
-    return await apiClient.get<Team>('/me/team');
+    return await apiClient.get<Team>('/me/team', 'get your team');
   } catch (error) {
     if (isApiError(error) && error.status === 404) {
       return null;
@@ -31,12 +31,12 @@ export async function getMyTeam(): Promise<Team | null> {
 }
 
 export async function getTeams(): Promise<Team[]> {
-  return await apiClient.get('/teams');
+  return await apiClient.get('/teams', 'get teams');
 }
 
 export async function getTeamById(id: number): Promise<Team | null> {
   try {
-    return await apiClient.get<Team>(`/teams/${id}`);
+    return await apiClient.get<Team>(`/teams/${id}`, 'get team');
   } catch (error) {
     if (isApiError(error) && error.status === 404) {
       return null;
@@ -52,7 +52,7 @@ export async function addDriverToTeam(driverId: number, slotPosition: number): P
     SlotPosition: slotPosition,
   };
 
-  await apiClient.post('/me/team/drivers', request);
+  await apiClient.post('/me/team/drivers', request, 'add driver to team');
 
   Sentry.logger.info('Driver added to team', {
     driverId,
@@ -61,7 +61,7 @@ export async function addDriverToTeam(driverId: number, slotPosition: number): P
 }
 
 export async function removeDriverFromTeam(slotPosition: number): Promise<void> {
-  await apiClient.delete(`/me/team/drivers/${slotPosition}`);
+  await apiClient.delete(`/me/team/drivers/${slotPosition}`, 'remove driver from team');
 
   Sentry.logger.info('Driver removed from team', {
     slotPosition,
@@ -77,7 +77,7 @@ export async function addConstructorToTeam(
     SlotPosition: slotPosition,
   };
 
-  await apiClient.post('/me/team/constructors', request);
+  await apiClient.post('/me/team/constructors', request, 'add constructor to team');
 
   Sentry.logger.info('Constructor added to team', {
     constructorId,
@@ -86,7 +86,7 @@ export async function addConstructorToTeam(
 }
 
 export async function removeConstructorFromTeam(slotPosition: number): Promise<void> {
-  await apiClient.delete(`/me/team/constructors/${slotPosition}`);
+  await apiClient.delete(`/me/team/constructors/${slotPosition}`, 'remove constructor from team');
 
   Sentry.logger.info('Constructor removed from team', {
     slotPosition,
