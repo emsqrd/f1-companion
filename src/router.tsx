@@ -16,6 +16,7 @@ import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
 import { getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
+import { z } from 'zod';
 import {
   ErrorComponent,
   Outlet,
@@ -25,6 +26,40 @@ import {
   notFound,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+
+/**
+ * Zod schema for validating league ID route parameter.
+ *
+ * Ensures leagueId is:
+ * - Coerced from string to number
+ * - An integer
+ * - A positive value (> 0)
+ *
+ * @see {@link https://zod.dev/?id=coercion-for-primitives | Zod Coercion}
+ */
+const leagueIdParamsSchema = z.object({
+  leagueId: z.coerce
+    .number({ message: 'League ID must be a number' })
+    .int('League ID must be an integer')
+    .positive('League ID must be positive'),
+});
+
+/**
+ * Zod schema for validating team ID route parameter.
+ *
+ * Ensures teamId is:
+ * - Coerced from string to number
+ * - An integer
+ * - A positive value (> 0)
+ *
+ * @see {@link https://zod.dev/?id=coercion-for-primitives | Zod Coercion}
+ */
+const teamIdParamsSchema = z.object({
+  teamId: z.coerce
+    .number({ message: 'Team ID must be a number' })
+    .int('Team ID must be an integer')
+    .positive('Team ID must be positive'),
+});
 
 /**
  * Root route with context - wraps all routes in the application.
@@ -265,8 +300,8 @@ const leaguesRoute = createRoute({
  * Uses {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading | loader}
  * to fetch league data by ID before component renders.
  *
- * **Note:** Path params from TanStack Router are strings by default and must be
- * converted to numbers for API calls. Validates that `leagueId` is a valid positive integer.
+ * **Note:** Uses Zod schema ({@link leagueIdParamsSchema}) to validate and coerce
+ * `leagueId` parameter from string to positive integer with detailed error messages.
  *
  * Implements
  * {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#stale-while-revalidate-caching | SWR caching}
@@ -278,15 +313,16 @@ const leagueRoute = createRoute({
   getParentRoute: () => teamRequiredLayoutRoute,
   path: 'league/$leagueId',
   loader: async ({ params }) => {
-    // TanStack Router params are strings by default
-    // We need to convert leagueId to number for our API
-    const leagueId = Number(params.leagueId);
+    // Validate and parse params using Zod schema
+    // This automatically coerces string to number and validates constraints
+    const validationResult = leagueIdParamsSchema.safeParse(params);
 
-    // Validate that leagueId is a valid number
-    if (isNaN(leagueId) || leagueId <= 0) {
-      throw new Error('Invalid league ID');
+    if (!validationResult.success) {
+      // Validation failed - return 404 for invalid league IDs
+      throw notFound({ routeId: '/_authenticated/_team-required/league/$leagueId' });
     }
 
+    const { leagueId } = validationResult.data;
     const league = await getLeagueById(leagueId);
 
     // Return 404 if league doesn't exist
@@ -331,8 +367,8 @@ const leagueRoute = createRoute({
  * Uses {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading | loader}
  * to fetch team data by ID before component renders.
  *
- * **Note:** Path params from TanStack Router are strings by default and must be
- * converted to numbers for API calls. Validates that `teamId` is a valid positive integer.
+ * **Note:** Uses Zod schema ({@link teamIdParamsSchema}) to validate and coerce
+ * `teamId` parameter from string to positive integer with detailed error messages.
  *
  * Implements
  * {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#stale-while-revalidate-caching | SWR caching}
@@ -344,15 +380,16 @@ const teamRoute = createRoute({
   getParentRoute: () => teamRequiredLayoutRoute,
   path: 'team/$teamId',
   loader: async ({ params }): Promise<{ team: TeamType }> => {
-    // TanStack Router params are strings by default
-    // We need to convert teamId to number for our API
-    const teamId = Number(params.teamId);
+    // Validate and parse params using Zod schema
+    // This automatically coerces string to number and validates constraints
+    const validationResult = teamIdParamsSchema.safeParse(params);
 
-    // Validate that teamId is a valid positive integer
-    if (isNaN(teamId) || teamId <= 0 || !Number.isInteger(teamId)) {
+    if (!validationResult.success) {
+      // Validation failed - return 404 for invalid team IDs
       throw notFound({ routeId: '/_authenticated/_team-required/team/$teamId' });
     }
 
+    const { teamId } = validationResult.data;
     const team = await getTeamById(teamId);
 
     // Return 404 if team doesn't exist
