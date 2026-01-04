@@ -1,3 +1,8 @@
+---
+description: 'Sentry integration for React application. Error tracking, performance monitoring, and structured logging with @sentry/react.'
+applyTo: '**/*.{ts,tsx,jsx,js}'
+---
+
 # Sentry Integration Guidelines
 
 ## Overview

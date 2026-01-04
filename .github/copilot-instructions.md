@@ -1,5 +1,9 @@
-# F1 Fantasy Sports - AI Coding Agent Instructions
+---
+description: 'Main instructions for React 19 + TypeScript Vite application with Supabase authentication. Component-driven architecture with UI, business logic, and data services separation.'
+applyTo: '**/*.{ts,tsx,jsx,js,json,css,html}'
+---
 
+# F1 Fantasy Sports
 ## Overview
 
 This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supabase authentication. The app follows a component-driven architecture with clear separation between UI, business logic, and data services.

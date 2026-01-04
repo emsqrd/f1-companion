@@ -1,3 +1,8 @@
+---
+description: 'React application architecture and design patterns. Component composition, routing, service layer, state management, styling, and error handling guidelines.'
+applyTo: '**/*.{ts,tsx,jsx,js}'
+---
+
 # Architecture & Design Patterns
 
 ## Overview
