@@ -14,6 +14,7 @@ When writing or reviewing tests, validate approaches against official documentat
 - **React Testing Library**: Resolve `/testing-library/react-testing-library` for RTL best practices, query priorities, and patterns
 - **Vitest**: Resolve `/vitest-dev/vitest` for test runner features, mocking patterns, and configuration
 - **React 19**: Resolve `/facebook/react` when testing React 19-specific features (new hooks, Server Components, Actions, etc.)
+- **TanStack Router**: Resolve `/tanstack/router` for route loader testing, guard patterns, and router mocking
 
 Consult these sources when:
 
@@ -255,10 +256,116 @@ expect(result.current.value).toBe(expectedValue);
 ### Testing Navigation
 
 ```typescript
+// Mock TanStack Router navigation
 const mockNavigate = vi.fn();
-vi.mock('react-router', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual('@tanstack/react-router');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+```
+
+### Testing Components with Loader Data
+
+Route loaders are thin wrappers around service calls - they fetch data and return it. **Test loaders through E2E/integration tests**, not unit tests. For unit tests, mock `useLoaderData` to test component behavior with different data states.
+
+**Why this approach?**
+
+- Loaders are configuration, not complex business logic
+- Service calls are already tested in service tests
+- E2E tests verify the full flow: navigation → loader → component
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+
+// Mock TanStack Router hooks
+const mockUseLoaderData = vi.fn();
+
+vi.mock('@tanstack/react-router', () => ({
+  useLoaderData: (opts: { from: string }) => mockUseLoaderData(opts),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
+
+describe('League', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseLoaderData.mockReturnValue({
+      league: { id: 1, name: 'Test League' },
+    });
+  });
+
+  it('displays league information from loader data', () => {
+    render(<League />);
+    expect(screen.getByRole('heading', { name: 'Test League' })).toBeInTheDocument();
+  });
+
+  it('renders different league data correctly', () => {
+    mockUseLoaderData.mockReturnValue({
+      league: { id: 2, name: 'Champions League' },
+    });
+    render(<League />);
+    expect(screen.getByRole('heading', { name: 'Champions League' })).toBeInTheDocument();
+  });
+});
+```
+
+### Testing Route Guards
+
+Route guards (`beforeLoad`) control access to routes. Like loaders, **test guards through E2E/integration tests** for the full redirect flow. For unit tests, test the guard functions directly or test components in isolation.
+
+**Direct guard function testing:**
+
+```typescript
+import { requireAuth, requireTeam } from '@/lib/route-guards';
+import { describe, expect, it, vi } from 'vitest';
+
+describe('Route Guards', () => {
+  it('requireAuth throws redirect when user is not authenticated', async () => {
+    const context = { auth: { user: null, loading: false }, team: null };
+
+    await expect(requireAuth(context)).rejects.toThrow();
+  });
+
+  it('requireAuth returns undefined when user is authenticated', async () => {
+    const context = { auth: { user: { id: '1' }, loading: false }, team: null };
+
+    const result = await requireAuth(context);
+    expect(result).toBeUndefined();
+  });
+
+  it('requireTeam throws redirect when user has no team', async () => {
+    const context = { auth: { user: { id: '1' }, loading: false }, team: null };
+
+    await expect(requireTeam(context)).rejects.toThrow();
+  });
+});
+```
+
+### Mocking Route Loader Data
+
+For component tests that consume loader data:
+
+```typescript
+import { vi } from 'vitest';
+
+// Mock the route module to provide loader data
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual('@tanstack/react-router');
+  return {
+    ...actual,
+    // Mock useLoaderData to return test data
+    useLoaderData: () => ({
+      league: { id: 1, name: 'Test League' },
+    }),
+    useParams: () => ({ leagueId: '1' }),
+    useNavigate: () => vi.fn(),
+  };
+});
 ```
 
 ## Quick Test Generation Prompts

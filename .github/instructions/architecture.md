@@ -14,14 +14,16 @@ This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supa
 ### Authentication Flow
 
 - Uses Supabase auth with `AuthProvider` context wrapping the entire app in `main.tsx`
-- Protected routes use `withProtection()` HOC wrapper from `routeHelpers.tsx`
+- Protected routes use `beforeLoad` guards in route definitions (`requireAuth`, `requireTeam`, `requireNoTeam`)
 - Registration includes automatic profile creation via `userProfileService`
+- Route guards throw `redirect()` to navigate away from unauthorized routes
 
 ### Routing Structure
 
-- React Router v7 with `BrowserRouter` and nested routes in `main.tsx`
-- Uses HOC wrappers (`withProtection()`) applied to components before route registration
-- Layout component wraps all routes
+- **TanStack Router** with code-based routing defined in `src/router.tsx`
+- Uses layout routes with `beforeLoad` guards for declarative route protection
+- Layout component wraps all routes via root route
+- Route tree hierarchy: `rootRoute` → layout routes → page routes
 - Landing page is public, dashboard/team pages require auth
 
 ### Service Layer
@@ -41,11 +43,11 @@ This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supa
 ## Technology Stack
 
 - **React 19** - Latest React features with TypeScript
-- **React Router v7** - Modern routing with HOC patterns
+- **TanStack Router** - Type-safe routing with data loading and route guards
 - **Supabase** - Authentication and backend services
 - **Tailwind CSS v4** - Styling with Vite plugin (not PostCSS-based)
 - **Vitest** - Test runner with React Testing Library
-- **Zod + React Hook Form** - Form validation and management
+- **Zod + React Hook Form** - Form validation and route params validation
 
 ## Component Patterns
 
@@ -72,30 +74,110 @@ This is a React 19 + TypeScript Vite application for F1 fantasy sports with Supa
 - Business logic in hooks like `useSlots.ts` for slot management
 - Generic type constraint: `<T extends { id: number }>`
 
-### Higher-Order Components (HOCs)
+### Route Guards (beforeLoad)
 
-#### Route Protection
-
-Use `withProtection()` HOC from `@/utils/routeHelpers` to wrap components requiring authentication:
+Use `beforeLoad` guards in route definitions for declarative authentication and authorization:
 
 ```typescript
-import { withProtection } from '@/utils/routeHelpers';
+import { requireAuth, requireTeam } from '@/lib/route-guards';
+import { createRoute, Outlet } from '@tanstack/react-router';
 
-const ProtectedLeagueList = withProtection(LeagueList);
-<Route path="/leagues" element={<ProtectedLeagueList />} />
+// Layout route with auth guard - all children inherit protection
+const authenticatedLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: '_authenticated',
+  beforeLoad: async ({ context }) => await requireAuth(context),
+  component: () => <Outlet />,
+});
+
+// Page route as child of layout - inherits auth protection
+const leaguesRoute = createRoute({
+  getParentRoute: () => authenticatedLayoutRoute,
+  path: 'leagues',
+  loader: async () => ({ leagues: await getMyLeagues() }),
+  component: LeagueList,
+});
 ```
 
-This wraps the component with `ProtectedRoute` logic while keeping route definitions clean.
+Available guards in `@/lib/route-guards.ts`:
+
+- `requireAuth` - Redirects to `/` if not authenticated
+- `requireTeam` - Redirects to `/create-team` if user has no team
+- `requireNoTeam` - Redirects to `/leagues` if user already has a team
 
 ## State Management Patterns
 
 ```typescript
+// Route data access (TanStack Router)
+import { Route } from '@tanstack/react-router';
+
 // Preferred slot management pattern
 const { slots, pool, add, remove } = useSlots(initialPool, initialSlots, 4);
 
 // Auth state access
 const { user, signIn, signOut, loading } = useAuth();
+
+const { leagues } = Route.useLoaderData(); // Type-safe loader data
+const { leagueId } = Route.useParams(); // Type-safe route params
+const navigate = Route.useNavigate(); // Type-safe navigation
 ```
+
+## Data Loading with Route Loaders
+
+TanStack Router uses loader functions to fetch data before component renders, eliminating loading state management in components.
+
+### Loader Pattern
+
+```typescript
+import { createRoute, notFound } from '@tanstack/react-router';
+import { z } from 'zod';
+
+// Zod schema for type-safe route params
+const leagueIdParamsSchema = z.object({
+  leagueId: z.coerce.number().int().positive(),
+});
+
+const leagueRoute = createRoute({
+  getParentRoute: () => teamRequiredLayoutRoute,
+  path: 'league/$leagueId',
+  loader: async ({ params }) => {
+    // Validate params with Zod
+    const result = leagueIdParamsSchema.safeParse(params);
+    if (!result.success) throw notFound({ routeId: ROUTE_ID });
+
+    const league = await getLeagueById(result.data.leagueId);
+    if (!league) throw notFound({ routeId: ROUTE_ID });
+
+    return { league };
+  },
+  component: LeagueComponent,
+  pendingComponent: LoadingSpinner,
+  pendingMs: 200, // Show pending after 200ms to prevent flash
+  staleTime: 10_000, // Consider fresh for 10 seconds
+  gcTime: 5 * 60_000, // Keep in memory for 5 minutes
+});
+```
+
+### Consuming Loader Data
+
+```typescript
+import { Route } from './router'; // Generated route type
+
+function LeagueComponent() {
+  // Type-safe access to loader data - no loading states needed
+  const { league } = Route.useLoaderData();
+
+  return <div>{league.name}</div>;
+}
+```
+
+### Key Loader Concepts
+
+- **Data loads before render** - No `useEffect` or loading state management
+- **Type-safe params** - Zod schemas validate and coerce route parameters
+- **SWR caching** - `staleTime` and `gcTime` prevent unnecessary refetches
+- **Pending components** - Show loading UI during data fetch
+- **Error handling** - Throw `notFound()` or errors caught by `errorComponent`
 
 ## Styling Guidelines
 
@@ -279,16 +361,26 @@ try {
 #### Component Error Pattern
 
 ```typescript
-// Use ErrorState for data fetching errors
+// Route-level error handling (preferred for route components)
+// Errors thrown in loaders are caught by the route's errorComponent:
+const leagueRoute = createRoute({
+  loader: async ({ params }) => {
+    const league = await getLeagueById(params.leagueId);
+    if (!league) throw notFound({ routeId: ROUTE_ID });
+    return { league };
+  },
+  errorComponent: ({ error }) => (
+    <ErrorFallback error={error} level="page" />
+  ),
+  notFoundComponent: () => (
+    <div>League not found</div>
+  ),
+});
+
+// Component-level error handling (for non-route errors)
 if (error) {
   return <ErrorState message={error} onRetry={() => refetch()} />;
 }
-
-if (loading) {
-  return <div role="status">Loading...</div>;
-}
-
-return <ComponentContent data={data} />;
 ```
 
 ## Accessibility Features
