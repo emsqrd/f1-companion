@@ -313,13 +313,15 @@ const leagueRoute = createRoute({
   getParentRoute: () => teamRequiredLayoutRoute,
   path: 'league/$leagueId',
   loader: async ({ params }) => {
+    const LEAGUE_ROUTE_ID = '/_authenticated/_team-required/league/$leagueId';
+
     // Validate and parse params using Zod schema
     // This automatically coerces string to number and validates constraints
     const validationResult = leagueIdParamsSchema.safeParse(params);
 
     if (!validationResult.success) {
       // Validation failed - return 404 for invalid league IDs
-      throw notFound({ routeId: '/_authenticated/_team-required/league/$leagueId' });
+      throw notFound({ routeId: LEAGUE_ROUTE_ID });
     }
 
     const { leagueId } = validationResult.data;
@@ -327,7 +329,7 @@ const leagueRoute = createRoute({
 
     // Return 404 if league doesn't exist
     if (!league) {
-      throw notFound({ routeId: '/_authenticated/_team-required/league/$leagueId' });
+      throw notFound({ routeId: LEAGUE_ROUTE_ID });
     }
 
     return { league };
@@ -380,13 +382,15 @@ const teamRoute = createRoute({
   getParentRoute: () => teamRequiredLayoutRoute,
   path: 'team/$teamId',
   loader: async ({ params }): Promise<{ team: TeamType }> => {
+    const TEAM_ROUTE_ID = '/_authenticated/_team-required/team/$teamId';
+
     // Validate and parse params using Zod schema
     // This automatically coerces string to number and validates constraints
     const validationResult = teamIdParamsSchema.safeParse(params);
 
     if (!validationResult.success) {
       // Validation failed - return 404 for invalid team IDs
-      throw notFound({ routeId: '/_authenticated/_team-required/team/$teamId' });
+      throw notFound({ routeId: TEAM_ROUTE_ID });
     }
 
     const { teamId } = validationResult.data;
@@ -394,7 +398,7 @@ const teamRoute = createRoute({
 
     // Return 404 if team doesn't exist
     if (!team) {
-      throw notFound({ routeId: '/_authenticated/_team-required/team/$teamId' });
+      throw notFound({ routeId: TEAM_ROUTE_ID });
     }
 
     return { team };
