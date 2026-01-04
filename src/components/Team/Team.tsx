@@ -1,47 +1,32 @@
 import type { Constructor, Driver } from '@/contracts/Role';
-import type { Team } from '@/contracts/Team';
-import { getTeamById } from '@/services/teamService';
-import { useParams } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import type { Team as TeamType } from '@/contracts/Team';
+import { useLoaderData } from '@tanstack/react-router';
+import { useMemo } from 'react';
 
 import { AppContainer } from '../AppContainer/AppContainer';
 import { ConstructorPicker } from '../ConstructorPicker/ConstructorPicker';
 import { DriverPicker } from '../DriverPicker/DriverPicker';
-import { ErrorState } from '../ErrorState/ErrorState';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
+/**
+ * Team component - displays team details with driver and constructor selection.
+ *
+ * Uses TanStack Router's loader pattern for data fetching:
+ * - Data is loaded before component renders (no content flash)
+ * - Loading state handled by route's pendingComponent
+ * - Errors handled by route's errorComponent
+ * - Team not found handled by route's notFoundComponent
+ *
+ * @returns The team details page with driver/constructor pickers
+ */
 export function Team() {
-  const params = useParams({ strict: false });
-  const teamId = 'teamId' in params ? params.teamId : undefined;
-
-  const [team, setTeam] = useState<Team | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchTeam = async () => {
-      if (!teamId) return;
-
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getTeamById(Number(teamId));
-        setTeam(data);
-      } catch {
-        // Error already captured by API client (5xx or network errors)
-        setError('Failed to load team. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTeam();
-  }, [teamId, refetchTrigger]);
-
-  const handleRetry = () => setRefetchTrigger((prev) => prev + 1);
+  // Get team data from route loader
+  // Type is inferred from the loader function in router.tsx
+  const { team } = useLoaderData({
+    from: '/_authenticated/_team-required/team/$teamId',
+  }) as { team: TeamType };
 
   // Memoize driver slot transformation to avoid recalculating on every render
   const initialDriverSlots = useMemo(() => {
@@ -62,28 +47,6 @@ export function Team() {
       return teamConstructor ? { ...teamConstructor, type: 'constructor' as const } : null;
     }) as (Constructor | null)[];
   }, [team?.constructors]);
-
-  if (error) {
-    return <ErrorState message={error} onRetry={handleRetry} />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center p-8 md:min-h-screen">
-        <div className="text-center">
-          <div
-            role="status"
-            className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"
-          ></div>
-          <p className="text-muted-foreground">Loading Team...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!team) {
-    return <div>Team not found</div>;
-  }
 
   return (
     <AppContainer maxWidth="md">

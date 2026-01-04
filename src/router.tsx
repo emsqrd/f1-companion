@@ -9,10 +9,12 @@ import { LeagueList } from '@/components/LeagueList/LeagueList';
 import { Team } from '@/components/Team/Team';
 import { SignInForm } from '@/components/auth/SignInForm/SignInForm';
 import { SignUpForm } from '@/components/auth/SignUpForm/SignUpForm';
+import type { Team as TeamType } from '@/contracts/Team';
 import type { UserProfile } from '@/contracts/UserProfile';
 import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
+import { getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
 import {
   ErrorComponent,
@@ -20,6 +22,7 @@ import {
   createRootRouteWithContext,
   createRoute,
   createRouter,
+  notFound,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
@@ -288,7 +291,7 @@ const leagueRoute = createRoute({
 
     // Return 404 if league doesn't exist
     if (!league) {
-      throw new Error('League not found');
+      throw notFound({ routeId: '/_authenticated/_team-required/league/$leagueId' });
     }
 
     return { league };
@@ -305,6 +308,15 @@ const leagueRoute = createRoute({
   pendingMs: 200, // Show pending after 200ms to prevent flash for fast loads
   staleTime: 10_000, // Consider fresh for 10 seconds
   gcTime: 5 * 60_000, // Keep in memory for 5 minutes
+  notFoundComponent: () => (
+    <div className="flex min-h-screen flex-col items-center justify-center">
+      <h1 className="mb-4 text-4xl font-bold">League Not Found</h1>
+      <p className="text-muted-foreground mb-4">The league you're looking for doesn't exist.</p>
+      <a href="/leagues" className="text-primary hover:underline">
+        Go to leagues
+      </a>
+    </div>
+  ),
   errorComponent: ({ error }) => (
     <ErrorBoundary level="page">
       <ErrorFallback error={error} level="page" onReset={() => window.location.reload()} />
@@ -315,23 +327,67 @@ const leagueRoute = createRoute({
 /**
  * Team detail route - displays a specific team with driver/constructor selections.
  *
- * Uses {@link requireTeam} guard to ensure user has a team before accessing.
- * Component wrapped in {@link ErrorBoundary} for section-level error isolation.
+ * Child of {@link teamRequiredLayoutRoute}, inherits auth and team protection.
+ * Uses {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading | loader}
+ * to fetch team data by ID before component renders.
+ *
+ * **Note:** Path params from TanStack Router are strings by default and must be
+ * converted to numbers for API calls. Validates that `teamId` is a valid positive integer.
+ *
+ * Implements
+ * {@link https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#stale-while-revalidate-caching | SWR caching}
+ * with `staleTime` and `gcTime` for optimal performance.
  *
  * @type {import('@tanstack/react-router').Route}
  */
 const teamRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/team/$teamId',
-  beforeLoad: async ({ context }) => {
-    await requireTeam(context);
+  getParentRoute: () => teamRequiredLayoutRoute,
+  path: 'team/$teamId',
+  loader: async ({ params }): Promise<{ team: TeamType }> => {
+    // TanStack Router params are strings by default
+    // We need to convert teamId to number for our API
+    const teamId = Number(params.teamId);
+
+    // Validate that teamId is a valid positive integer
+    if (isNaN(teamId) || teamId <= 0 || !Number.isInteger(teamId)) {
+      throw notFound({ routeId: '/_authenticated/_team-required/team/$teamId' });
+    }
+
+    const team = await getTeamById(teamId);
+
+    // Return 404 if team doesn't exist
+    if (!team) {
+      throw notFound({ routeId: '/_authenticated/_team-required/team/$teamId' });
+    }
+
+    return { team };
   },
-  component: () => (
-    <ErrorBoundary level="section">
-      <Team />
+  component: Team,
+  pendingComponent: () => (
+    <div role="status" className="flex w-full items-center justify-center p-8 md:min-h-screen">
+      <div className="text-center">
+        <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+        <p className="text-muted-foreground">Loading team...</p>
+      </div>
+    </div>
+  ),
+  pendingMs: 200, // Show pending after 200ms to prevent flash for fast loads
+  staleTime: 10_000, // Consider fresh for 10 seconds
+  gcTime: 5 * 60_000, // Keep in memory for 5 minutes
+  notFoundComponent: () => (
+    <div className="flex min-h-screen flex-col items-center justify-center">
+      <h1 className="mb-4 text-4xl font-bold">Team Not Found</h1>
+      <p className="text-muted-foreground mb-4">The team you're looking for doesn't exist.</p>
+      <a href="/leagues" className="text-primary hover:underline">
+        Go to leagues
+      </a>
+    </div>
+  ),
+  errorComponent: ({ error }) => (
+    <ErrorBoundary level="page">
+      <ErrorFallback error={error} level="page" onReset={() => window.location.reload()} />
     </ErrorBoundary>
   ),
-  errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
 /**

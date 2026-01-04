@@ -44,7 +44,7 @@ export function CreateTeam() {
       await refreshMyTeam();
 
       // Navigate - TanStack Router handles navigation transitions
-      navigate({ to: `/team/${createdTeam.id}` });
+      navigate({ to: '/team/$teamId', params: { teamId: String(createdTeam.id) } });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create team';
       setError(errorMessage);

@@ -38,7 +38,7 @@ export function PageHeader() {
   };
 
   const handleMyTeam = () => {
-    navigate({ to: `/team/${myTeamId}` });
+    navigate({ to: '/team/$teamId', params: { teamId: String(myTeamId) } });
   };
 
   const handleCreateTeam = () => {

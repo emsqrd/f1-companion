@@ -15,7 +15,7 @@ export function NoTeamGuard() {
   // with React's render cycle and preventing navigation during state updates
   useEffect(() => {
     if (!isCheckingTeam && hasTeam && myTeamId) {
-      navigate({ to: `/team/${myTeamId}`, replace: true });
+      navigate({ to: '/team/$teamId', params: { teamId: String(myTeamId) }, replace: true });
     }
   }, [myTeamId, hasTeam, isCheckingTeam, navigate]);
 

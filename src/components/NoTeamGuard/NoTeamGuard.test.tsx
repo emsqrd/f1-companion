@@ -57,7 +57,8 @@ describe('NoTeamGuard', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({
-          to: `/team/${mockTeam.id}`,
+          to: '/team/$teamId',
+          params: { teamId: String(mockTeam.id) },
           replace: true,
         });
       });
@@ -142,7 +143,8 @@ describe('NoTeamGuard', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith({
-          to: `/team/${mockTeam.id}`,
+          to: '/team/$teamId',
+          params: { teamId: String(mockTeam.id) },
           replace: true,
         });
       });

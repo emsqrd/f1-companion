@@ -269,18 +269,18 @@ This implementation plan provides a comprehensive, phased approach for migrating
 
 | Task     | Description                                                                         | Completed |
 | -------- | ----------------------------------------------------------------------------------- | --------- |
-| TASK-065 | Define team detail route (`/team/$teamId`) with typed params using Zod              |           |
-| TASK-066 | Add loader function to team route to fetch team details by ID before rendering      |           |
-| TASK-067 | Update Team component to use `useLoaderData()` for team data                        |           |
-| TASK-068 | Remove manual `useEffect` and state management from Team component                  |           |
-| TASK-069 | Add Zod schema validation for teamId parameter (number validation)                  |           |
-| TASK-070 | Update navigation to team pages to use type-safe params                             |           |
-| TASK-071 | Add pending component for team detail page                                          |           |
-| TASK-072 | Add errorComponent to route definition for team not found and fetch error scenarios |           |
-| TASK-073 | Test team loader with valid team ID                                                 |           |
-| TASK-074 | Test team loader with invalid team ID returns 404                                   |           |
-| TASK-075 | Test parameter validation catches non-numeric IDs                                   |           |
-| TASK-076 | Update Team component tests to mock loader data                                     |           |
+| TASK-065 | Define team detail route (`/team/$teamId`) with typed params using Zod              | ✅        |
+| TASK-066 | Add loader function to team route to fetch team details by ID before rendering      | ✅        |
+| TASK-067 | Update Team component to use `useLoaderData()` for team data                        | ✅        |
+| TASK-068 | Remove manual `useEffect` and state management from Team component                  | ✅        |
+| TASK-069 | Add Zod schema validation for teamId parameter (number validation)                  | ✅        |
+| TASK-070 | Update navigation to team pages to use type-safe params                             | ✅        |
+| TASK-071 | Add pending component for team detail page                                          | ✅        |
+| TASK-072 | Add errorComponent to route definition for team not found and fetch error scenarios | ✅        |
+| TASK-073 | Test team loader with valid team ID                                                 | ✅        |
+| TASK-074 | Test team loader with invalid team ID returns 404                                   | ✅        |
+| TASK-075 | Test parameter validation catches non-numeric IDs                                   | ✅        |
+| TASK-076 | Update Team component tests to mock loader data                                     | ✅        |
 
 **Testing for Phase 7:**
 
