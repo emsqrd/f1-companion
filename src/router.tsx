@@ -16,7 +16,6 @@ import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
 import { getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
-import { z } from 'zod';
 import {
   ErrorComponent,
   Outlet,
@@ -26,6 +25,7 @@ import {
   notFound,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { z } from 'zod';
 
 /**
  * Zod schema for validating league ID route parameter.
