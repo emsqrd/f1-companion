@@ -1,3 +1,4 @@
+import type { Team } from '@/contracts/Team';
 import type { RouterContext } from '@/lib/router-context';
 import { getMyTeam } from '@/services/teamService';
 import { redirect } from '@tanstack/react-router';
@@ -50,7 +51,7 @@ export async function requireAuth(context: RouterContext): Promise<void> {
  * rather than relying on async React context state.
  *
  * @param context - The router context containing auth and team state
- * @returns A promise that resolves when the team check is complete
+ * @returns A promise that resolves to the team to be merged into route context
  * @throws Redirects to `/create-team` if user doesn't have a team
  *
  * @example
@@ -68,7 +69,7 @@ export async function requireAuth(context: RouterContext): Promise<void> {
  *
  * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes | TanStack Router Authentication Guide}
  */
-export async function requireTeam(context: RouterContext): Promise<void> {
+export async function requireTeam(context: RouterContext): Promise<{ team: Team }> {
   // Ensure auth is ready first
   await requireAuth(context);
 
@@ -84,6 +85,11 @@ export async function requireTeam(context: RouterContext): Promise<void> {
       replace: true,
     });
   }
+
+  // Sync with TeamContext for components that need it
+  context.teamContext.setMyTeamId(team.id);
+
+  return { team };
 }
 
 /**
@@ -101,7 +107,7 @@ export async function requireTeam(context: RouterContext): Promise<void> {
  * problem.
  *
  * @param context - The router context containing auth and team state
- * @returns A promise that resolves when the team check is complete
+ * @returns A promise that returns null
  * @throws Redirects to `/leagues` if user already has a team
  *
  * @example
@@ -119,7 +125,7 @@ export async function requireTeam(context: RouterContext): Promise<void> {
  *
  * @see {@link https://tanstack.com/router/latest/docs/framework/react/guide/authenticated-routes | TanStack Router Authentication Guide}
  */
-export async function requireNoTeam(context: RouterContext): Promise<void> {
+export async function requireNoTeam(context: RouterContext): Promise<{ team: null }> {
   // Ensure auth is ready first
   await requireAuth(context);
 
@@ -133,4 +139,9 @@ export async function requireNoTeam(context: RouterContext): Promise<void> {
       replace: true,
     });
   }
+
+  // Sync with TeamContext for components that need it
+  context.teamContext.setMyTeamId(null);
+
+  return { team: null };
 }

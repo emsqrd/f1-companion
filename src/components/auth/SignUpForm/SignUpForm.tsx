@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveRegion } from '@/hooks/useLiveRegion';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { type FormEvent, useEffect, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { type FormEvent, useState } from 'react';
 
 export function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -17,17 +17,9 @@ export function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, signUp } = useAuth();
-  const navigate = useNavigate();
-  const { message, announce } = useLiveRegion();
+  const { signUp } = useAuth();
 
-  //TODO: Move this to a route guard instead
-  // Redirect authenticated users
-  useEffect(() => {
-    if (!isLoading && user) {
-      navigate({ to: '/account', replace: true });
-    }
-  }, [user, isLoading, navigate]);
+  const { message, announce } = useLiveRegion();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -53,7 +45,6 @@ export function SignUpForm() {
 
     try {
       await signUp(email, password, { displayName });
-      navigate({ to: '/create-team', replace: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
       setError(errorMessage);

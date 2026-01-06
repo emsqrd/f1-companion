@@ -40,7 +40,7 @@ function useInvalidateOnUserChange(userId: string | undefined, loading: boolean)
  */
 export function InnerApp() {
   const auth = useAuth();
-  const team = useTeam();
+  const teamContext = useTeam();
 
   useInvalidateOnUserChange(auth.user?.id, auth.loading);
 
@@ -57,5 +57,5 @@ export function InnerApp() {
     );
   }
 
-  return <RouterProvider router={router} context={{ auth, team }} />;
+  return <RouterProvider router={router} context={{ auth, teamContext, team: null }} />;
 }

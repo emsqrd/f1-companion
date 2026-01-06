@@ -1,8 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useTeam } from '@/hooks/useTeam';
 import { avatarEvents } from '@/lib/avatarEvents';
-import { userProfileService } from '@/services/userProfileService';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useLocation, useMatches, useNavigate } from '@tanstack/react-router';
 import { CircleUser, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -18,11 +17,19 @@ import {
 export function PageHeader() {
   const { user, signOut, loading } = useAuth();
   const { hasTeam, myTeamId } = useTeam();
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Get profile from authenticated route context if available
+  const matches = useMatches();
+  const authenticatedMatch = matches.find((m) => m.routeId === '/_authenticated');
+  const profile = authenticatedMatch?.context?.profile;
+
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | undefined>();
+  const [isImageLoading, setIsImageLoading] = useState(false);
+
+  const avatarUrl = profile?.avatarUrl || undefined;
+  const displayAvatarUrl = uploadedAvatarUrl ?? avatarUrl;
 
   const location = useLocation();
-
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
@@ -55,47 +62,15 @@ export function PageHeader() {
   };
 
   useEffect(() => {
-    let isCancelled = false;
-
-    const fetchUserProfile = async () => {
-      if (!user) {
-        if (!isCancelled) {
-          setAvatarUrl(undefined);
-        }
-        return;
-      }
-
-      try {
-        if (!isCancelled) {
-          setIsLoading(true);
-        }
-        const profile = await userProfileService.getCurrentProfile();
-        if (!isCancelled) {
-          setAvatarUrl(profile?.avatarUrl || undefined);
-        }
-      } catch {
-        // Error already captured by API client (5xx or network errors)
-        if (!isCancelled) {
-          setAvatarUrl(undefined);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchUserProfile();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [user]); // Only depend on user, not location
+    if (displayAvatarUrl) {
+      setIsImageLoading(true);
+    }
+  }, [displayAvatarUrl]);
 
   // Listen for avatar update events
   useEffect(() => {
     const unsubscribe = avatarEvents.subscribe((newAvatarUrl) => {
-      setAvatarUrl(newAvatarUrl);
+      setUploadedAvatarUrl(newAvatarUrl);
     });
 
     return unsubscribe;
@@ -137,12 +112,17 @@ export function PageHeader() {
                       size="icon"
                     >
                       <Avatar>
-                        <AvatarImage src={avatarUrl} alt="User avatar" />
+                        <AvatarImage
+                          src={displayAvatarUrl}
+                          alt="User avatar"
+                          onLoad={() => setIsImageLoading(false)}
+                          onError={() => setIsImageLoading(false)}
+                        />
                         <AvatarFallback>
                           <CircleUser className="size-8" />
                         </AvatarFallback>
                         {/* Loading Overlay */}
-                        {isLoading && (
+                        {isImageLoading && (
                           <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
                             <Loader2 className="h-6 w-6 animate-spin text-white" />
                           </div>

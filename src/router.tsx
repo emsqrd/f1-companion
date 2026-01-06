@@ -23,6 +23,7 @@ import {
   createRoute,
   createRouter,
   notFound,
+  redirect,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { z } from 'zod';
@@ -117,6 +118,15 @@ const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-in',
   component: SignInForm,
+  beforeLoad: async ({ context }) => {
+    // Redirect authenticated users to their appropriate page
+    if (context.auth.user) {
+      throw redirect({
+        to: context.team ? '/leagues' : '/create-team',
+        replace: true,
+      });
+    }
+  },
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
@@ -129,6 +139,15 @@ const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-up',
   component: SignUpForm,
+  beforeLoad: async ({ context }) => {
+    // Redirect authenticated users to their appropriate page
+    if (context.auth.user) {
+      throw redirect({
+        to: context.team ? '/leagues' : '/create-team',
+        replace: true,
+      });
+    }
+  },
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
@@ -148,7 +167,14 @@ const signUpRoute = createRoute({
 const authenticatedLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_authenticated',
-  beforeLoad: async ({ context }) => await requireAuth(context),
+  beforeLoad: async ({ context }) => {
+    await requireAuth(context);
+
+    // Fetch profile once at the layout level
+    const profile = await userProfileService.getCurrentProfile();
+
+    return { profile };
+  },
   component: () => <Outlet />,
 });
 
@@ -200,9 +226,7 @@ const accountRoute = createRoute({
 const noTeamLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_no-team',
-  beforeLoad: async ({ context }) => {
-    await requireNoTeam(context);
-  },
+  beforeLoad: async ({ context }) => requireNoTeam(context),
   component: () => <Outlet />,
 });
 
@@ -473,7 +497,9 @@ export const router = createRouter({
   context: {
     // Context will be provided by the RouterProvider in main.tsx
     auth: undefined!,
-    team: undefined!,
+    teamContext: undefined!,
+    // team: undefined!,
+    // profile: undefined!,
   },
   defaultPendingComponent: () => (
     <div role="status" className="flex min-h-screen items-center justify-center">
