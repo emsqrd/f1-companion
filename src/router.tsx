@@ -498,8 +498,8 @@ export const router = createRouter({
     // Context will be provided by the RouterProvider in main.tsx
     auth: undefined!,
     teamContext: undefined!,
-    // team: undefined!,
-    // profile: undefined!,
+    team: undefined!,
+    profile: undefined!,
   },
   defaultPendingComponent: () => (
     <div role="status" className="flex min-h-screen items-center justify-center">

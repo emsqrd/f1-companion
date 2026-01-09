@@ -31,7 +31,7 @@ vi.mock('@sentry/react', () => ({
 
 // Test component that consumes the team context
 function TestComponent() {
-  const { myTeamId, hasTeam, isCheckingTeam, refreshMyTeam } = useTeam();
+  const { myTeamId, hasTeam, setMyTeamId, refreshMyTeam } = useTeam();
 
   const handleRefreshTeam = () => {
     refreshMyTeam();
@@ -39,12 +39,14 @@ function TestComponent() {
 
   return (
     <div>
-      <div data-testid="team-id">{myTeamId ?? 'null'}</div>
-      <div data-testid="has-team">{hasTeam.toString()}</div>
-      <div data-testid="is-checking">{isCheckingTeam.toString()}</div>
-      <button onClick={handleRefreshTeam} data-testid="refresh-btn">
-        Refresh Team
-      </button>
+      <div role="status" aria-label="Team ID">
+        {myTeamId ?? 'null'}
+      </div>
+      <div role="status" aria-label="Has Team">
+        {hasTeam.toString()}
+      </div>
+      <button onClick={() => setMyTeamId(1)}>Set Team Id</button>
+      <button onClick={handleRefreshTeam}>Refresh Team</button>
     </div>
   );
 }
@@ -82,7 +84,8 @@ describe('TeamProvider', () => {
   });
 
   describe('Initial State', () => {
-    it('loads existing team on mount when user has a team', async () => {
+    it('loads existing team when refreshMyTeam is called', async () => {
+      const user = userEvent.setup();
       vi.mocked(getMyTeam).mockResolvedValue(mockTeam);
 
       render(
@@ -91,12 +94,27 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      expect(await screen.findByTestId('team-id')).toHaveTextContent('1');
-      expect(screen.getByTestId('has-team')).toHaveTextContent('true');
-      expect(screen.getByTestId('is-checking')).toHaveTextContent('false');
+      // Initially no team
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
+
+      // Manually trigger refresh
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
+
+      expect(
+        await screen.findByRole('status', { name: /team id/i }),
+      ).toHaveTextContent('1');
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'true',
+      );
     });
 
-    it('handles no team on mount when user has no team', async () => {
+    it('handles no team when user has no team', async () => {
+      const user = userEvent.setup();
       vi.mocked(getMyTeam).mockResolvedValue(null);
 
       render(
@@ -105,14 +123,25 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait for async operation to complete
-      await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
 
-      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
-      expect(screen.getByTestId('has-team')).toHaveTextContent('false');
+      // Trigger refresh - should still be null
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
+
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
     });
 
-    it('does not fetch team when user is not authenticated', async () => {
+    it('does not fetch team when user is not authenticated', () => {
       vi.mocked(useAuth).mockReturnValue({
         user: null,
         session: null,
@@ -128,17 +157,19 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait a bit to ensure no calls are made
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
       expect(getMyTeam).not.toHaveBeenCalled();
-      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
-      expect(screen.getByTestId('has-team')).toHaveTextContent('false');
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
     });
   });
 
   describe('Team Management', () => {
     it('refreshes team when refreshMyTeam is called', async () => {
+      const user = userEvent.setup();
       vi.mocked(getMyTeam).mockResolvedValue(mockTeam);
 
       render(
@@ -147,21 +178,32 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      await screen.findByText('1', { selector: '[data-testid="team-id"]' });
+      // Initially no team
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
 
+      // First refresh
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
+      expect(
+        await screen.findByRole('status', { name: /team id/i }),
+      ).toHaveTextContent('1');
+
+      // Update mock and refresh again
       const updatedTeam = createMockTeam({ id: 3, name: 'Refreshed Team' });
       vi.mocked(getMyTeam).mockResolvedValue(updatedTeam);
 
-      await userEvent.click(screen.getByTestId('refresh-btn'));
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
 
       expect(
-        await screen.findByText('3', { selector: '[data-testid="team-id"]' }),
-      ).toBeInTheDocument();
+        await screen.findByRole('status', { name: /team id/i }),
+      ).toHaveTextContent('3');
 
       expect(getMyTeam).toHaveBeenCalledTimes(2);
     });
 
     it('handles error during team fetch silently', async () => {
+      const user = userEvent.setup();
       const fetchError = new Error('Failed to fetch team');
       vi.mocked(getMyTeam).mockRejectedValue(fetchError);
 
@@ -171,17 +213,31 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait for async operation to complete
-      await screen.findByText('false', { selector: '[data-testid="is-checking"]' });
+      // Initially null
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
 
-      // Error is handled silently, team ID is null
-      expect(screen.getByTestId('team-id')).toHaveTextContent('null');
-      expect(screen.getByTestId('has-team')).toHaveTextContent('false');
+      // Try to refresh - should handle error silently
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
+
+      // Error is handled silently, team ID remains null
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'false',
+      );
     });
   });
 
   describe('User State Changes', () => {
-    it('refetches team when user changes from null to authenticated', async () => {
+    it('can fetch team after user changes from null to authenticated', async () => {
+      const user = userEvent.setup();
+
       // Start with no user
       vi.mocked(useAuth).mockReturnValue({
         user: null,
@@ -198,10 +254,10 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
-      // Wait a bit to ensure no calls are made
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
       expect(getMyTeam).not.toHaveBeenCalled();
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
 
       // User logs in
       vi.mocked(useAuth).mockReturnValue({
@@ -221,10 +277,20 @@ describe('TeamProvider', () => {
         </TeamProvider>,
       );
 
+      // Team is still null until manually refreshed
+      expect(screen.getByRole('status', { name: /team id/i })).toHaveTextContent(
+        'null',
+      );
+
+      // Manually trigger refresh
+      await user.click(screen.getByRole('button', { name: /refresh team/i }));
+
       expect(
-        await screen.findByText('1', { selector: '[data-testid="team-id"]' }),
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('has-team')).toHaveTextContent('true');
+        await screen.findByRole('status', { name: /team id/i }),
+      ).toHaveTextContent('1');
+      expect(screen.getByRole('status', { name: /has team/i })).toHaveTextContent(
+        'true',
+      );
     });
   });
 });

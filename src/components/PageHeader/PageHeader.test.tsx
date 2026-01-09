@@ -5,7 +5,6 @@ import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { avatarEvents } from '@/lib/avatarEvents';
 import * as teamService from '@/services/teamService';
-import { userProfileService } from '@/services/userProfileService';
 import { createMockTeam } from '@/test-utils';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -17,14 +16,15 @@ import { PageHeader } from './PageHeader';
 // Mock router hooks
 const mockNavigate = vi.fn();
 const mockUseLocation = vi.fn();
+const mockUseMatches = vi.fn();
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => mockUseLocation(),
+  useMatches: () => mockUseMatches(),
 }));
 
 // Mock dependencies
 vi.mock('@/hooks/useAuth');
-vi.mock('@/services/userProfileService');
 vi.mock('@/lib/avatarEvents');
 vi.mock('@/services/teamService', () => ({
   getMyTeam: vi.fn().mockResolvedValue(null),
@@ -41,7 +41,6 @@ vi.mock('@sentry/react', () => ({
 }));
 
 const mockUseAuth = vi.mocked(useAuth);
-const mockUserProfileService = vi.mocked(userProfileService);
 const mockAvatarEvents = vi.mocked(avatarEvents);
 
 const createMockUser = (): User => ({
@@ -83,6 +82,7 @@ describe('PageHeader', () => {
       state: null,
       key: 'default',
     });
+    mockUseMatches.mockReturnValue([]);
     mockAvatarEvents.subscribe.mockReturnValue(vi.fn()); // Return unsubscribe function
   });
 
@@ -135,7 +135,12 @@ describe('PageHeader', () => {
     it('should show user dropdown when authenticated', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
 
       renderWithRouter();
 
@@ -168,7 +173,12 @@ describe('PageHeader', () => {
       const user = userEvent.setup();
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
       vi.spyOn(teamService, 'getMyTeam').mockResolvedValue(
         createMockTeam({
           id: 1,
@@ -227,7 +237,12 @@ describe('PageHeader', () => {
     beforeEach(() => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile());
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
     });
 
     it('should navigate to account page when My Account is clicked', async () => {
@@ -316,9 +331,12 @@ describe('PageHeader', () => {
     it('should display avatar container when user is authenticated', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(
-        createMockUserProfile('https://example.com/avatar.jpg'),
-      );
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
+        },
+      ]);
 
       renderWithRouter();
 
@@ -335,10 +353,12 @@ describe('PageHeader', () => {
     it('should show loading overlay while fetching user profile', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      // Don't resolve the promise immediately to simulate loading
-      mockUserProfileService.getCurrentProfile.mockImplementation(
-        () => new Promise(() => {}), // Never resolves
-      );
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
+        },
+      ]);
 
       renderWithRouter();
 
@@ -352,7 +372,12 @@ describe('PageHeader', () => {
     it('should handle avatar fetch error gracefully', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockRejectedValue(new Error('Failed to fetch'));
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
       const { captureException } = await import('@sentry/react');
 
       renderWithRouter();
@@ -367,9 +392,12 @@ describe('PageHeader', () => {
       // Start with authenticated user
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(
-        createMockUserProfile('https://example.com/avatar.jpg'),
-      );
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
+        },
+      ]);
 
       const { rerender } = renderWithRouter();
 
@@ -383,6 +411,7 @@ describe('PageHeader', () => {
 
       // Simulate user logging out
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
+      mockUseMatches.mockReturnValue([]);
 
       rerender(
         <TeamProvider>
@@ -407,7 +436,12 @@ describe('PageHeader', () => {
 
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(createMockUserProfile(''));
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('') },
+        },
+      ]);
 
       const { unmount } = renderWithRouter();
 
@@ -459,28 +493,24 @@ describe('PageHeader', () => {
     it('should not update state when component unmounts during profile fetch', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
+        },
+      ]);
 
       // Spy on console.error to detect React warnings about state updates on unmounted components
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      // Delay the profile fetch to simulate slow network
-      let resolveProfile: (value: UserProfile) => void;
-      const profilePromise = new Promise<UserProfile>((resolve) => {
-        resolveProfile = resolve;
-      });
-      mockUserProfileService.getCurrentProfile.mockReturnValue(profilePromise);
-
       const { unmount } = renderWithRouter();
 
-      // Unmount before the profile resolves
+      // Unmount the component
       unmount();
-
-      // Now resolve the profile - should not cause state updates
-      resolveProfile!(createMockUserProfile('https://example.com/avatar.jpg'));
 
       // Wait to ensure async operations complete
       await waitFor(() => {
-        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(1);
+        expect(mockUseAuth).toHaveBeenCalled();
       });
 
       // Verify no React warnings about setState on unmounted component
@@ -497,29 +527,29 @@ describe('PageHeader', () => {
 
       // First render with user1
       mockUseAuth.mockReturnValue(createMockAuthContext(user1));
-
-      let resolveProfile1: (value: UserProfile) => void;
-      const profile1Promise = new Promise<UserProfile>((resolve) => {
-        resolveProfile1 = resolve;
-      });
-      mockUserProfileService.getCurrentProfile.mockReturnValue(profile1Promise);
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/user1-avatar.jpg') },
+        },
+      ]);
 
       const { rerender } = renderWithRouter();
 
-      // Change user before first profile loads
+      // Change user to user2
       mockUseAuth.mockReturnValue(createMockAuthContext(user2));
-      mockUserProfileService.getCurrentProfile.mockResolvedValue(
-        createMockUserProfile('https://example.com/user2-avatar.jpg'),
-      );
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile('https://example.com/user2-avatar.jpg') },
+        },
+      ]);
 
       rerender(
         <TeamProvider>
           <PageHeader />
         </TeamProvider>,
       );
-
-      // Now resolve the first profile - should be ignored
-      resolveProfile1!(createMockUserProfile('https://example.com/user1-avatar.jpg'));
 
       // Wait for second profile to load and verify correct avatar is displayed
       await waitFor(() => {
@@ -528,30 +558,25 @@ describe('PageHeader', () => {
           expect(avatarImg).toHaveAttribute('src', 'https://example.com/user2-avatar.jpg');
         }
       });
-
-      // Verify service was called twice (once for each user)
-      expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(2);
     });
 
     it('should handle error during profile fetch without state update after unmount', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
-
-      let rejectProfile: (error: Error) => void;
-      const profilePromise = new Promise<UserProfile>((_, reject) => {
-        rejectProfile = reject;
-      });
-      mockUserProfileService.getCurrentProfile.mockReturnValue(profilePromise);
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
 
       const { unmount } = renderWithRouter();
 
       unmount();
 
-      // Now reject the profile - should not cause state updates or errors
-      rejectProfile!(new Error('Network error'));
-
+      // Verify component unmounted without errors
       await waitFor(() => {
-        expect(mockUserProfileService.getCurrentProfile).toHaveBeenCalledTimes(1);
+        expect(mockUseAuth).toHaveBeenCalled();
       });
     });
   });

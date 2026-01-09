@@ -35,7 +35,7 @@ describe('useTeam', () => {
     const mockContext: TeamContextType = {
       myTeamId: null,
       hasTeam: false,
-      isCheckingTeam: false,
+      setMyTeamId: vi.fn(),
       refreshMyTeam: vi.fn(),
     };
 

@@ -39,7 +39,7 @@ const createMockAuthContext = (user: { id: string } | null, loading = false): Au
 const createMockTeamContext = (): TeamContextType => ({
   hasTeam: false,
   myTeamId: null,
-  isCheckingTeam: false,
+  setMyTeamId: vi.fn(),
   refreshMyTeam: vi.fn(),
 });
 

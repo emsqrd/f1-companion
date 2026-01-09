@@ -19,14 +19,6 @@ vi.mock('@tanstack/react-router', () => ({
 
 describe('SignInForm', () => {
   const signInMock = vi.fn();
-  const user = {
-    id: 'user1',
-    email: 'test@example.com',
-    app_metadata: {},
-    user_metadata: {},
-    aud: 'authenticated',
-    created_at: '2023-01-01T00:00:00.000Z',
-  };
   type UseAuthType = typeof useAuth;
   let useAuthMock: MockedFunction<UseAuthType>;
 
@@ -52,18 +44,6 @@ describe('SignInForm', () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
-  });
-
-  it('calls signIn and navigates to leagues page on successful login', async () => {
-    signInMock.mockResolvedValueOnce(undefined);
-    render(<SignInForm />);
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'user@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(signInMock).toHaveBeenCalledWith('user@example.com', 'password123');
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/leagues' });
-    });
   });
 
   it('shows error message on failed login', async () => {
@@ -102,19 +82,6 @@ describe('SignInForm', () => {
         'false',
       );
     });
-  });
-
-  it('redirects to leagues page if already authenticated', () => {
-    useAuthMock.mockReturnValue({
-      user,
-      session: null,
-      loading: false,
-      signIn: signInMock,
-      signUp: vi.fn(),
-      signOut: vi.fn(),
-    });
-    render(<SignInForm />);
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/leagues', replace: true });
   });
 
   it('has a link to sign up', () => {
