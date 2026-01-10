@@ -134,9 +134,11 @@ export function PageHeader() {
                     {user ? (
                       <>
                         <DropdownMenuItem onClick={handleAccountClick}>My Account</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
                         {hasTeam ? (
-                          <DropdownMenuItem onClick={handleMyTeam}>My Team</DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={handleLeagues}>My Leagues</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleMyTeam}>My Team</DropdownMenuItem>
+                          </>
                         ) : (
                           <DropdownMenuItem onClick={handleCreateTeam}>
                             Create Team

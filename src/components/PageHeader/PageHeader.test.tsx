@@ -1,11 +1,11 @@
 import type { AuthContextType } from '@/contexts/AuthContext';
+import type { TeamContextType } from '@/contexts/TeamContext';
 // Import mocked modules
 import { TeamProvider } from '@/contexts/TeamContext.tsx';
 import type { UserProfile } from '@/contracts/UserProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useTeam } from '@/hooks/useTeam';
 import { avatarEvents } from '@/lib/avatarEvents';
-import * as teamService from '@/services/teamService';
-import { createMockTeam } from '@/test-utils';
 import type { User } from '@supabase/supabase-js';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -25,6 +25,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 // Mock dependencies
 vi.mock('@/hooks/useAuth');
+vi.mock('@/hooks/useTeam');
 vi.mock('@/lib/avatarEvents');
 vi.mock('@/services/teamService', () => ({
   getMyTeam: vi.fn().mockResolvedValue(null),
@@ -41,6 +42,7 @@ vi.mock('@sentry/react', () => ({
 }));
 
 const mockUseAuth = vi.mocked(useAuth);
+const mockUseTeam = vi.mocked(useTeam);
 const mockAvatarEvents = vi.mocked(avatarEvents);
 
 const createMockUser = (): User => ({
@@ -52,6 +54,14 @@ const createMockUser = (): User => ({
   user_metadata: {},
   created_at: '2023-01-01T00:00:00Z',
   updated_at: '2023-01-01T00:00:00Z',
+});
+
+const createMockTeamContext = (options: Partial<TeamContextType> = {}): TeamContextType => ({
+  hasTeam: false,
+  myTeamId: null,
+  setMyTeamId: vi.fn(),
+  refreshMyTeam: vi.fn(),
+  ...options,
 });
 
 const createMockAuthContext = (user: User | null, loading = false): AuthContextType => ({
@@ -99,6 +109,7 @@ describe('PageHeader', () => {
   describe('Logo and branding', () => {
     it('should display the F1 Fantasy Sports logo and title', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
+      mockUseTeam.mockReturnValue(createMockTeamContext());
 
       renderWithRouter();
 
@@ -109,6 +120,7 @@ describe('PageHeader', () => {
     it('should navigate to home page when logo is clicked', async () => {
       const user = userEvent.setup();
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
+      mockUseTeam.mockReturnValue(createMockTeamContext());
 
       renderWithRouter();
 
@@ -120,6 +132,7 @@ describe('PageHeader', () => {
     it('should navigate to home page when logo is activated with keyboard', async () => {
       const user = userEvent.setup();
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
+      mockUseTeam.mockReturnValue(createMockTeamContext());
 
       renderWithRouter();
 
@@ -135,6 +148,7 @@ describe('PageHeader', () => {
     it('should show user dropdown when authenticated', async () => {
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+      mockUseTeam.mockReturnValue(createMockTeamContext());
       mockUseMatches.mockReturnValue([
         {
           routeId: '/_authenticated',
@@ -151,9 +165,10 @@ describe('PageHeader', () => {
       expect(dropdownButtons).toHaveLength(2);
     });
 
-    it('should show sign in option when not authenticated', async () => {
+    it('shows sign in option when not authenticated', async () => {
       const user = userEvent.setup();
       mockUseAuth.mockReturnValue(createMockAuthContext(null));
+      mockUseTeam.mockReturnValue(createMockTeamContext());
 
       renderWithRouter();
 
@@ -169,23 +184,18 @@ describe('PageHeader', () => {
       }
     });
 
-    it('should show authenticated user menu options when logged in', async () => {
+    it('shows authenticated user menu options when user has a team', async () => {
       const user = userEvent.setup();
       const mockUser = createMockUser();
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+      mockUseTeam.mockReturnValue(createMockTeamContext({ hasTeam: true }));
+
       mockUseMatches.mockReturnValue([
         {
           routeId: '/_authenticated',
           context: { profile: createMockUserProfile() },
         },
       ]);
-      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue(
-        createMockTeam({
-          id: 1,
-          name: 'Test Team',
-          ownerName: 'Test Owner',
-        }),
-      );
 
       renderWithRouter();
 
@@ -199,6 +209,37 @@ describe('PageHeader', () => {
         await user.click(dropdownTrigger);
         expect(screen.getByRole('menuitem', { name: 'My Account' })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: 'My Leagues' })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'My Team' })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Sign Out' })).toBeInTheDocument();
+      }
+    });
+
+    it('shows authenticated user menu options when user does not have a team', async () => {
+      const user = userEvent.setup();
+      const mockUser = createMockUser();
+      mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
+      mockUseTeam.mockReturnValue(createMockTeamContext({ hasTeam: false }));
+
+      mockUseMatches.mockReturnValue([
+        {
+          routeId: '/_authenticated',
+          context: { profile: createMockUserProfile() },
+        },
+      ]);
+
+      renderWithRouter();
+
+      const dropdownButtons = screen.getAllByRole('button');
+      const dropdownTrigger = dropdownButtons.find(
+        (button) => button.getAttribute('aria-haspopup') === 'menu',
+      );
+
+      expect(dropdownTrigger).toBeInTheDocument();
+
+      if (dropdownTrigger) {
+        await user.click(dropdownTrigger);
+        expect(screen.getByRole('menuitem', { name: 'My Account' })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Create Team' })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: 'Sign Out' })).toBeInTheDocument();
       }
     });
@@ -261,15 +302,10 @@ describe('PageHeader', () => {
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/account' });
     });
 
-    it('should navigate to dashboard when Dashboard is clicked', async () => {
+    it('navigates to users leagues list when My Leagues is clicked', async () => {
       const user = userEvent.setup();
-      vi.spyOn(teamService, 'getMyTeam').mockResolvedValue(
-        createMockTeam({
-          id: 1,
-          name: 'Test Team',
-          ownerName: 'Test Owner',
-        }),
-      );
+      mockUseTeam.mockReturnValue(createMockTeamContext({ hasTeam: true }));
+
       renderWithRouter();
 
       const dropdownButtons = screen.getAllByRole('button');
