@@ -1,4 +1,3 @@
-import type { Session, User } from '@supabase/supabase-js';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -84,24 +83,6 @@ describe('SignUpForm', () => {
     expect(errorAlert).toHaveTextContent(/password must be at least 6 characters/i);
   });
 
-  it('calls signUp with correct values and navigates on success', async () => {
-    mockSignUp.mockResolvedValue(undefined);
-    setup();
-    fireEvent.change(screen.getByLabelText(/display name/i), { target: { value: 'Test User' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText(/confirm password/i), {
-      target: { value: 'password123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /sign up/i }));
-    await waitFor(() => {
-      expect(mockSignUp).toHaveBeenCalledWith('test@example.com', 'password123', {
-        displayName: 'Test User',
-      });
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/create-team', replace: true });
-    });
-  });
-
   it('shows error if signUp throws', async () => {
     mockSignUp.mockRejectedValue(new Error('Sign up failed'));
     setup();
@@ -145,40 +126,5 @@ describe('SignUpForm', () => {
       'true',
     );
     await waitFor(() => expect(mockSignUp).toHaveBeenCalled());
-  });
-
-  it('redirects authenticated user to dashboard', () => {
-    // Mock an authenticated user
-    const mockUser: User = {
-      id: '123',
-      email: 'user@example.com',
-      aud: 'authenticated',
-      app_metadata: {},
-      user_metadata: {},
-      created_at: '2023-01-01T00:00:00Z',
-    };
-
-    const mockSession: Session = {
-      access_token: 'token',
-      refresh_token: 'refresh',
-      expires_in: 3600,
-      expires_at: Date.now() / 1000 + 3600,
-      token_type: 'bearer',
-      user: mockUser,
-    };
-
-    vi.mocked(useAuth).mockReturnValue({
-      user: mockUser,
-      session: mockSession,
-      loading: false,
-      signIn: vi.fn(),
-      signUp: mockSignUp,
-      signOut: vi.fn(),
-    });
-
-    setup();
-
-    // Verify navigation was called with correct parameters
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/account', replace: true });
   });
 });

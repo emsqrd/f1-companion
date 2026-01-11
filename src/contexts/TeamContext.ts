@@ -3,7 +3,7 @@ import { createContext } from 'react';
 export interface TeamContextType {
   myTeamId: number | null;
   hasTeam: boolean;
-  isCheckingTeam: boolean;
+  setMyTeamId: (id: number | null) => void;
   refreshMyTeam: () => Promise<void>;
 }
 

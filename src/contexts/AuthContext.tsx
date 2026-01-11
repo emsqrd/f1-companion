@@ -1,7 +1,5 @@
 import type { CreateProfileData } from '@/contracts/CreateProfileData';
 import { supabase } from '@/lib/supabase';
-import { userProfileService } from '@/services/userProfileService';
-import * as Sentry from '@sentry/react';
 import type { Session, User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 
@@ -41,24 +39,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, additionalData: CreateProfileData) => {
-    const { data, error } = await supabase.auth.signUp({
+    if (!additionalData.displayName?.trim()) {
+      throw new Error('Display name is required');
+    }
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          displayName: additionalData.displayName,
+        },
+      },
     });
-    if (error) throw error;
 
-    if (data.user) {
-      try {
-        await userProfileService.registerUser(additionalData);
-      } catch (apiError) {
-        Sentry.captureException(apiError, {
-          contexts: {
-            auth: { userId: data.user.id, email },
-          },
-        });
-        throw new Error('Registration completed but profile setup failed.');
-      }
-    }
+    if (error) throw error;
   };
 
   const signOut = async () => {

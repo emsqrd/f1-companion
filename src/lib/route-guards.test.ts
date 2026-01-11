@@ -59,12 +59,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(() => requireAuth(context)).rejects.toThrow();
@@ -84,12 +86,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(requireAuth(context)).resolves.not.toThrow();
@@ -105,12 +109,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       try {
@@ -136,12 +142,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(() => requireTeam(context)).rejects.toThrow();
@@ -168,12 +176,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: 1,
           hasTeam: true,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(requireTeam(context)).resolves.not.toThrow();
@@ -189,12 +199,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       // Should throw redirect because requireAuth is called first and user is not authenticated
@@ -212,12 +224,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       try {
@@ -249,12 +263,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: 1,
           hasTeam: true,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(() => requireNoTeam(context)).rejects.toThrow();
@@ -275,12 +291,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: null,
           hasTeam: false,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       await expect(requireNoTeam(context)).resolves.not.toThrow();
@@ -296,12 +314,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: 1,
           hasTeam: true,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       // Should throw redirect because requireAuth is called first and user is not authenticated
@@ -325,12 +345,14 @@ describe('route-guards', () => {
           signUp: vi.fn(),
           signOut: vi.fn(),
         },
-        team: {
+        teamContext: {
           myTeamId: 1,
           hasTeam: true,
-          isCheckingTeam: false,
+          setMyTeamId: vi.fn(),
           refreshMyTeam: vi.fn(),
         },
+        team: null,
+        profile: null,
       };
 
       try {

@@ -14,8 +14,9 @@ import type { UserProfile } from '@/contracts/UserProfile';
 import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
-import { getTeamById } from '@/services/teamService';
+import { getMyTeam, getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
+import * as Sentry from '@sentry/react';
 import {
   ErrorComponent,
   Outlet,
@@ -23,6 +24,7 @@ import {
   createRoute,
   createRouter,
   notFound,
+  redirect,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { z } from 'zod';
@@ -71,6 +73,45 @@ const teamIdParamsSchema = z.object({
  * @see {@link https://tanstack.com/router/latest/docs/framework/react/api/router/createRootRouteWithContextFunction | createRootRouteWithContext}
  */
 const rootRoute = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: async ({ context }) => {
+    // Fetch profile and team for authenticated users at root level
+    // This makes them available to all routes (both public and authenticated)
+    if (context.auth.user) {
+      try {
+        const [profile, team] = await Promise.all([
+          userProfileService.getCurrentProfile(),
+          getMyTeam(),
+        ]);
+
+        // Sync team ID with TeamContext for components that need it
+        context.teamContext.setMyTeamId(team?.id ?? null);
+
+        return { profile };
+      } catch (error) {
+        // Gracefully degrade if profile/team fetching fails
+        // The app should still work without profile data
+        const fetchError = error instanceof Error ? error : new Error('Failed to fetch user data');
+
+        Sentry.captureException(fetchError, {
+          tags: {
+            component: 'rootRoute',
+            operation: 'beforeLoad',
+          },
+          contexts: {
+            user: {
+              userId: context.auth.user.id,
+            },
+          },
+        });
+
+        // Ensure TeamContext is in a known state
+        context.teamContext.setMyTeamId(null);
+
+        return { profile: null };
+      }
+    }
+    return { profile: null };
+  },
   component: () => (
     <>
       <Layout />
@@ -117,6 +158,15 @@ const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-in',
   component: SignInForm,
+  beforeLoad: async ({ context }) => {
+    // Redirect authenticated users to their appropriate page
+    if (context.auth.user) {
+      throw redirect({
+        to: context.teamContext.hasTeam ? '/leagues' : '/create-team',
+        replace: true,
+      });
+    }
+  },
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
@@ -129,6 +179,15 @@ const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/sign-up',
   component: SignUpForm,
+  beforeLoad: async ({ context }) => {
+    // Redirect authenticated users to their appropriate page
+    if (context.auth.user) {
+      throw redirect({
+        to: context.teamContext.hasTeam ? '/leagues' : '/create-team',
+        replace: true,
+      });
+    }
+  },
   errorComponent: ({ error }) => <ErrorComponent error={error} />,
 });
 
@@ -148,7 +207,10 @@ const signUpRoute = createRoute({
 const authenticatedLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_authenticated',
-  beforeLoad: async ({ context }) => await requireAuth(context),
+  beforeLoad: async ({ context }) => {
+    await requireAuth(context);
+    // Profile is now fetched at root route level and available via context
+  },
   component: () => <Outlet />,
 });
 
@@ -200,9 +262,7 @@ const accountRoute = createRoute({
 const noTeamLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_no-team',
-  beforeLoad: async ({ context }) => {
-    await requireNoTeam(context);
-  },
+  beforeLoad: async ({ context }) => requireNoTeam(context),
   component: () => <Outlet />,
 });
 
@@ -473,7 +533,9 @@ export const router = createRouter({
   context: {
     // Context will be provided by the RouterProvider in main.tsx
     auth: undefined!,
+    teamContext: undefined!,
     team: undefined!,
+    profile: undefined!,
   },
   defaultPendingComponent: () => (
     <div role="status" className="flex min-h-screen items-center justify-center">

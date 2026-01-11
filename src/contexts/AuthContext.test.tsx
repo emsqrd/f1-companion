@@ -232,19 +232,10 @@ describe('AuthProvider', () => {
       });
     });
 
-    it('should call signUp with profile creation', async () => {
+    it('should call signUp and handle success', async () => {
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: mockUser, session: mockSession },
         error: null,
-      });
-
-      vi.mocked(userProfileService.registerUser).mockResolvedValue({
-        id: 'profile-id',
-        email: 'test@example.com',
-        firstName: '',
-        lastName: '',
-        displayName: 'Test User',
-        avatarUrl: '',
       });
 
       render(
@@ -258,10 +249,11 @@ describe('AuthProvider', () => {
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',
-      });
-
-      expect(userProfileService.registerUser).toHaveBeenCalledWith({
-        displayName: 'Test User',
+        options: {
+          data: {
+            displayName: 'Test User',
+          },
+        },
       });
     });
 
@@ -285,41 +277,12 @@ describe('AuthProvider', () => {
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',
+        options: {
+          data: {
+            displayName: 'Test User',
+          },
+        },
       });
-    });
-
-    it('should handle profile creation failure during signUp', async () => {
-      // Suppress console.error for this test since we're intentionally testing error handling
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      vi.mocked(supabase.auth.signUp).mockResolvedValue({
-        data: { user: mockUser, session: mockSession },
-        error: null,
-      });
-
-      vi.mocked(userProfileService.registerUser).mockRejectedValue(
-        new Error('Profile creation failed'),
-      );
-
-      render(
-        <AuthProvider>
-          <TestComponent />
-        </AuthProvider>,
-      );
-
-      // Verify the service methods are called correctly
-      await userEvent.click(screen.getByTestId('sign-up-btn'));
-
-      expect(supabase.auth.signUp).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password',
-      });
-
-      expect(userProfileService.registerUser).toHaveBeenCalledWith({
-        displayName: 'Test User',
-      });
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should not attempt profile creation if signUp returns no user', async () => {

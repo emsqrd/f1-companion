@@ -7,25 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useLiveRegion } from '@/hooks/useLiveRegion';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { type FormEvent, useEffect, useState } from 'react';
+import { Link } from '@tanstack/react-router';
+import { type FormEvent, useState } from 'react';
 
 export function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, signIn } = useAuth();
-  const navigate = useNavigate();
-  const { message, announce } = useLiveRegion();
+  const { signIn } = useAuth();
 
-  //TODO: Move this to a route guard instead
-  // Redirect authenticated users
-  useEffect(() => {
-    if (!isLoading && user) {
-      navigate({ to: '/leagues', replace: true });
-    }
-  }, [user, isLoading, navigate]);
+  const { message, announce } = useLiveRegion();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +26,6 @@ export function SignInForm() {
 
     try {
       await signIn(email, password);
-      navigate({ to: '/leagues' });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? `Login failed: ${error.message}` : 'Login Failed';
