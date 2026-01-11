@@ -18,10 +18,10 @@ export function PageHeader() {
   const { user, signOut, loading } = useAuth();
   const { hasTeam, myTeamId } = useTeam();
 
-  // Get profile from authenticated route context if available
+  // Get profile from route context (fetched at root route level)
   const matches = useMatches();
-  const authenticatedMatch = matches.find((m) => m.routeId === '/_authenticated');
-  const profile = authenticatedMatch?.context?.profile;
+  const rootMatch = matches.find((m) => m.routeId === '__root__');
+  const profile = rootMatch?.context?.profile;
 
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState<string | undefined>();
   const [isImageLoading, setIsImageLoading] = useState(false);

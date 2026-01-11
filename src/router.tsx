@@ -14,7 +14,7 @@ import type { UserProfile } from '@/contracts/UserProfile';
 import { requireAuth, requireNoTeam, requireTeam } from '@/lib/route-guards';
 import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
-import { getTeamById } from '@/services/teamService';
+import { getMyTeam, getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
 import {
   ErrorComponent,
@@ -72,6 +72,22 @@ const teamIdParamsSchema = z.object({
  * @see {@link https://tanstack.com/router/latest/docs/framework/react/api/router/createRootRouteWithContextFunction | createRootRouteWithContext}
  */
 const rootRoute = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: async ({ context }) => {
+    // Fetch profile and team for authenticated users at root level
+    // This makes them available to all routes (both public and authenticated)
+    if (context.auth.user) {
+      const [profile, team] = await Promise.all([
+        userProfileService.getCurrentProfile(),
+        getMyTeam(),
+      ]);
+
+      // Sync team ID with TeamContext for components that need it
+      context.teamContext.setMyTeamId(team?.id ?? null);
+
+      return { profile };
+    }
+    return { profile: null };
+  },
   component: () => (
     <>
       <Layout />
@@ -169,11 +185,7 @@ const authenticatedLayoutRoute = createRoute({
   id: '_authenticated',
   beforeLoad: async ({ context }) => {
     await requireAuth(context);
-
-    // Fetch profile once at the layout level
-    const profile = await userProfileService.getCurrentProfile();
-
-    return { profile };
+    // Profile is now fetched at root route level and available via context
   },
   component: () => <Outlet />,
 });

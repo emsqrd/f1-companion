@@ -151,7 +151,7 @@ describe('PageHeader', () => {
       mockUseTeam.mockReturnValue(createMockTeamContext());
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
@@ -192,7 +192,7 @@ describe('PageHeader', () => {
 
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
@@ -222,7 +222,7 @@ describe('PageHeader', () => {
 
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
@@ -280,7 +280,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
@@ -369,7 +369,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
         },
       ]);
@@ -391,7 +391,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
         },
       ]);
@@ -410,7 +410,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
@@ -430,7 +430,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
         },
       ]);
@@ -474,7 +474,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('') },
         },
       ]);
@@ -531,7 +531,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/avatar.jpg') },
         },
       ]);
@@ -565,7 +565,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(user1));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/user1-avatar.jpg') },
         },
       ]);
@@ -576,7 +576,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(user2));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile('https://example.com/user2-avatar.jpg') },
         },
       ]);
@@ -601,7 +601,7 @@ describe('PageHeader', () => {
       mockUseAuth.mockReturnValue(createMockAuthContext(mockUser));
       mockUseMatches.mockReturnValue([
         {
-          routeId: '/_authenticated',
+          routeId: '__root__',
           context: { profile: createMockUserProfile() },
         },
       ]);
