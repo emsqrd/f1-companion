@@ -39,6 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, additionalData: CreateProfileData) => {
+    if (!additionalData.displayName?.trim()) {
+      throw new Error('Display name is required');
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,

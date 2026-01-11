@@ -27,6 +27,22 @@ export function SignUpForm() {
     setError(null);
 
     // Client-side validation
+    if (!displayName.trim()) {
+      const errorMessage = 'Display name is required';
+      setError(errorMessage);
+      announce(errorMessage);
+      setIsLoading(false);
+      return;
+    }
+
+    if (displayName.trim().length > 50) {
+      const errorMessage = 'Display name must be less than 50 characters';
+      setError(errorMessage);
+      announce(errorMessage);
+      setIsLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       const errorMessage = 'Passwords do not match';
       setError(errorMessage);

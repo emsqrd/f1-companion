@@ -16,6 +16,7 @@ import type { RouterContext } from '@/lib/router-context';
 import { getLeagueById, getMyLeagues } from '@/services/leagueService';
 import { getMyTeam, getTeamById } from '@/services/teamService';
 import { userProfileService } from '@/services/userProfileService';
+import * as Sentry from '@sentry/react';
 import {
   ErrorComponent,
   Outlet,
@@ -76,15 +77,38 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
     // Fetch profile and team for authenticated users at root level
     // This makes them available to all routes (both public and authenticated)
     if (context.auth.user) {
-      const [profile, team] = await Promise.all([
-        userProfileService.getCurrentProfile(),
-        getMyTeam(),
-      ]);
+      try {
+        const [profile, team] = await Promise.all([
+          userProfileService.getCurrentProfile(),
+          getMyTeam(),
+        ]);
 
-      // Sync team ID with TeamContext for components that need it
-      context.teamContext.setMyTeamId(team?.id ?? null);
+        // Sync team ID with TeamContext for components that need it
+        context.teamContext.setMyTeamId(team?.id ?? null);
 
-      return { profile };
+        return { profile };
+      } catch (error) {
+        // Gracefully degrade if profile/team fetching fails
+        // The app should still work without profile data
+        const fetchError = error instanceof Error ? error : new Error('Failed to fetch user data');
+
+        Sentry.captureException(fetchError, {
+          tags: {
+            component: 'rootRoute',
+            operation: 'beforeLoad',
+          },
+          contexts: {
+            user: {
+              userId: context.auth.user.id,
+            },
+          },
+        });
+
+        // Ensure TeamContext is in a known state
+        context.teamContext.setMyTeamId(null);
+
+        return { profile: null };
+      }
     }
     return { profile: null };
   },
@@ -138,7 +162,7 @@ const signInRoute = createRoute({
     // Redirect authenticated users to their appropriate page
     if (context.auth.user) {
       throw redirect({
-        to: context.team ? '/leagues' : '/create-team',
+        to: context.teamContext.hasTeam ? '/leagues' : '/create-team',
         replace: true,
       });
     }
@@ -159,7 +183,7 @@ const signUpRoute = createRoute({
     // Redirect authenticated users to their appropriate page
     if (context.auth.user) {
       throw redirect({
-        to: context.team ? '/leagues' : '/create-team',
+        to: context.teamContext.hasTeam ? '/leagues' : '/create-team',
         replace: true,
       });
     }
