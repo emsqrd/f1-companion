@@ -1,4 +1,4 @@
-import type { Team } from '@/contracts/Team';
+import type { Team as TeamType } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
 import { createMockTeam } from '@/test-utils';
 import { render, screen, within } from '@testing-library/react';
@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from './Leaderboard';
 
-const mockTeams: Team[] = [
+const mockTeams: TeamType[] = [
   createMockTeam({ id: 1, name: 'Team 1', ownerName: 'Owner 1' }),
   createMockTeam({ id: 2, name: 'Team 2', ownerName: 'Owner 2' }),
   createMockTeam({ id: 3, name: 'Team 3', ownerName: 'Owner 3' }),
@@ -17,9 +17,25 @@ vi.mock('@/services/teamService', () => ({
 }));
 
 const mockNavigate = vi.fn();
+const mockUseLoaderData = vi.fn();
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
+  useLoaderData: (opts: { from: string }) => mockUseLoaderData(opts),
+  Link: ({
+    children,
+    to,
+    params,
+    ...props
+  }: {
+    children: React.ReactNode;
+    to: string;
+    params?: Record<string, string>;
+  }) => (
+    <a href={to.replace(`$teamId`, params?.teamId || '')} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 describe('Leaderboard', () => {
@@ -122,6 +138,16 @@ describe('Leaderboard', () => {
       // Test rank by position (first cell in row)
       expect(within(firstRow).getAllByRole('cell')[0]).toHaveTextContent('1');
       expect(within(lastRow).getAllByRole('cell')[0]).toHaveTextContent('20');
+    });
+
+    it('renders team links with type-safe navigation', async () => {
+      vi.mocked(getTeams).mockResolvedValue(mockTeams);
+
+      render(<Leaderboard />);
+
+      const teamLink = screen.findByRole('link', { name: /view team: team 1/i });
+      expect(await teamLink).toBeInTheDocument();
+      expect(await teamLink).toHaveAttribute('href', '/team/1');
     });
   });
 });

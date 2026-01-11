@@ -21,7 +21,7 @@ vi.mock('@tanstack/react-router', () => ({
     to: string;
     params?: Record<string, string>;
   }) => (
-    <a href={`${to}/${params?.leagueId || ''}`} {...props}>
+    <a href={to.replace(`$leagueId`, params?.leagueId || '')} {...props}>
       {children}
     </a>
   ),
@@ -84,6 +84,6 @@ describe('LeagueList', () => {
 
     const leagueLink = screen.getByRole('link', { name: /view league: league 1/i });
     expect(leagueLink).toBeInTheDocument();
-    expect(leagueLink).toHaveAttribute('href', '/league/$leagueId/1');
+    expect(leagueLink).toHaveAttribute('href', '/league/1');
   });
 });

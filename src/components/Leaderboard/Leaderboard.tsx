@@ -1,5 +1,6 @@
 import type { Team } from '@/contracts/Team';
 import { getTeams } from '@/services/teamService';
+import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 import { AppContainer } from '../AppContainer/AppContainer';
@@ -29,15 +30,24 @@ export function Leaderboard() {
         </TableHeader>
         <TableBody>
           {teams.map((team, index) => (
-            <TableRow key={team.id}>
-              <TableCell className="text-center align-top text-lg">{index + 1}</TableCell>
-              <TableCell className="min-w-48 align-top">
-                <div className="flex flex-col">
-                  <div className="text-lg">{team.name}</div>
-                  <div className="text-muted-foreground">{team.ownerName}</div>
-                </div>
-              </TableCell>
-            </TableRow>
+            <Link
+              key={team.id}
+              to="/team/$teamId"
+              params={{ teamId: String(team.id) }}
+              className="hover:bg-accent focus:ring-ring contents cursor-pointer transition-colors focus:outline-none"
+              aria-label={`View team: ${team.name}`}
+              preload="intent"
+            >
+              <TableRow>
+                <TableCell className="text-center align-top text-lg">{index + 1}</TableCell>
+                <TableCell className="min-w-48 align-top">
+                  <div className="flex flex-col">
+                    <div className="text-lg">{team.name}</div>
+                    <div className="text-muted-foreground">{team.ownerName}</div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </Link>
           ))}
         </TableBody>
       </Table>
